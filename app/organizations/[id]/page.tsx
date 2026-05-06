@@ -33,7 +33,7 @@ export default async function OrganizationDetailPage({
     notFound();
   }
 
-  // Fetch teams within this organization
+  // Teams in this org
   const { data: teams } = await supabase
     .from("teams")
     .select("id, name, sport_or_activity, age_group, description, created_at")
@@ -41,15 +41,48 @@ export default async function OrganizationDetailPage({
     .eq("owner_id", user?.id)
     .order("created_at", { ascending: false });
 
-  const teamCount = teams?.length || 0;
+  // Events in this org
+  const { data: events } = await supabase
+    .from("events")
+    .select("id, name, event_type, status, start_date, end_date, goal_amount, goal_type")
+    .eq("organization_id", id)
+    .eq("owner_id", user?.id)
+    .order("created_at", { ascending: false });
 
-  // For sidebar: check if user has any teams across all orgs
+  const teamCount = teams?.length || 0;
+  const eventCount = events?.length || 0;
+
+  // For sidebar
   const { count: totalTeamCount } = await supabase
     .from("teams")
     .select("*", { count: "exact", head: true })
     .eq("owner_id", user?.id);
 
+  const { count: totalPlayerCount } = await supabase
+    .from("players")
+    .select("*", { count: "exact", head: true })
+    .eq("owner_id", user?.id);
+
+  const { count: totalEventCount } = await supabase
+    .from("events")
+    .select("*", { count: "exact", head: true })
+    .eq("owner_id", user?.id);
+
   const hasTeams = (totalTeamCount || 0) > 0;
+  const hasPlayers = (totalPlayerCount || 0) > 0;
+  const hasEvent = (totalEventCount || 0) > 0;
+
+  // helper to format dates nicely
+  const formatDateRange = (start: string | null, end: string | null) => {
+    if (!start && !end) return null;
+    const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
+    if (start && end) {
+      const s = new Date(start).toLocaleDateString("en-US", opts);
+      const e = new Date(end).toLocaleDateString("en-US", { ...opts, year: "numeric" });
+      return `${s} – ${e}`;
+    }
+    return new Date(start || end!).toLocaleDateString("en-US", { ...opts, year: "numeric" });
+  };
 
   return (
     <div className="dashboard">
@@ -71,7 +104,12 @@ export default async function OrganizationDetailPage({
       </header>
 
       <div className="dashboard-layout">
-        <OnboardingSidebar hasOrganization={true} hasTeams={hasTeams} />
+        <OnboardingSidebar
+          hasOrganization={true}
+          hasTeams={hasTeams}
+          hasPlayers={hasPlayers}
+          hasEvent={hasEvent}
+        />
 
         <main className="dashboard-main-with-sidebar">
           <div className="breadcrumb">
@@ -100,6 +138,7 @@ export default async function OrganizationDetailPage({
             </Tooltip>
           </div>
 
+          {/* TEAMS SECTION */}
           {teamCount === 0 ? (
             <div className="empty-state">
               <div className="empty-state-icon">
@@ -150,16 +189,72 @@ export default async function OrganizationDetailPage({
             </>
           )}
 
-          <div className="dashboard-card" style={{ marginTop: "32px" }}>
-            <h2 className="dashboard-card-title">
-              Events
-              <span className="coming-soon-tag">Slice 4.4</span>
-            </h2>
-            <p className="dashboard-card-text">
-              Once you have teams with players, you'll create Camps and
-              Tournaments here — with weekly challenges, sponsor QR codes,
-              and prize structures.
-            </p>
+          {/* EVENTS SECTION */}
+          <div style={{ marginTop: "40px" }}>
+            {eventCount === 0 && teamCount > 0 ? (
+              <div className="empty-state">
+                <div className="empty-state-icon">
+                  <span style={{ fontSize: "48px" }}>🏆</span>
+                </div>
+                <h2 className="empty-state-title">Create Your First Event</h2>
+                <p className="empty-state-text">
+                  An event is a Camp (one team competing internally) or Tournament
+                  (multiple teams competing). It's where your players take on
+                  challenges and earn sponsorships.
+                </p>
+                <Link href={`/organizations/${org.id}/events/new`} className="btn-primary-link">
+                  Create Your First Event →
+                </Link>
+                <div style={{ marginTop: "16px" }}>
+                  <Tooltip text="A Camp is one team competing internally — players compete against each other for prizes. A Tournament is multiple teams competing against each other for the team-level prize.">
+                    <a className="help-link">❓ What's the difference between a Camp and a Tournament?</a>
+                  </Tooltip>
+                </div>
+              </div>
+            ) : eventCount > 0 ? (
+              <>
+                <div className="section-header">
+                  <h2 className="section-heading">Events</h2>
+                  <Tooltip text="Create another Camp or Tournament for this organization.">
+                    <Link href={`/organizations/${org.id}/events/new`} className="btn-add">
+                      + Create Event
+                    </Link>
+                  </Tooltip>
+                </div>
+
+                <div className="org-grid">
+                  {events?.map((event) => (
+                    <Link
+                      href={`/events/${event.id}`}
+                      key={event.id}
+                      className="org-card"
+                    >
+                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "12px" }}>
+                        <span className="org-card-type-pill">
+                          {event.event_type === "camp" ? "Camp" : "Tournament"}
+                        </span>
+                        <span className={`status-pill status-${event.status || "draft"}`}>
+                          {event.status === "active" ? "Active" : event.status === "completed" ? "Completed" : "Draft"}
+                        </span>
+                      </div>
+                      <h3 className="org-card-name">{event.name}</h3>
+                      {formatDateRange(event.start_date, event.end_date) && (
+                        <p className="org-card-location">
+                          {formatDateRange(event.start_date, event.end_date)}
+                        </p>
+                      )}
+                      {event.goal_amount && (
+                        <p className="event-goal-text">
+                          Goal: ${Number(event.goal_amount).toLocaleString()}
+                          {event.goal_type === "per_player" ? " per player" : " per team"}
+                        </p>
+                      )}
+                      <div className="org-card-action">Manage →</div>
+                    </Link>
+                  ))}
+                </div>
+              </>
+            ) : null}
           </div>
         </main>
       </div>

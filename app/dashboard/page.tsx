@@ -35,8 +35,12 @@ export default async function DashboardPage() {
   const { count: playerCount } = await supabase
     .from("players")
     .select("*", { count: "exact", head: true })
-    .eq("owner_id", user?.id)
-    .eq("is_active", true);
+    .eq("owner_id", user?.id);
+
+  const { count: eventCount } = await supabase
+    .from("events")
+    .select("*", { count: "exact", head: true })
+    .eq("owner_id", user?.id);
 
   const displayName = profile.full_name.trim().split(" ")[0];
 
@@ -44,6 +48,7 @@ export default async function DashboardPage() {
   const hasOrganization = orgCount > 0;
   const hasTeams = (teamCount || 0) > 0;
   const hasPlayers = (playerCount || 0) > 0;
+  const hasEvent = (eventCount || 0) > 0;
 
   return (
     <div className="dashboard">
@@ -65,7 +70,9 @@ export default async function DashboardPage() {
           </Link>
 
           <div className="dashboard-user-section">
-            <span className="dashboard-user-email">{profile.full_name}</span>
+            <span className="dashboard-user-email">
+              {profile.full_name}
+            </span>
             <LogoutButton />
           </div>
         </div>
@@ -76,6 +83,7 @@ export default async function DashboardPage() {
           hasOrganization={hasOrganization}
           hasTeams={hasTeams}
           hasPlayers={hasPlayers}
+          hasEvent={hasEvent}
         />
 
         <main className="dashboard-main-with-sidebar">
@@ -120,9 +128,23 @@ export default async function DashboardPage() {
               <div>
                 <h3 className="welcome-banner-title">Step 3: Add players to your roster</h3>
                 <p className="welcome-banner-text">
-                  Click into one of your teams below, then add players one at a
-                  time or <strong>upload a CSV from TeamSnap, GameChanger, SportsEngine</strong>,
-                  or any spreadsheet.
+                  Click into one of your teams below, then add the players who
+                  will be competing. You can add them one at a time or import a
+                  CSV from TeamSnap, GameChanger, or SportsEngine.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {hasPlayers && !hasEvent && (
+            <div className="welcome-banner">
+              <div className="welcome-banner-icon">🏆</div>
+              <div>
+                <h3 className="welcome-banner-title">Step 4: Create your first event</h3>
+                <p className="welcome-banner-text">
+                  An event is a Camp (one team) or Tournament (multiple teams)
+                  where your players compete to raise money. Click into your
+                  organization to create one.
                 </p>
               </div>
             </div>
