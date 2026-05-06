@@ -14,7 +14,15 @@ export default async function DashboardPage() {
     .eq("id", user?.id)
     .single();
 
+  // Fetch user's organizations
+  const { data: organizations } = await supabase
+    .from("organizations")
+    .select("id, name, org_type, city, state, created_at")
+    .eq("owner_id", user?.id)
+    .order("created_at", { ascending: false });
+
   const displayName = profile?.full_name || user?.email?.split("@")[0] || "Coach";
+  const orgCount = organizations?.length || 0;
 
   return (
     <div className="dashboard">
@@ -23,7 +31,7 @@ export default async function DashboardPage() {
           <span className="dashboard-ticker-live">● PLATFORM PREVIEW</span>
           <span>You're in the early access program</span>
           <span>·</span>
-          <span>Phase 4 features coming soon</span>
+          <span>Phase 4 features rolling out</span>
         </div>
       </div>
 
@@ -48,38 +56,61 @@ export default async function DashboardPage() {
           Here's where you'll manage your teams and earn²keep events.
         </p>
 
-        <div className="dashboard-card">
-          <h2 className="dashboard-card-title">
-            Your Teams
-            <span className="coming-soon-tag">Coming Soon</span>
-          </h2>
-          <p className="dashboard-card-text">
-            Create and manage your teams here. Add players, upload roster photos,
-            and organize your members by age group or skill tier.
-          </p>
-        </div>
+        {orgCount === 0 ? (
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <span style={{ fontSize: "48px" }}>🏆</span>
+            </div>
+            <h2 className="empty-state-title">Let's start with your organization</h2>
+            <p className="empty-state-text">
+              An organization is your school, club, church, troop, or gym.
+              You'll create teams and run events under your organization.
+            </p>
+            <Link href="/organizations/new" className="btn-primary-link">
+              Create Your First Organization →
+            </Link>
+          </div>
+        ) : (
+          <>
+            <div className="section-header">
+              <h2 className="section-heading">Your Organizations</h2>
+              <Link href="/organizations/new" className="btn-add">
+                + Add Organization
+              </Link>
+            </div>
 
-        <div className="dashboard-card">
-          <h2 className="dashboard-card-title">
-            Your Events
-            <span className="coming-soon-tag">Coming Soon</span>
-          </h2>
-          <p className="dashboard-card-text">
-            Create Camps and Tournaments. Set entry fees, pick weekly challenges,
-            and track participant progress.
-          </p>
-        </div>
+            <div className="org-grid">
+              {organizations?.map((org) => (
+                <Link
+                  href={`/organizations/${org.id}`}
+                  key={org.id}
+                  className="org-card"
+                >
+                  <div className="org-card-type-pill">{org.org_type || "Organization"}</div>
+                  <h3 className="org-card-name">{org.name}</h3>
+                  {(org.city || org.state) && (
+                    <p className="org-card-location">
+                      {[org.city, org.state].filter(Boolean).join(", ")}
+                    </p>
+                  )}
+                  <div className="org-card-action">Manage →</div>
+                </Link>
+              ))}
+            </div>
 
-        <div className="dashboard-card">
-          <h2 className="dashboard-card-title">
-            Submissions To Verify
-            <span className="coming-soon-tag">Coming Soon</span>
-          </h2>
-          <p className="dashboard-card-text">
-            When players submit their challenge videos, you'll review them here
-            with one-tap approve, reject, or adjust.
-          </p>
-        </div>
+            <div className="dashboard-card" style={{ marginTop: "32px" }}>
+              <h2 className="dashboard-card-title">
+                Coming Next
+                <span className="coming-soon-tag">Slice 4.2</span>
+              </h2>
+              <p className="dashboard-card-text">
+                Once you've created your organization, the next slice will let
+                you create teams within it (e.g., "Lincoln Lions U14" inside
+                "Lincoln Middle School").
+              </p>
+            </div>
+          </>
+        )}
       </main>
     </div>
   );
