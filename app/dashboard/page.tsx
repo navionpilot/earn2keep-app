@@ -3,6 +3,7 @@ import LogoutButton from "@/components/LogoutButton";
 import OnboardingSidebar from "@/components/OnboardingSidebar";
 import Tooltip from "@/components/Tooltip";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -16,6 +17,11 @@ export default async function DashboardPage() {
     .eq("id", user?.id)
     .single();
 
+  // If full_name is missing or empty, send user to profile completion page
+  if (!profile?.full_name || profile.full_name.trim().length === 0) {
+    redirect("/profile/complete");
+  }
+
   // Fetch user's organizations
   const { data: organizations } = await supabase
     .from("organizations")
@@ -23,10 +29,7 @@ export default async function DashboardPage() {
     .eq("owner_id", user?.id)
     .order("created_at", { ascending: false });
 
-  // Real name display - use full_name from profile, fallback gracefully
-  const displayName = profile?.full_name?.trim()
-    ? profile.full_name.trim().split(" ")[0]
-    : "Coach";
+  const displayName = profile.full_name.trim().split(" ")[0];
 
   const orgCount = organizations?.length || 0;
   const hasOrganization = orgCount > 0;
@@ -52,7 +55,7 @@ export default async function DashboardPage() {
 
           <div className="dashboard-user-section">
             <span className="dashboard-user-email">
-              {profile?.full_name?.trim() || user?.email}
+              {profile.full_name}
             </span>
             <LogoutButton />
           </div>
