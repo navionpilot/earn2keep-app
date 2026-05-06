@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
+import Tooltip from "@/components/Tooltip";
 
 export default function NewOrganizationPage() {
   const [name, setName] = useState("");
@@ -81,6 +82,9 @@ export default function NewOrganizationPage() {
             <div>
               <label htmlFor="name" className="form-label">
                 Organization name <span className="required">*</span>
+                <Tooltip text="The official name of your school, club, church, troop, or gym. This is what sponsors and players will see.">
+                  <span className="help-icon">?</span>
+                </Tooltip>
               </label>
               <input
                 id="name"
@@ -97,6 +101,9 @@ export default function NewOrganizationPage() {
             <div>
               <label htmlFor="orgType" className="form-label">
                 Type <span className="required">*</span>
+                <Tooltip text="Pick the category that best fits your group. This helps us suggest relevant challenges later.">
+                  <span className="help-icon">?</span>
+                </Tooltip>
               </label>
               <select
                 id="orgType"
@@ -146,6 +153,9 @@ export default function NewOrganizationPage() {
                 />
               </div>
             </div>
+            <p className="form-hint">
+              Optional, but useful for matching you with local sponsors later.
+            </p>
 
             <div>
               <label htmlFor="description" className="form-label">

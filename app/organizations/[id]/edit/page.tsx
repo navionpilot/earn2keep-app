@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
+import Tooltip from "@/components/Tooltip";
 
 export default function EditOrganizationPage() {
   const params = useParams();
@@ -108,6 +109,9 @@ export default function EditOrganizationPage() {
             <div>
               <label htmlFor="name" className="form-label">
                 Organization name <span className="required">*</span>
+                <Tooltip text="The official name of your school, club, church, troop, or gym.">
+                  <span className="help-icon">?</span>
+                </Tooltip>
               </label>
               <input
                 id="name"
