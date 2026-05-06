@@ -64,8 +64,10 @@ export default async function TeamDetailPage({
   const hasTeams = (totalTeamCount || 0) > 0;
   const hasPlayers = (totalPlayerCount || 0) > 0;
 
-  const playerNeedsInfo = (p: { last_name: string | null; date_of_birth: string | null; parent_email: string | null }) => {
-    return !p.last_name || !p.date_of_birth || !p.parent_email;
+  // "Needs info" only shows for CSV-imported rows where the last name was missing.
+  // Manually-added players are NEVER flagged - the coach intentionally chose what to fill in.
+  const playerNeedsInfo = (p: { last_name: string | null; imported_from: string | null }) => {
+    return Boolean(p.imported_from) && !p.last_name;
   };
 
   return (
@@ -195,7 +197,7 @@ export default async function TeamDetailPage({
                           <td className="roster-name">
                             {player.first_name} {player.last_name || ""}
                             {needsInfo && (
-                              <Tooltip text="This player is missing some details (last name, date of birth, or parent email). Click Edit to fill them in.">
+                              <Tooltip text="This player was imported from a CSV without a last name. Click Edit to add it.">
                                 <span className="needs-info-pill">⚠ Needs info</span>
                               </Tooltip>
                             )}
