@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Earn2Keep — Coach App",
-  description: "The fundraiser where participants actually earn it.",
+  title: "earn²keep — Coach App",
+  description: "Earn it. Keep it.",
 };
 
 export default function RootLayout({

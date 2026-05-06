@@ -37,11 +37,16 @@ export default function LoginPage() {
     <div className="auth-page">
       <div className="auth-card">
         <Link href="/" className="auth-logo">
-          <span className="auth-logo-mark">E2K</span>
-          <span className="auth-logo-name">Earn2Keep</span>
+          <span className="logo-text">
+            earn<sup className="logo-sup">2</sup>keep
+          </span>
         </Link>
 
-        <h1 className="auth-title">Welcome back</h1>
+        <div style={{ textAlign: "center" }}>
+          <span className="auth-eyebrow">★ COACH ACCESS ★</span>
+        </div>
+
+        <h1 className="auth-title">Welcome Back</h1>
         <p className="auth-subtitle">Log in to manage your teams and events</p>
 
         <form className="auth-form" onSubmit={handleLogin}>
@@ -80,7 +85,7 @@ export default function LoginPage() {
           {error && <div className="alert alert-error">{error}</div>}
 
           <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? "Logging in..." : "Log in"}
+            {loading ? "Logging in..." : "Log in →"}
           </button>
         </form>
 
@@ -94,8 +99,8 @@ export default function LoginPage() {
         </div>
 
         <div className="auth-footer">
-          New to Earn2Keep?{" "}
-          <Link href="/signup" style={{ fontWeight: 600 }}>
+          New to earn²keep?{" "}
+          <Link href="/signup" style={{ fontWeight: 700 }}>
             Create an account
           </Link>
         </div>

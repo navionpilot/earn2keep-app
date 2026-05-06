@@ -37,11 +37,12 @@ export default function ForgotPasswordPage() {
     <div className="auth-page">
       <div className="auth-card">
         <Link href="/" className="auth-logo">
-          <span className="auth-logo-mark">E2K</span>
-          <span className="auth-logo-name">Earn2Keep</span>
+          <span className="logo-text">
+            earn<sup className="logo-sup">2</sup>keep
+          </span>
         </Link>
 
-        <h1 className="auth-title">Reset your password</h1>
+        <h1 className="auth-title">Reset Password</h1>
 
         {success ? (
           <>
@@ -50,7 +51,7 @@ export default function ForgotPasswordPage() {
               reset link has been sent. Check your inbox.
             </p>
             <div className="auth-footer">
-              <Link href="/login" style={{ fontWeight: 600 }}>
+              <Link href="/login" style={{ fontWeight: 700 }}>
                 Back to login
               </Link>
             </div>
@@ -81,13 +82,13 @@ export default function ForgotPasswordPage() {
               {error && <div className="alert alert-error">{error}</div>}
 
               <button type="submit" className="btn-primary" disabled={loading}>
-                {loading ? "Sending..." : "Send reset link"}
+                {loading ? "Sending..." : "Send reset link →"}
               </button>
             </form>
 
             <div className="auth-footer">
               Remembered it?{" "}
-              <Link href="/login" style={{ fontWeight: 600 }}>
+              <Link href="/login" style={{ fontWeight: 700 }}>
                 Back to login
               </Link>
             </div>

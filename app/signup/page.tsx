@@ -25,7 +25,6 @@ export default function SignupPage() {
 
     const supabase = createClient();
 
-    // Create the auth user
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
@@ -43,7 +42,6 @@ export default function SignupPage() {
       return;
     }
 
-    // Create the profile row in our profiles table
     if (data.user) {
       const { error: profileError } = await supabase.from("profiles").insert({
         id: data.user.id,
@@ -53,8 +51,6 @@ export default function SignupPage() {
       });
 
       if (profileError) {
-        // The auth user was created but the profile insert failed.
-        // We log it but still show success since they can confirm their email.
         console.error("Profile creation error:", profileError);
       }
     }
@@ -68,18 +64,19 @@ export default function SignupPage() {
       <div className="auth-page">
         <div className="auth-card">
           <Link href="/" className="auth-logo">
-            <span className="auth-logo-mark">E2K</span>
-            <span className="auth-logo-name">Earn2Keep</span>
+            <span className="logo-text">
+              earn<sup className="logo-sup">2</sup>keep
+            </span>
           </Link>
 
-          <h1 className="auth-title">Check your email</h1>
+          <h1 className="auth-title">Check Your Email</h1>
           <p className="auth-subtitle">
             We sent a confirmation link to <strong>{email}</strong>. Click the link
             to verify your account, then come back and log in.
           </p>
 
           <div className="auth-footer">
-            <Link href="/login" style={{ fontWeight: 600 }}>
+            <Link href="/login" style={{ fontWeight: 700 }}>
               Back to login
             </Link>
           </div>
@@ -92,12 +89,17 @@ export default function SignupPage() {
     <div className="auth-page">
       <div className="auth-card">
         <Link href="/" className="auth-logo">
-          <span className="auth-logo-mark">E2K</span>
-          <span className="auth-logo-name">Earn2Keep</span>
+          <span className="logo-text">
+            earn<sup className="logo-sup">2</sup>keep
+          </span>
         </Link>
 
-        <h1 className="auth-title">Create your account</h1>
-        <p className="auth-subtitle">Set up Earn2Keep for your team or organization</p>
+        <div style={{ textAlign: "center" }}>
+          <span className="auth-eyebrow">★ START YOUR CAMP ★</span>
+        </div>
+
+        <h1 className="auth-title">Create Account</h1>
+        <p className="auth-subtitle">Set up earn²keep for your team or organization</p>
 
         <form className="auth-form" onSubmit={handleSignup}>
           <div>
@@ -152,13 +154,13 @@ export default function SignupPage() {
           {error && <div className="alert alert-error">{error}</div>}
 
           <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? "Creating account..." : "Create account"}
+            {loading ? "Creating account..." : "Create account →"}
           </button>
         </form>
 
         <div className="auth-footer">
           Already have an account?{" "}
-          <Link href="/login" style={{ fontWeight: 600 }}>
+          <Link href="/login" style={{ fontWeight: 700 }}>
             Log in
           </Link>
         </div>

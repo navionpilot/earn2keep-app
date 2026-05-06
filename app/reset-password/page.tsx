@@ -46,11 +46,12 @@ export default function ResetPasswordPage() {
     <div className="auth-page">
       <div className="auth-card">
         <Link href="/" className="auth-logo">
-          <span className="auth-logo-mark">E2K</span>
-          <span className="auth-logo-name">Earn2Keep</span>
+          <span className="logo-text">
+            earn<sup className="logo-sup">2</sup>keep
+          </span>
         </Link>
 
-        <h1 className="auth-title">Set a new password</h1>
+        <h1 className="auth-title">Set New Password</h1>
         <p className="auth-subtitle">Choose a strong password for your account.</p>
 
         <form className="auth-form" onSubmit={handleResetPassword}>
@@ -91,7 +92,7 @@ export default function ResetPasswordPage() {
           {error && <div className="alert alert-error">{error}</div>}
 
           <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? "Updating..." : "Update password"}
+            {loading ? "Updating..." : "Update password →"}
           </button>
         </form>
       </div>

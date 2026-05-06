@@ -8,7 +8,6 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Fetch profile data
   const { data: profile } = await supabase
     .from("profiles")
     .select("full_name, primary_role")
@@ -19,11 +18,21 @@ export default async function DashboardPage() {
 
   return (
     <div className="dashboard">
+      <div className="dashboard-ticker">
+        <div className="dashboard-ticker-inner">
+          <span className="dashboard-ticker-live">● PLATFORM PREVIEW</span>
+          <span>You're in the early access program</span>
+          <span>·</span>
+          <span>Phase 4 features coming soon</span>
+        </div>
+      </div>
+
       <header className="dashboard-header">
         <div className="dashboard-header-inner">
           <Link href="/dashboard" className="dashboard-logo">
-            <span className="dashboard-logo-mark">E2K</span>
-            <span className="dashboard-logo-name">Earn2Keep</span>
+            <span className="logo-text">
+              earn<sup className="logo-sup">2</sup>keep
+            </span>
           </Link>
 
           <div className="dashboard-user-section">
@@ -36,7 +45,7 @@ export default async function DashboardPage() {
       <main className="dashboard-main">
         <h1 className="dashboard-welcome">Welcome, {displayName}</h1>
         <p className="dashboard-subtitle">
-          Here's where you'll manage your teams and Earn2Keep events.
+          Here's where you'll manage your teams and earn²keep events.
         </p>
 
         <div className="dashboard-card">
@@ -63,7 +72,7 @@ export default async function DashboardPage() {
 
         <div className="dashboard-card">
           <h2 className="dashboard-card-title">
-            Submissions to Verify
+            Submissions To Verify
             <span className="coming-soon-tag">Coming Soon</span>
           </h2>
           <p className="dashboard-card-text">

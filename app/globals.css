@@ -1,10 +1,9 @@
 /* ============================================
-   Earn2Keep App — Brand System
-   Royal Blue · Soft Navy · Warm Cream
-   Plus Jakarta Sans
+   earn²keep App — Brand System
+   Concept A · Stadium Scoreboard
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800;900&display=swap');
 
 :root {
   --color-blue: #2563EB;
@@ -15,6 +14,8 @@
   --color-navy: #1A2B4F;
   --color-navy-deep: #0F1B3D;
 
+  --color-gold: #FACC15;
+
   --color-text: #1A2B4F;
   --color-text-muted: #4A5568;
   --color-text-soft: #6E7B8F;
@@ -23,18 +24,17 @@
   --color-surface: #FFFFFF;
   --color-surface-soft: #FAF8F4;
   --color-border: #E8E2DA;
-  --color-border-soft: #F0EBE3;
 
   --color-error: #C62828;
   --color-error-bg: #FEEAEA;
   --color-success: #00875A;
   --color-success-bg: #E8F8F0;
 
-  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
 
-  --radius: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
+  --radius: 8px;
+  --radius-lg: 12px;
 }
 
 *,
@@ -50,7 +50,7 @@ html {
 }
 
 body {
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-size: 16px;
   line-height: 1.6;
   color: var(--color-text);
@@ -72,6 +72,39 @@ a:hover {
 }
 
 /* ============================================
+   Logo Wordmark
+   ============================================ */
+.logo-text {
+  font-family: var(--font-display);
+  font-weight: 900;
+  color: var(--color-navy);
+  letter-spacing: -1.4px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: flex-start;
+  text-decoration: none;
+}
+
+.logo-text:hover {
+  text-decoration: none;
+}
+
+.logo-sup {
+  color: var(--color-blue);
+  font-weight: 900;
+  margin-left: 1px;
+  line-height: 1;
+}
+
+.logo-text-light {
+  color: #FFFFFF;
+}
+
+.logo-sup-gold {
+  color: var(--color-gold);
+}
+
+/* ============================================
    Auth Pages (login, signup, password reset)
    ============================================ */
 .auth-page {
@@ -81,60 +114,90 @@ a:hover {
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: linear-gradient(135deg, var(--color-blue-soft) 0%, var(--color-bg) 100%);
+  background: var(--color-bg);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-page::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -100px;
+  width: 400px;
+  height: 100%;
+  background: repeating-linear-gradient(
+    135deg,
+    transparent,
+    transparent 14px,
+    var(--color-blue-soft) 14px,
+    var(--color-blue-soft) 28px
+  );
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 .auth-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   padding: 44px;
   width: 100%;
   max-width: 460px;
-  box-shadow: 0 4px 24px rgba(37, 99, 235, 0.06);
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 12px 40px rgba(26, 43, 79, 0.08);
+}
+
+.auth-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, var(--color-blue) 0%, var(--color-gold) 100%);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .auth-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
   justify-content: center;
   margin-bottom: 28px;
   text-decoration: none;
 }
 
-.auth-logo:hover {
-  text-decoration: none;
+.auth-logo .logo-text {
+  font-size: 32px;
 }
 
-.auth-logo-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  background: var(--color-blue);
-  color: white;
-  font-weight: 700;
-  font-size: 13px;
-  letter-spacing: 0.5px;
-  border-radius: 10px;
+.auth-logo .logo-sup {
+  font-size: 16px;
 }
 
-.auth-logo-name {
-  font-weight: 700;
-  font-size: 22px;
-  color: var(--color-navy);
-  letter-spacing: -0.4px;
+.auth-eyebrow {
+  display: inline-block;
+  background: var(--color-navy);
+  color: var(--color-gold);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 5px 12px;
+  letter-spacing: 2px;
+  margin-bottom: 14px;
+  border-radius: 4px;
 }
 
 .auth-title {
-  font-size: 28px;
-  font-weight: 800;
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 900;
   color: var(--color-navy);
   margin-bottom: 8px;
-  letter-spacing: -0.6px;
+  letter-spacing: -0.8px;
   text-align: center;
+  text-transform: uppercase;
 }
 
 .auth-subtitle {
@@ -161,7 +224,7 @@ a:hover {
 
 .form-input {
   width: 100%;
-  padding: 13px 16px;
+  padding: 14px 16px;
   font-size: 15px;
   font-family: inherit;
   font-weight: 500;
@@ -175,7 +238,7 @@ a:hover {
 .form-input:focus {
   outline: none;
   border-color: var(--color-blue);
-  background: white;
+  background: #FFFFFF;
   box-shadow: 0 0 0 3px var(--color-blue-light);
 }
 
@@ -185,10 +248,10 @@ a:hover {
 
 .btn-primary {
   background: var(--color-blue);
-  color: white;
+  color: #FFFFFF;
   font-size: 15px;
   font-weight: 700;
-  padding: 14px 24px;
+  padding: 16px 24px;
   border: none;
   border-radius: var(--radius);
   cursor: pointer;
@@ -196,12 +259,13 @@ a:hover {
   font-family: inherit;
   width: 100%;
   margin-top: 8px;
+  letter-spacing: 0.3px;
   box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
 }
 
 .btn-primary:hover {
   background: var(--color-blue-dark);
-  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
 }
 
 .btn-primary:active {
@@ -211,24 +275,6 @@ a:hover {
 .btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-.btn-secondary {
-  background: var(--color-surface);
-  color: var(--color-navy);
-  font-size: 15px;
-  font-weight: 700;
-  padding: 12px 20px;
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
-  font-family: inherit;
-}
-
-.btn-secondary:hover {
-  border-color: var(--color-blue);
-  background: var(--color-blue-soft);
 }
 
 .auth-footer {
@@ -266,6 +312,30 @@ a:hover {
   background: var(--color-bg);
 }
 
+.dashboard-ticker {
+  background: var(--color-navy);
+  color: rgba(255, 255, 255, 0.85);
+  padding: 9px 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.dashboard-ticker-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.dashboard-ticker-live {
+  color: var(--color-gold);
+  font-weight: 800;
+}
+
 .dashboard-header {
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
@@ -281,36 +351,12 @@ a:hover {
   justify-content: space-between;
 }
 
-.dashboard-logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  text-decoration: none;
+.dashboard-logo .logo-text {
+  font-size: 26px;
 }
 
-.dashboard-logo:hover {
-  text-decoration: none;
-}
-
-.dashboard-logo-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  background: var(--color-blue);
-  color: white;
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 0.5px;
-  border-radius: 10px;
-}
-
-.dashboard-logo-name {
-  font-weight: 700;
-  font-size: 19px;
-  color: var(--color-navy);
-  letter-spacing: -0.3px;
+.dashboard-logo .logo-sup {
+  font-size: 13px;
 }
 
 .dashboard-user-section {
@@ -329,12 +375,12 @@ a:hover {
   background: var(--color-surface);
   color: var(--color-navy);
   font-size: 14px;
-  font-weight: 600;
-  padding: 8px 16px;
+  font-weight: 700;
+  padding: 9px 18px;
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius);
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
   font-family: inherit;
 }
 
@@ -351,11 +397,13 @@ a:hover {
 }
 
 .dashboard-welcome {
-  font-size: 32px;
-  font-weight: 800;
+  font-family: var(--font-display);
+  font-size: 38px;
+  font-weight: 900;
   color: var(--color-navy);
   margin-bottom: 8px;
-  letter-spacing: -0.7px;
+  letter-spacing: -1.2px;
+  text-transform: uppercase;
 }
 
 .dashboard-subtitle {
@@ -367,27 +415,29 @@ a:hover {
 .dashboard-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  padding: 32px;
+  border-radius: var(--radius-lg);
+  padding: 36px;
   margin-bottom: 20px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .dashboard-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.08);
+  box-shadow: 0 12px 32px rgba(26, 43, 79, 0.08);
 }
 
 .dashboard-card-title {
-  font-size: 20px;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
   color: var(--color-navy);
   margin-bottom: 12px;
-  letter-spacing: -0.4px;
+  letter-spacing: -0.5px;
+  text-transform: uppercase;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
 }
 
 .dashboard-card-text {
@@ -400,17 +450,22 @@ a:hover {
   display: inline-block;
   background: var(--color-blue-light);
   color: var(--color-blue-dark);
+  font-family: var(--font-display);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
   padding: 4px 12px;
   border-radius: 20px;
-  letter-spacing: 0.5px;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
 }
 
 @media (max-width: 600px) {
   .auth-card {
-    padding: 28px 22px;
+    padding: 32px 22px;
+  }
+
+  .auth-title {
+    font-size: 26px;
   }
 
   .dashboard-header-inner {
@@ -426,7 +481,15 @@ a:hover {
     padding: 28px 20px;
   }
 
+  .dashboard-welcome {
+    font-size: 28px;
+  }
+
   .dashboard-card {
-    padding: 24px 22px;
+    padding: 28px 22px;
+  }
+
+  .dashboard-ticker-inner span:nth-child(n+3) {
+    display: none;
   }
 }
