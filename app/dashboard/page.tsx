@@ -27,17 +27,23 @@ export default async function DashboardPage() {
     .eq("owner_id", user?.id)
     .order("created_at", { ascending: false });
 
-  // Check if user has any teams across all orgs
   const { count: teamCount } = await supabase
     .from("teams")
     .select("*", { count: "exact", head: true })
     .eq("owner_id", user?.id);
+
+  const { count: playerCount } = await supabase
+    .from("players")
+    .select("*", { count: "exact", head: true })
+    .eq("owner_id", user?.id)
+    .eq("is_active", true);
 
   const displayName = profile.full_name.trim().split(" ")[0];
 
   const orgCount = organizations?.length || 0;
   const hasOrganization = orgCount > 0;
   const hasTeams = (teamCount || 0) > 0;
+  const hasPlayers = (playerCount || 0) > 0;
 
   return (
     <div className="dashboard">
@@ -59,16 +65,18 @@ export default async function DashboardPage() {
           </Link>
 
           <div className="dashboard-user-section">
-            <span className="dashboard-user-email">
-              {profile.full_name}
-            </span>
+            <span className="dashboard-user-email">{profile.full_name}</span>
             <LogoutButton />
           </div>
         </div>
       </header>
 
       <div className="dashboard-layout">
-        <OnboardingSidebar hasOrganization={hasOrganization} hasTeams={hasTeams} />
+        <OnboardingSidebar
+          hasOrganization={hasOrganization}
+          hasTeams={hasTeams}
+          hasPlayers={hasPlayers}
+        />
 
         <main className="dashboard-main-with-sidebar">
           <h1 className="dashboard-welcome">Welcome, {displayName}</h1>
@@ -101,6 +109,20 @@ export default async function DashboardPage() {
                   Click into one of your organizations below, then create a team
                   inside it (e.g., "Lincoln Lions U14"). You can add as many
                   teams as you need.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {hasTeams && !hasPlayers && (
+            <div className="welcome-banner">
+              <div className="welcome-banner-icon">👥</div>
+              <div>
+                <h3 className="welcome-banner-title">Step 3: Add players to your roster</h3>
+                <p className="welcome-banner-text">
+                  Click into one of your teams below, then add players one at a
+                  time or <strong>upload a CSV from TeamSnap, GameChanger, SportsEngine</strong>,
+                  or any spreadsheet.
                 </p>
               </div>
             </div>
