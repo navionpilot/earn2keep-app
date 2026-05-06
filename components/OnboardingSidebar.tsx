@@ -46,14 +46,13 @@ export default function OnboardingSidebar({
     }
   };
 
-  // Determine current step
   const getCurrentStepNumber = () => {
     if (!hasOrganization) return 1;
     if (!hasTeams) return 2;
     if (!hasPlayers) return 3;
     if (!hasEvent) return 4;
     if (!hasQRCodes) return 5;
-    return 6; // all complete
+    return 6;
   };
 
   const currentStep = getCurrentStepNumber();
@@ -100,7 +99,6 @@ export default function OnboardingSidebar({
   const completedCount = steps.filter((s) => s.isComplete).length;
 
   if (!mounted) {
-    // prevent hydration flash
     return null;
   }
 

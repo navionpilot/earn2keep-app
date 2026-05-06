@@ -17,22 +17,27 @@ export default async function DashboardPage() {
     .eq("id", user?.id)
     .single();
 
-  // If full_name is missing or empty, send user to profile completion page
   if (!profile?.full_name || profile.full_name.trim().length === 0) {
     redirect("/profile/complete");
   }
 
-  // Fetch user's organizations
   const { data: organizations } = await supabase
     .from("organizations")
     .select("id, name, org_type, city, state, created_at")
     .eq("owner_id", user?.id)
     .order("created_at", { ascending: false });
 
+  // Check if user has any teams across all orgs
+  const { count: teamCount } = await supabase
+    .from("teams")
+    .select("*", { count: "exact", head: true })
+    .eq("owner_id", user?.id);
+
   const displayName = profile.full_name.trim().split(" ")[0];
 
   const orgCount = organizations?.length || 0;
   const hasOrganization = orgCount > 0;
+  const hasTeams = (teamCount || 0) > 0;
 
   return (
     <div className="dashboard">
@@ -63,7 +68,7 @@ export default async function DashboardPage() {
       </header>
 
       <div className="dashboard-layout">
-        <OnboardingSidebar hasOrganization={hasOrganization} />
+        <OnboardingSidebar hasOrganization={hasOrganization} hasTeams={hasTeams} />
 
         <main className="dashboard-main-with-sidebar">
           <h1 className="dashboard-welcome">Welcome, {displayName}</h1>
@@ -82,6 +87,20 @@ export default async function DashboardPage() {
                   Earn²keep works in 5 simple steps. Right now you're at{" "}
                   <strong>Step 1: Create your organization</strong>. The sidebar
                   on the left tracks your progress as you complete each step.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {hasOrganization && !hasTeams && (
+            <div className="welcome-banner">
+              <div className="welcome-banner-icon">🏃</div>
+              <div>
+                <h3 className="welcome-banner-title">Step 2: Add teams to your organization</h3>
+                <p className="welcome-banner-text">
+                  Click into one of your organizations below, then create a team
+                  inside it (e.g., "Lincoln Lions U14"). You can add as many
+                  teams as you need.
                 </p>
               </div>
             </div>
@@ -134,18 +153,6 @@ export default async function DashboardPage() {
                     <div className="org-card-action">Manage →</div>
                   </Link>
                 ))}
-              </div>
-
-              <div className="dashboard-card" style={{ marginTop: "32px" }}>
-                <h2 className="dashboard-card-title">
-                  Coming Next
-                  <span className="coming-soon-tag">Slice 4.2</span>
-                </h2>
-                <p className="dashboard-card-text">
-                  Once you've created your organization, the next slice will let
-                  you create teams within it (e.g., "Lincoln Lions U14" inside
-                  your school athletics program).
-                </p>
               </div>
             </>
           )}

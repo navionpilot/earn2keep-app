@@ -33,6 +33,24 @@ export default async function OrganizationDetailPage({
     notFound();
   }
 
+  // Fetch teams within this organization
+  const { data: teams } = await supabase
+    .from("teams")
+    .select("id, name, sport_or_activity, age_group, description, created_at")
+    .eq("organization_id", id)
+    .eq("owner_id", user?.id)
+    .order("created_at", { ascending: false });
+
+  const teamCount = teams?.length || 0;
+
+  // For sidebar: check if user has any teams across all orgs
+  const { count: totalTeamCount } = await supabase
+    .from("teams")
+    .select("*", { count: "exact", head: true })
+    .eq("owner_id", user?.id);
+
+  const hasTeams = (totalTeamCount || 0) > 0;
+
   return (
     <div className="dashboard">
       <header className="dashboard-header">
@@ -53,7 +71,7 @@ export default async function OrganizationDetailPage({
       </header>
 
       <div className="dashboard-layout">
-        <OnboardingSidebar hasOrganization={true} />
+        <OnboardingSidebar hasOrganization={true} hasTeams={hasTeams} />
 
         <main className="dashboard-main-with-sidebar">
           <div className="breadcrumb">
@@ -82,25 +100,65 @@ export default async function OrganizationDetailPage({
             </Tooltip>
           </div>
 
-          <div className="dashboard-card">
-            <h2 className="dashboard-card-title">
-              Teams
-              <span className="coming-soon-tag">Slice 4.2</span>
-            </h2>
-            <p className="dashboard-card-text">
-              In the next slice, you'll be able to create teams under this organization.
-              For example: "Lincoln Lions U14" inside "Lincoln Middle School Athletics."
-            </p>
-          </div>
+          {teamCount === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state-icon">
+                <span style={{ fontSize: "48px" }}>🏃</span>
+              </div>
+              <h2 className="empty-state-title">Add Your First Team</h2>
+              <p className="empty-state-text">
+                A team is a group of players that competes together.
+                Examples: "Lincoln Lions U14", "Sunday School 9th Grade",
+                or "Troop 142 Eagle Patrol".
+              </p>
+              <Link href={`/organizations/${org.id}/teams/new`} className="btn-primary-link">
+                Add Your First Team →
+              </Link>
+              <div style={{ marginTop: "16px" }}>
+                <Tooltip text="Teams are groups within your organization. A school might have multiple teams (boys soccer, girls basketball). A church might have grade-level groups. Add as many as you need.">
+                  <a className="help-link">❓ What's a team?</a>
+                </Tooltip>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="section-header">
+                <h2 className="section-heading">Teams</h2>
+                <Tooltip text="Add another team to this organization.">
+                  <Link href={`/organizations/${org.id}/teams/new`} className="btn-add">
+                    + Add Team
+                  </Link>
+                </Tooltip>
+              </div>
 
-          <div className="dashboard-card">
+              <div className="org-grid">
+                {teams?.map((team) => (
+                  <Link
+                    href={`/teams/${team.id}`}
+                    key={team.id}
+                    className="org-card"
+                  >
+                    <div className="org-card-type-pill">{team.sport_or_activity || "Team"}</div>
+                    <h3 className="org-card-name">{team.name}</h3>
+                    {team.age_group && (
+                      <p className="org-card-location">{team.age_group}</p>
+                    )}
+                    <div className="org-card-action">Manage →</div>
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
+
+          <div className="dashboard-card" style={{ marginTop: "32px" }}>
             <h2 className="dashboard-card-title">
               Events
               <span className="coming-soon-tag">Slice 4.4</span>
             </h2>
             <p className="dashboard-card-text">
-              Once you have teams, you'll create Camps and Tournaments here —
-              with weekly challenges, sponsor QR codes, and prize structures.
+              Once you have teams with players, you'll create Camps and
+              Tournaments here — with weekly challenges, sponsor QR codes,
+              and prize structures.
             </p>
           </div>
         </main>
