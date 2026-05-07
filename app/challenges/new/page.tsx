@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 import Tooltip from "@/components/Tooltip";
-import SubcategoryPicker from "@/components/SubcategoryPicker";
+import SubcategoryPicker, { type Subcategory } from "@/components/SubcategoryPicker";
+import RecordingSetupSection from "@/components/RecordingSetupSection";
 
 const SUBCATEGORY_REQUIRED = new Set(["Sports"]);
 
@@ -40,10 +41,17 @@ function NewChallengeForm() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [subcategoryId, setSubcategoryId] = useState<string | null>(null);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [unit, setUnit] = useState("");
   const [difficulty, setDifficulty] = useState("Medium");
   const [defaultRepTarget, setDefaultRepTarget] = useState("");
   const [organizationId, setOrganizationId] = useState<string>("");
+
+  // Recording fields
+  const [setupTemplateKey, setSetupTemplateKey] = useState<string>("");
+  const [recordingInstructions, setRecordingInstructions] = useState<string>("");
+  const [verificationMode, setVerificationMode] = useState<"ai_only" | "coach_only" | "ai_and_coach" | "">("");
+
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
@@ -91,11 +99,32 @@ function NewChallengeForm() {
       }
 
       setOrganizationId(foundOrgId);
+
+      // Also fetch subcategories so we can:
+      // 1. Pass them to the picker (avoids double-fetching)
+      // 2. Look up the subcategory NAME from the selected ID for the recommender
+      const { data: subs } = await supabase
+        .from("challenge_subcategories")
+        .select("id, parent_category, name, display_order, is_public, organization_id")
+        .order("display_order", { ascending: true })
+        .order("name", { ascending: true });
+      setSubcategories((subs as any) || []);
+
       setFetching(false);
     };
 
     fetchOrg();
   }, [returnTo]);
+
+  // Look up the subcategory name for the recommender
+  const subcategoryName = useMemo(() => {
+    if (!subcategoryId) return null;
+    return subcategories.find((s) => s.id === subcategoryId)?.name || null;
+  }, [subcategoryId, subcategories]);
+
+  const handleSubcategoryCreated = (newSub: Subcategory) => {
+    setSubcategories((prev) => [...prev, newSub]);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,6 +154,9 @@ function NewChallengeForm() {
       unit: unit.trim(),
       difficulty,
       default_rep_target: defaultRepTarget ? parseInt(defaultRepTarget) : null,
+      setup_template_key: setupTemplateKey || null,
+      recording_instructions: recordingInstructions.trim() || null,
+      verification_mode: verificationMode || "coach_only",
       owner_id: user.id,
       is_public: false,
     });
@@ -221,6 +253,8 @@ function NewChallengeForm() {
               subcategoryId={subcategoryId}
               setSubcategoryId={setSubcategoryId}
               organizationId={organizationId}
+              subcategories={subcategories}
+              onSubcategoryCreated={handleSubcategoryCreated}
             />
 
             <div>
@@ -274,6 +308,19 @@ function NewChallengeForm() {
                 rows={3} maxLength={500}
               />
             </div>
+
+            <RecordingSetupSection
+              category={category}
+              subcategoryName={subcategoryName}
+              unit={unit}
+              name={name}
+              setupTemplateKey={setupTemplateKey}
+              setSetupTemplateKey={setSetupTemplateKey}
+              recordingInstructions={recordingInstructions}
+              setRecordingInstructions={setRecordingInstructions}
+              verificationMode={verificationMode}
+              setVerificationMode={setVerificationMode}
+            />
 
             {error && <div className="alert alert-error">{error}</div>}
 

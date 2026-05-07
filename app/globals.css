@@ -5016,3 +5016,164 @@ a:hover {
   font-size: 14px;
   margin: 10px 0;
 }
+
+/* ============================================
+   Slice 4.5.3a — Recording Instructions + Verification Mode
+   ============================================ */
+
+/* --- RecordingSetupSection container --- */
+.recording-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background: #FAFAF7;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  margin-top: 8px;
+}
+
+.recording-section .form-section-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
+.recording-section-hint {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.recording-section-pending {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-style: italic;
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  padding: 14px;
+  border-radius: var(--radius);
+  text-align: center;
+  margin: 0;
+}
+
+/* --- AI Recommendation card --- */
+.recording-rec-card {
+  background: var(--color-surface);
+  border: 2px solid #10B981;
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  position: relative;
+}
+
+.recording-rec-medium {
+  border-color: #F59E0B;
+}
+
+.recording-rec-low {
+  border-color: var(--color-border);
+}
+
+.recording-rec-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.recording-rec-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.recording-rec-title-block {
+  flex: 1;
+  min-width: 0;
+}
+
+.recording-rec-eyebrow {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  color: #10B981;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.recording-rec-medium .recording-rec-eyebrow {
+  color: #B45309;
+}
+
+.recording-rec-low .recording-rec-eyebrow {
+  color: var(--color-text-muted);
+}
+
+.recording-rec-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -0.3px;
+  margin-bottom: 4px;
+}
+
+.recording-rec-reasoning {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.recording-rec-instructions {
+  background: #F0F9FF;
+  border-left: 3px solid #2563EB;
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+.recording-rec-instructions p {
+  margin: 0 0 10px;
+}
+
+.recording-rec-instructions p:last-child {
+  margin: 0;
+}
+
+.recording-rec-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.recording-no-rec-banner {
+  background: #FEF3C7;
+  border-left: 3px solid #F59E0B;
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #92400E;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.recording-edited-pill {
+  display: inline-block;
+  background: #FEF3C7;
+  color: #92400E;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 99px;
+  margin-left: 8px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
