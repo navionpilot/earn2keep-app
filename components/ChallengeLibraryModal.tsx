@@ -35,6 +35,8 @@ interface ChallengeLibraryModalProps {
   selectedDateLabel: string; // e.g., "Wed, June 3"
   // Custom challenge creation link
   createCustomHref: string;
+  // Bulk import link
+  bulkImportHref: string;
 }
 
 export default function ChallengeLibraryModal({
@@ -46,6 +48,7 @@ export default function ChallengeLibraryModal({
   alreadyOnDay,
   selectedDateLabel,
   createCustomHref,
+  bulkImportHref,
 }: ChallengeLibraryModalProps) {
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [activeSubcategoryId, setActiveSubcategoryId] = useState<string>("");
@@ -174,6 +177,9 @@ export default function ChallengeLibraryModal({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
+              <a href={bulkImportHref} className="btn-secondary-link library-custom-btn" title="Upload many challenges from a CSV file">
+                📥 Bulk
+              </a>
               <a href={createCustomHref} className="btn-secondary-link library-custom-btn">
                 + Custom
               </a>

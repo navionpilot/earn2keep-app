@@ -4693,3 +4693,326 @@ a:hover {
 }
 
 /* Custom subcategory marker (✦) is styled inline with the text via Unicode */
+
+/* ============================================
+   Slice 4.5.2b — CSV Bulk Import + Admin Page
+   ============================================ */
+
+/* --- CSV dropzone --- */
+.csv-dropzone {
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  background: #FAFAF7;
+  transition: border-color 0.15s, background 0.15s;
+  margin: 8px 0 12px;
+}
+
+.csv-dropzone:hover,
+.csv-dropzone-active {
+  border-color: var(--color-blue);
+  background: #F0F6FF;
+}
+
+.csv-dropzone-icon {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+.csv-dropzone-text {
+  font-size: 14px;
+  color: var(--color-text);
+  margin: 0 0 6px;
+}
+
+.csv-dropzone-hint {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin: 0;
+  font-style: italic;
+}
+
+.csv-template-info {
+  background: #DBEAFE;
+  border-left: 3px solid var(--color-blue);
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  margin: 8px 0 14px;
+}
+
+.csv-template-info-text {
+  font-size: 12px;
+  color: var(--color-blue-dark);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* --- Preview table --- */
+.csv-preview {
+  margin-top: 12px;
+}
+
+.csv-preview-summary {
+  display: flex;
+  gap: 24px;
+  padding: 12px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.csv-preview-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.csv-preview-stat-num {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+.csv-preview-stat-good {
+  color: #047857;
+}
+
+.csv-preview-stat-error {
+  color: #DC2626;
+}
+
+.csv-preview-stat-warning {
+  color: #B45309;
+}
+
+.csv-preview-stat-label {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.csv-preview-toggle-all {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--color-text);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.csv-preview-toggle-all input {
+  margin-right: 4px;
+}
+
+.csv-preview-table-wrap {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  max-height: 600px;
+  overflow-y: auto;
+  background: var(--color-surface);
+}
+
+.csv-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.csv-preview-table thead {
+  background: #F0EDE5;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.csv-preview-table th {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.csv-preview-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+}
+
+.csv-preview-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.csv-preview-row-num {
+  color: var(--color-text-muted);
+  font-weight: 700;
+}
+
+.csv-preview-row-error {
+  background: #FEF2F2;
+}
+
+.csv-preview-row-excluded {
+  opacity: 0.5;
+}
+
+.csv-preview-cell-name {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.csv-preview-status-good {
+  color: #047857;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.csv-preview-errors,
+.csv-preview-warnings {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.csv-preview-error-msg {
+  color: #DC2626;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.csv-preview-warning-msg {
+  color: #B45309;
+  font-size: 11px;
+  line-height: 1.4;
+  font-style: italic;
+}
+
+.csv-preview-new-sub-pill {
+  display: inline-block;
+  background: #FEF3C7;
+  color: #92400E;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+/* --- Import success card --- */
+.csv-import-success-card {
+  background: #DCFCE7;
+  border: 2px solid #86EFAC;
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  text-align: center;
+  margin: 12px 0;
+}
+
+.csv-import-success-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  color: #14532D;
+  letter-spacing: -0.5px;
+  margin: 0 0 8px;
+}
+
+.csv-import-success-text {
+  font-size: 14px;
+  color: #14532D;
+  margin: 0 0 18px;
+  line-height: 1.5;
+}
+
+/* --- Admin page table --- */
+.admin-table-wrap {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  background: var(--color-surface);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.admin-table thead {
+  background: #F0EDE5;
+}
+
+.admin-table th {
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.admin-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-table tbody tr:hover {
+  background: #F8FAFF;
+}
+
+.admin-table-name {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.admin-table-org {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.admin-table-date {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.admin-table-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.alert-success {
+  background: #DCFCE7;
+  border-left: 3px solid #14532D;
+  color: #14532D;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  margin: 10px 0;
+}

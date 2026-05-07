@@ -626,6 +626,7 @@ export default function SchedulePlannerPage() {
         alreadyOnDay={alreadyOnDay}
         selectedDateLabel={selectedDate ? formatShortDate(selectedDate) : ""}
         createCustomHref={`/challenges/new?returnTo=${eventId}/schedule`}
+        bulkImportHref={`/challenges/bulk-import?returnTo=${eventId}/schedule`}
       />
 
       <ApplyToDaysModal
