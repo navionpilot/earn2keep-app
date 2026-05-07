@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase-browser";
 import OnboardingSidebar from "@/components/OnboardingSidebar";
 import LogoutButton from "@/components/LogoutButton";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
-import SponsorPdfButton, { type PdfPlayerCard } from "@/components/SponsorPdfButton";
+import SponsorPdfButton from "@/components/SponsorPdfButton";
 import {
   ensureTokensForEvent,
   publicDisplayName,
@@ -15,6 +15,11 @@ import {
   type PlayerForToken,
   type SponsorTokenRow,
 } from "@/lib/sponsorTokens";
+import {
+  generateSponsorFlyerPDF,
+  type FlyerCard,
+  type FlyerEventContext,
+} from "@/lib/sponsorFlyerPdf";
 
 type EventInfo = {
   id: string;
@@ -72,7 +77,7 @@ export default function SponsorQrCodesPage() {
         setHasTeams((teamCount || 0) > 0);
         setHasPlayers((playerCount || 0) > 0);
 
-        // Event details (need organization name for headers)
+        // Event details (need organization name for the flyer footer)
         const { data: ev, error: evErr } = await supabase
           .from("events")
           .select("id, name, event_type, status, goal_amount, start_date, end_date, organization_id, organizations(id, name)")
@@ -141,17 +146,64 @@ export default function SponsorQrCodesPage() {
     return Object.values(groups).sort((a, b) => a.teamName.localeCompare(b.teamName));
   }, [players, tokens]);
 
-  // Flatten for the PDF generator
-  const pdfCards: PdfPlayerCard[] = useMemo(() => {
+  // Build event context for the PDF generator (camp/tournament copy switches off this)
+  const eventContext: FlyerEventContext | null = useMemo(() => {
+    if (!event) return null;
+    return {
+      eventName: event.name,
+      eventType: event.event_type === "camp" ? "camp" : "tournament",
+      organizationName: event.organization_name,
+      goalAmount: Number(event.goal_amount || 0),
+      eventStartDate: event.start_date,
+      eventEndDate: event.end_date,
+    };
+  }, [event]);
+
+  // Convert one player+token to a FlyerCard
+  const buildFlyerCard = (
+    player: PlayerForToken,
+    token: SponsorTokenRow,
+    teamName: string,
+    teamSport: string | null,
+    teamAgeGroup: string | null
+  ): FlyerCard => ({
+    publicLabel: publicDisplayName(player.first_name, player.last_name),
+    privateLabel: `${player.first_name} ${player.last_name || ""}`.trim(),
+    url: sponsorUrlFromToken(token.token),
+    teamName,
+    teamSport,
+    teamAgeGroup,
+  });
+
+  // Bulk: every player on every team
+  const allFlyerCards: FlyerCard[] = useMemo(() => {
     return playersByTeam.flatMap((g) =>
-      g.players.map(({ player, token }) => ({
-        publicLabel: publicDisplayName(player.first_name, player.last_name),
-        privateLabel: `${player.first_name} ${player.last_name || ""}`.trim(),
-        url: sponsorUrlFromToken(token.token),
-        teamName: g.teamName,
-      }))
+      g.players.map(({ player, token }) =>
+        buildFlyerCard(player, token, g.teamName, g.teamSport, g.teamAgeGroup)
+      )
     );
   }, [playersByTeam]);
+
+  // Per-player flyer downloader
+  const downloadOneFlyer = async (
+    player: PlayerForToken,
+    token: SponsorTokenRow,
+    group: { teamName: string; teamSport: string | null; teamAgeGroup: string | null }
+  ) => {
+    if (!eventContext) return;
+    const card = buildFlyerCard(
+      player,
+      token,
+      group.teamName,
+      group.teamSport,
+      group.teamAgeGroup
+    );
+    try {
+      await generateSponsorFlyerPDF([card], eventContext);
+    } catch (err: any) {
+      setError(err?.message || "Failed to build flyer.");
+    }
+  };
 
   if (fetching) {
     return (
@@ -233,11 +285,11 @@ export default function SponsorQrCodesPage() {
                   <>
                     Each player has their own scannable code linking to a public sponsor page.
                     {isCamp ? (
-                      <> Sponsors can support a player's <strong>${formatMoney(event.goal_amount)} fundraising minimum</strong>.</>
+                      <> Sponsors back the player's <strong>${formatMoney(event.goal_amount)} fundraising minimum</strong>.</>
                     ) : (
-                      <> Sponsors can cover a player's <strong>${formatMoney(event.goal_amount)} registration fee</strong>.</>
+                      <> Sponsors cover the player's <strong>${formatMoney(event.goal_amount)} registration fee</strong>.</>
                     )}{" "}
-                    Print, text, share — whatever works.
+                    Hand out flyers, text them, post them — whatever works.
                   </>
                 )}
               </p>
@@ -247,15 +299,14 @@ export default function SponsorQrCodesPage() {
           {error && <div className="alert alert-error" style={{ marginBottom: "16px" }}>{error}</div>}
 
           <div className="alert alert-info" style={{ marginBottom: "20px" }}>
-            <strong>Heads up — payments aren't live yet.</strong> Sponsors who scan see a Sarah-J.-style player page with the goal/fee, but the <em>Sponsor This Player</em> button shows a "Coming soon" message for now. We're rolling out Stripe integration in Phase 5/10 — this slice gets the funnel ready.
+            <strong>Heads up — payments aren't live yet.</strong> Sponsors who scan see a clean page with the goal/fee, but the <em>Sponsor This Player</em> button shows a "Coming soon" message for now. Stripe integration arrives in Phase 5/10 — this slice gets the funnel ready so coaches can start sharing.
           </div>
 
-          {totalPlayers > 0 && (
+          {totalPlayers > 0 && eventContext && (
             <div className="qr-toolbar">
               <SponsorPdfButton
-                eventName={event.name}
-                organizationName={event.organization_name}
-                cards={pdfCards}
+                cards={allFlyerCards}
+                eventContext={eventContext}
               />
               <span className="qr-toolbar-meta">
                 {totalPlayers} player{totalPlayers === 1 ? "" : "s"} across {playersByTeam.length} team{playersByTeam.length === 1 ? "" : "s"}
@@ -298,6 +349,7 @@ export default function SponsorQrCodesPage() {
                           publicLabel={publicLabel}
                           privateLabel={privateLabel}
                           downloadFilenameStem={`${event.name}_${publicLabel}`}
+                          onDownloadFlyer={() => downloadOneFlyer(player, token, group)}
                         />
                       );
                     })}

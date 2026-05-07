@@ -14,6 +14,9 @@ interface QRCodeDisplayProps {
   downloadFilenameStem: string;
   // Display width/height in pixels (the rendered QR is 4× this for crispness)
   size?: number;
+  // Called when the coach clicks the per-player flyer button.
+  // Parent owns event context, so we let it own the PDF call.
+  onDownloadFlyer?: () => Promise<void> | void;
 }
 
 export default function QRCodeDisplay({
@@ -22,9 +25,11 @@ export default function QRCodeDisplay({
   privateLabel,
   downloadFilenameStem,
   size = 180,
+  onDownloadFlyer,
 }: QRCodeDisplayProps) {
   const [dataUrl, setDataUrl] = useState<string>("");
-  const [copyLabel, setCopyLabel] = useState<string>("Copy link");
+  const [copyLabel, setCopyLabel] = useState<string>("Copy");
+  const [flyerBusy, setFlyerBusy] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -47,7 +52,7 @@ export default function QRCodeDisplay({
     };
   }, [url, size]);
 
-  const handleDownload = () => {
+  const handleDownloadPng = () => {
     if (!dataUrl) return;
     const a = document.createElement("a");
     a.href = dataUrl;
@@ -61,10 +66,19 @@ export default function QRCodeDisplay({
     try {
       await navigator.clipboard.writeText(url);
       setCopyLabel("Copied ✓");
-      setTimeout(() => setCopyLabel("Copy link"), 1500);
+      setTimeout(() => setCopyLabel("Copy"), 1500);
     } catch {
-      // Fallback: select-and-prompt
       window.prompt("Copy this link:", url);
+    }
+  };
+
+  const handleFlyer = async () => {
+    if (!onDownloadFlyer || flyerBusy) return;
+    setFlyerBusy(true);
+    try {
+      await onDownloadFlyer();
+    } finally {
+      setFlyerBusy(false);
     }
   };
 
@@ -95,13 +109,27 @@ export default function QRCodeDisplay({
         )}
       </div>
 
+      {/* Primary action — flyer download (the thing coaches actually hand out) */}
+      {onDownloadFlyer && (
+        <button
+          type="button"
+          className="qr-card-flyer-btn"
+          onClick={handleFlyer}
+          disabled={flyerBusy || !dataUrl}
+          title={`Download ${publicLabel}'s full-page sponsor flyer (PDF)`}
+        >
+          {flyerBusy ? "Building…" : "📄 Flyer (PDF)"}
+        </button>
+      )}
+
+      {/* Secondary actions — bare QR PNG + copy link */}
       <div className="qr-card-actions">
         <button
           type="button"
           className="btn-secondary qr-card-btn"
-          onClick={handleDownload}
+          onClick={handleDownloadPng}
           disabled={!dataUrl}
-          title="Download just this player's QR code as a PNG image"
+          title="Download just the QR code as a PNG image"
         >
           📥 PNG
         </button>
