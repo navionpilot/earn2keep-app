@@ -335,9 +335,14 @@ function SetupBanner({
       <div className="e2k-setup-body">
         <h3 className="e2k-setup-title">{title}</h3>
         <p className="e2k-setup-text">{body}</p>
-        <Link href={ctaHref} className="e2k-link-cyan">
-          {ctaLabel} →
-        </Link>
+        <div className="e2k-setup-actions">
+          <Link href={ctaHref} className="e2k-link-cyan">
+            {ctaLabel} →
+          </Link>
+          <Link href="/setup-guide" className="e2k-link-muted">
+            Or read the Setup Guide first →
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -35,6 +35,27 @@ export default async function HelpPage() {
             A complete guide to running your first season.
           </p>
 
+          <Link href="/setup-guide" className="e2k-help-spotlight">
+            <div className="e2k-help-spotlight-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M2 12a10 10 0 1 0 20 0a10 10 0 0 0 -20 0" />
+                <path d="M12 8v4l3 3" />
+                <path d="M9 16l2 -3l3 1l2 -3" />
+              </svg>
+            </div>
+            <div className="e2k-help-spotlight-body">
+              <div className="e2k-help-spotlight-eyebrow">★ START HERE ★</div>
+              <h2 className="e2k-help-spotlight-title">
+                Setup Playbook: Camp vs Tournament
+              </h2>
+              <p className="e2k-help-spotlight-text">
+                Side-by-side comparison, live setup checklist, and step-by-step
+                walkthroughs for both event types. Most coaches finish in 30 minutes.
+              </p>
+            </div>
+            <div className="e2k-help-spotlight-arrow">→</div>
+          </Link>
+
           <div className="help-section">
             <h2 className="help-section-title">The Basics</h2>
             <p className="help-paragraph">
