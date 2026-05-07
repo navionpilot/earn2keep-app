@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase-browser";
 import Tooltip from "@/components/Tooltip";
 import CategoryHierarchyPicker, { type Subcategory } from "@/components/CategoryHierarchyPicker";
 import RecordingSetupSection from "@/components/RecordingSetupSection";
+import ReferencePhotoUpload from "@/components/ReferencePhotoUpload";
 
 const SUBCATEGORY_REQUIRED = new Set(["Sports"]);
 
@@ -52,6 +53,10 @@ function NewChallengeForm() {
   const [setupTemplateKey, setSetupTemplateKey] = useState<string>("");
   const [recordingInstructions, setRecordingInstructions] = useState<string>("");
   const [verificationMode, setVerificationMode] = useState<"ai_only" | "coach_only" | "ai_and_coach" | "">("");
+
+  // Reference photo fields (Slice 4.5.4)
+  const [referencePhotoUrl, setReferencePhotoUrl] = useState<string | null>(null);
+  const [referencePhotoCaption, setReferencePhotoCaption] = useState<string>("");
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -168,6 +173,8 @@ function NewChallengeForm() {
       setup_template_key: setupTemplateKey || null,
       recording_instructions: recordingInstructions.trim() || null,
       verification_mode: verificationMode || "coach_only",
+      reference_photo_url: referencePhotoUrl || null,
+      reference_photo_caption: referencePhotoCaption.trim() || null,
       owner_id: user.id,
       is_public: false,
     });
@@ -333,6 +340,15 @@ function NewChallengeForm() {
               setRecordingInstructions={setRecordingInstructions}
               verificationMode={verificationMode}
               setVerificationMode={setVerificationMode}
+            />
+
+            <ReferencePhotoUpload
+              photoUrl={referencePhotoUrl}
+              setPhotoUrl={setReferencePhotoUrl}
+              caption={referencePhotoCaption}
+              setCaption={setReferencePhotoCaption}
+              organizationId={organizationId}
+              disabled={loading}
             />
 
             {error && <div className="alert alert-error">{error}</div>}

@@ -17,6 +17,20 @@ function ordinal(n: number): string {
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
+// Recording template icons (mirrors lib/recordingRecommender.ts).
+// Used to show a small phone-setup hint next to each scheduled challenge.
+const TEMPLATE_ICONS: Record<string, string> = {
+  side_angle_floor: "📱",
+  selfie_audio: "🤳",
+  behind_player_target: "🎯",
+  top_down_closeup: "🔍",
+  gps_with_endpoints: "📍",
+  photo_completion: "📷",
+  wide_angle_court: "🏟",
+  selfie_with_object: "✋",
+  custom: "✏️",
+};
+
 export default async function EventDetailPage({
   params,
 }: {
@@ -72,9 +86,11 @@ export default async function EventDetailPage({
   }
 
   // Fetch challenges assigned to this event (now scheduled per day)
+  // Slice 4.5.4: include setup_template_key + reference_photo_url so the
+  // schedule preview can show recording-template icons next to each pill.
   const { data: eventChallenges } = await supabase
     .from("event_challenges")
-    .select("id, day_index, rep_target, notes, challenges(id, name, description, category, unit, difficulty)")
+    .select("id, day_index, rep_target, notes, challenges(id, name, description, category, unit, difficulty, setup_template_key, reference_photo_url)")
     .eq("event_id", id)
     .order("day_index", { ascending: true });
 
@@ -554,11 +570,34 @@ export default async function EventDetailPage({
                                 <div className="schedule-day-date">{label}</div>
                               </div>
                               <div className="schedule-day-challenges">
-                                {dayChalls.map((ec: any) => (
-                                  <span key={ec.id} className={`schedule-day-pill cat-${ec.challenges?.category?.toLowerCase()}`}>
-                                    {ec.challenges?.name} ({ec.rep_target || "—"} {ec.challenges?.unit || ""})
-                                  </span>
-                                ))}
+                                {dayChalls.map((ec: any) => {
+                                  // Slice 4.5.4: show recording template emoji + photo indicator
+                                  const recIcon = ec.challenges?.setup_template_key
+                                    ? TEMPLATE_ICONS[ec.challenges.setup_template_key]
+                                    : null;
+                                  const hasPhoto = !!ec.challenges?.reference_photo_url;
+                                  return (
+                                    <span key={ec.id} className={`schedule-day-pill cat-${ec.challenges?.category?.toLowerCase()}`}>
+                                      {recIcon && (
+                                        <span
+                                          className="schedule-day-pill-icon"
+                                          title={`Recording: ${ec.challenges?.setup_template_key}`}
+                                        >
+                                          {recIcon}
+                                        </span>
+                                      )}
+                                      {hasPhoto && (
+                                        <span
+                                          className="schedule-day-pill-icon"
+                                          title="Has a reference photo"
+                                        >
+                                          🖼
+                                        </span>
+                                      )}
+                                      {ec.challenges?.name} ({ec.rep_target || "—"} {ec.challenges?.unit || ""})
+                                    </span>
+                                  );
+                                })}
                               </div>
                             </div>
                           );

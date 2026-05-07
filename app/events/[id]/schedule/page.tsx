@@ -30,6 +30,9 @@ type EventChallengeRow = {
     recording_instructions: string | null;
     verification_mode: string | null;
     subcategory_id: string | null;
+    // Slice 4.5.4 — Reference photo
+    reference_photo_url: string | null;
+    reference_photo_caption: string | null;
   } | null;
 };
 
@@ -158,9 +161,10 @@ export default function SchedulePlannerPage() {
     setDisplayMonth(initial.getMonth());
 
     // Fetch scheduled challenges with challenge details
+    // Slice 4.5.4: now also pulls reference_photo_url + reference_photo_caption
     const { data: scheduled } = await supabase
       .from("event_challenges")
-      .select("id, challenge_id, day_index, rep_target, challenges(id, name, category, unit, description, difficulty, setup_template_key, recording_instructions, verification_mode, subcategory_id)")
+      .select("id, challenge_id, day_index, rep_target, challenges(id, name, category, unit, description, difficulty, setup_template_key, recording_instructions, verification_mode, subcategory_id, reference_photo_url, reference_photo_caption)")
       .eq("event_id", eventId)
       .order("day_index", { ascending: true });
 
@@ -252,6 +256,8 @@ export default function SchedulePlannerPage() {
         recordingInstructions: r.challenges?.recording_instructions || null,
         verificationMode: r.challenges?.verification_mode || null,
         subcategoryPath: resolveSubcategoryPath(r.challenges?.subcategory_id),
+        referencePhotoUrl: r.challenges?.reference_photo_url || null,
+        referencePhotoCaption: r.challenges?.reference_photo_caption || null,
       }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scheduledRows, selectedDate, eventStartDate, subcategoryById]);

@@ -16,6 +16,9 @@ export type LibraryChallenge = {
   setup_template_key?: string | null;
   recording_instructions?: string | null;
   verification_mode?: string | null;
+  // Slice 4.5.4 — Reference photo fields
+  reference_photo_url?: string | null;
+  reference_photo_caption?: string | null;
 };
 
 export type LibrarySubcategory = {
@@ -181,7 +184,7 @@ export default function ChallengeLibraryModal({
       list = list.filter((c) => c.name.toLowerCase().includes(q));
     }
     return list;
-  }, [challenges, activeCategory, search]);
+  }, [challenges, activeCategory, activeSubcategoryId, activeSubSubcategoryId, search, subcategoryById]);
 
   if (!open) return null;
 
@@ -226,6 +229,20 @@ export default function ChallengeLibraryModal({
               <h3 className="rep-target-title">{pendingChallenge.name}</h3>
               {pendingChallenge.description && (
                 <p className="rep-target-desc">{pendingChallenge.description}</p>
+              )}
+              {pendingChallenge.reference_photo_url && (
+                <div className="rep-target-photo">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={pendingChallenge.reference_photo_url}
+                    alt={pendingChallenge.reference_photo_caption || "Reference photo"}
+                  />
+                  {pendingChallenge.reference_photo_caption && (
+                    <p className="rep-target-photo-caption">
+                      {pendingChallenge.reference_photo_caption}
+                    </p>
+                  )}
+                </div>
               )}
               <label htmlFor="repTarget" className="form-label">
                 Rep target for this day:
@@ -445,6 +462,17 @@ export default function ChallengeLibraryModal({
                               🔒 Library
                             </span>
                           )}
+                        </div>
+                      )}
+
+                      {c.reference_photo_url && (
+                        <div className="library-card-thumb">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={c.reference_photo_url}
+                            alt={c.reference_photo_caption || c.name}
+                            loading="lazy"
+                          />
                         </div>
                       )}
 

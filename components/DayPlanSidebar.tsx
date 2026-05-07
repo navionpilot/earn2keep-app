@@ -17,6 +17,9 @@ export type AssignedChallenge = {
   recordingInstructions?: string | null;
   verificationMode?: string | null;
   subcategoryPath?: string | null; // e.g., "Soccer › Ball Control"
+  // Slice 4.5.4 — Reference photo
+  referencePhotoUrl?: string | null;
+  referencePhotoCaption?: string | null;
 };
 
 interface DayPlanSidebarProps {
@@ -124,6 +127,11 @@ export default function DayPlanSidebar({
                           {recordingTemplate.icon}
                         </span>
                       )}
+                      {c.referencePhotoUrl && (
+                        <span className="day-challenge-photo-icon" title="Has a reference photo">
+                          🖼
+                        </span>
+                      )}
                       <span className="day-challenge-expand-arrow">{isExpanded ? "▾" : "▸"}</span>
                     </button>
                     <div className="day-challenge-target">
@@ -169,6 +177,24 @@ export default function DayPlanSidebar({
                         <span className={`challenge-diff-pill diff-${c.difficulty.toLowerCase()}`}>
                           {c.difficulty}
                         </span>
+                      </div>
+                    )}
+                    {c.referencePhotoUrl && (
+                      <div className="day-challenge-detail-block">
+                        <div className="day-challenge-detail-label">🖼 Reference photo</div>
+                        <div className="day-challenge-photo-wrap">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={c.referencePhotoUrl}
+                            alt={c.referencePhotoCaption || c.name}
+                            className="day-challenge-photo-img"
+                          />
+                          {c.referencePhotoCaption && (
+                            <p className="day-challenge-photo-caption">
+                              {c.referencePhotoCaption}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     )}
                     {c.description && (
