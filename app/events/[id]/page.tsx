@@ -6,6 +6,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import EventStatusButton from "@/components/EventStatusButton";
 import DeleteButton from "@/components/DeleteButton";
+import LeaderboardCard from "@/components/LeaderboardCard";
 
 const formatMoney = (n: number) =>
   n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -412,11 +413,13 @@ export default async function EventDetailPage({
                   <div className="next-step-content">
                     <h3 className="next-step-title">Run the event &amp; pick winners</h3>
                     <p className="next-step-text">
-                      During the event, registered players complete their
-                      challenges. You verify completions. At the end, players
-                      with the highest total points win the prize gift cards.
+                      During the event, players complete their challenges. Review
+                      their submissions, approve or reject each one, and watch the
+                      leaderboard update in real time. Highest total points wins.
                     </p>
-                    <span className="coming-soon-tag">Coming in Slice 4.7</span>
+                    <Link href={`/events/${event.id}/submissions`} className="next-step-link">
+                      ✓ Open Submissions Queue →
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -635,6 +638,31 @@ export default async function EventDetailPage({
               )}
             </p>
           </div>
+
+          {/* Submissions Review (Slice 4.7) */}
+          <div className="dashboard-card">
+            <div className="section-header" style={{ marginBottom: "16px" }}>
+              <h2 className="dashboard-card-title">Submissions</h2>
+              <Tooltip text="Review and verify completed challenges from your players. Approved submissions earn points on the leaderboard.">
+                <Link href={`/events/${event.id}/submissions`} className="btn-add">
+                  ✓ Review
+                </Link>
+              </Tooltip>
+            </div>
+            <p className="dashboard-card-text">
+              When players submit completed challenges (with video, photo, or notes),
+              they show up here for one-tap approve, reject, or adjust. Player upload
+              ships in Phase 5; the queue and review tools are ready and waiting.
+            </p>
+            <p className="dashboard-card-text" style={{ marginTop: "10px", fontSize: "13px" }}>
+              <Link href={`/events/${event.id}/points`} className="form-link">
+                ⚙ Adjust challenge point values →
+              </Link>
+            </p>
+          </div>
+
+          {/* Leaderboard (Slice 4.7) */}
+          <LeaderboardCard eventId={event.id} />
 
           {/* Prizes */}
           {(event.first_place_prize || event.first_place_amount ||
