@@ -12,6 +12,9 @@ export type LibraryChallenge = {
   difficulty: string | null;
   default_rep_target: number | null;
   is_public: boolean;
+  setup_template_key?: string | null;
+  recording_instructions?: string | null;
+  verification_mode?: string | null;
 };
 
 export type LibrarySubcategory = {
@@ -19,9 +22,23 @@ export type LibrarySubcategory = {
   parent_category: string;
   name: string;
   is_public: boolean;
+  parent_subcategory_id: string | null;
 };
 
 const CATEGORIES = ["Sports", "Faith", "Scouts", "Fitness", "Academic", "Service"];
+
+// Recording template icons (mirrors lib/recordingRecommender.ts)
+const TEMPLATE_ICONS: Record<string, string> = {
+  side_angle_floor: "📱",
+  selfie_audio: "🤳",
+  behind_player_target: "🎯",
+  top_down_closeup: "🔍",
+  gps_with_endpoints: "📍",
+  photo_completion: "📷",
+  wide_angle_court: "🏟",
+  selfie_with_object: "✋",
+  custom: "✏️",
+};
 
 interface ChallengeLibraryModalProps {
   open: boolean;
@@ -52,6 +69,7 @@ export default function ChallengeLibraryModal({
 }: ChallengeLibraryModalProps) {
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [activeSubcategoryId, setActiveSubcategoryId] = useState<string>("");
+  const [activeSubSubcategoryId, setActiveSubSubcategoryId] = useState<string>("");
   const [search, setSearch] = useState("");
   const [pendingChallenge, setPendingChallenge] = useState<LibraryChallenge | null>(null);
   const [pendingTarget, setPendingTarget] = useState<string>("");
@@ -63,16 +81,45 @@ export default function ChallengeLibraryModal({
     return map;
   }, [subcategories]);
 
-  // Subcategories visible for the active category
-  const subsForActiveCategory = useMemo(() => {
+  // Tier 2 subcategories under the active category
+  const tier2ForActiveCategory = useMemo(() => {
     if (activeCategory === "All") return [];
-    return subcategories.filter((s) => s.parent_category === activeCategory);
+    return subcategories.filter(
+      (s) => s.parent_category === activeCategory && s.parent_subcategory_id === null
+    );
   }, [subcategories, activeCategory]);
 
-  // Reset subcategory filter when category changes
+  // Tier 3 sub-subcategories under the active Tier 2
+  const tier3ForActiveSubcategory = useMemo(() => {
+    if (!activeSubcategoryId) return [];
+    return subcategories.filter((s) => s.parent_subcategory_id === activeSubcategoryId);
+  }, [subcategories, activeSubcategoryId]);
+
   const handleCategoryChange = (cat: string) => {
     setActiveCategory(cat);
     setActiveSubcategoryId("");
+    setActiveSubSubcategoryId("");
+  };
+
+  const handleSubcategoryChange = (id: string) => {
+    setActiveSubcategoryId(id);
+    setActiveSubSubcategoryId("");
+  };
+
+  // Build the full hierarchy path string for display on each card
+  const getHierarchyPath = (challenge: LibraryChallenge): string => {
+    const parts: string[] = [challenge.category];
+    if (challenge.subcategory_id) {
+      const sub = subcategoryById[challenge.subcategory_id];
+      if (sub) {
+        if (sub.parent_subcategory_id) {
+          const parent = subcategoryById[sub.parent_subcategory_id];
+          if (parent) parts.push(parent.name);
+        }
+        parts.push(sub.name);
+      }
+    }
+    return parts.join(" › ");
   };
 
   const filtered = useMemo(() => {
@@ -81,7 +128,19 @@ export default function ChallengeLibraryModal({
       list = list.filter((c) => c.category === activeCategory);
     }
     if (activeSubcategoryId) {
-      list = list.filter((c) => c.subcategory_id === activeSubcategoryId);
+      // Match if the challenge's subcategory IS the active Tier 2,
+      // OR is a Tier 3 whose parent is the active Tier 2
+      list = list.filter((c) => {
+        if (!c.subcategory_id) return false;
+        const sub = subcategoryById[c.subcategory_id];
+        if (!sub) return false;
+        if (sub.id === activeSubcategoryId) return true;
+        if (sub.parent_subcategory_id === activeSubcategoryId) return true;
+        return false;
+      });
+    }
+    if (activeSubSubcategoryId) {
+      list = list.filter((c) => c.subcategory_id === activeSubSubcategoryId);
     }
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -209,28 +268,60 @@ export default function ChallengeLibraryModal({
               })}
             </div>
 
-            {activeCategory !== "All" && subsForActiveCategory.length > 0 && (
+            {activeCategory !== "All" && tier2ForActiveCategory.length > 0 && (
               <div className="filter-chips filter-chips-subcategory">
                 <span className="filter-chips-label">Filter by {activeCategory === "Sports" ? "sport" : "subcategory"}:</span>
                 <button
                   type="button"
                   className={`filter-chip filter-chip-sub ${activeSubcategoryId === "" ? "filter-chip-active" : ""}`}
-                  onClick={() => setActiveSubcategoryId("")}
+                  onClick={() => handleSubcategoryChange("")}
                 >
                   All
                 </button>
-                {subsForActiveCategory.map((sub) => {
-                  // Count matching challenges (in current category, this subcategory)
-                  const cnt = challenges.filter(
-                    (c) => c.category === activeCategory && c.subcategory_id === sub.id
-                  ).length;
+                {tier2ForActiveCategory.map((sub) => {
+                  // Count matching challenges (in this Tier 2 directly OR any Tier 3 under it)
+                  const cnt = challenges.filter((c) => {
+                    if (c.category !== activeCategory || !c.subcategory_id) return false;
+                    const cSub = subcategoryById[c.subcategory_id];
+                    if (!cSub) return false;
+                    if (cSub.id === sub.id) return true;
+                    if (cSub.parent_subcategory_id === sub.id) return true;
+                    return false;
+                  }).length;
                   if (cnt === 0) return null;
                   return (
                     <button
                       key={sub.id}
                       type="button"
                       className={`filter-chip filter-chip-sub ${activeSubcategoryId === sub.id ? "filter-chip-active" : ""}`}
-                      onClick={() => setActiveSubcategoryId(sub.id)}
+                      onClick={() => handleSubcategoryChange(sub.id)}
+                    >
+                      {sub.name}{!sub.is_public ? " ✦" : ""} ({cnt})
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {activeSubcategoryId && tier3ForActiveSubcategory.length > 0 && (
+              <div className="filter-chips filter-chips-subsubcategory">
+                <span className="filter-chips-label">Filter by skill type:</span>
+                <button
+                  type="button"
+                  className={`filter-chip filter-chip-subsub ${activeSubSubcategoryId === "" ? "filter-chip-active" : ""}`}
+                  onClick={() => setActiveSubSubcategoryId("")}
+                >
+                  All
+                </button>
+                {tier3ForActiveSubcategory.map((sub) => {
+                  const cnt = challenges.filter((c) => c.subcategory_id === sub.id).length;
+                  if (cnt === 0) return null;
+                  return (
+                    <button
+                      key={sub.id}
+                      type="button"
+                      className={`filter-chip filter-chip-subsub ${activeSubSubcategoryId === sub.id ? "filter-chip-active" : ""}`}
+                      onClick={() => setActiveSubSubcategoryId(sub.id)}
                     >
                       {sub.name}{!sub.is_public ? " ✦" : ""} ({cnt})
                     </button>
@@ -247,7 +338,8 @@ export default function ChallengeLibraryModal({
               ) : (
                 filtered.map((c) => {
                   const already = alreadyOnDay.has(c.id);
-                  const sub = c.subcategory_id ? subcategoryById[c.subcategory_id] : null;
+                  const hierarchyPath = getHierarchyPath(c);
+                  const recIcon = c.setup_template_key ? TEMPLATE_ICONS[c.setup_template_key] : null;
                   return (
                     <div
                       key={c.id}
@@ -255,12 +347,20 @@ export default function ChallengeLibraryModal({
                     >
                       <div className="library-card-header">
                         <span className={`challenge-cat-pill cat-${c.category.toLowerCase()}`}>
-                          {sub ? `${c.category} › ${sub.name}` : c.category}
+                          {hierarchyPath}
                         </span>
                         {!c.is_public && <span className="challenge-custom-pill">Custom</span>}
                         {c.difficulty && (
                           <span className={`challenge-diff-pill diff-${c.difficulty.toLowerCase()}`}>
                             {c.difficulty}
+                          </span>
+                        )}
+                        {recIcon && (
+                          <span
+                            className="library-card-rec-icon"
+                            title={`Recording template: ${c.setup_template_key}`}
+                          >
+                            {recIcon}
                           </span>
                         )}
                       </div>
