@@ -70,6 +70,13 @@ export default async function EventDetailPage({
     totalPlayerCount = count || 0;
   }
 
+  // Fetch challenges assigned to this event
+  const { data: eventChallenges } = await supabase
+    .from("event_challenges")
+    .select("id, rep_target, notes, challenges(id, name, description, category, unit, difficulty)")
+    .eq("event_id", id)
+    .order("created_at", { ascending: true });
+
   // Calculate the ordinal for this event (is it the user's 1st, 2nd, 3rd...?)
   const { count: eventOrdinal } = await supabase
     .from("events")
@@ -331,7 +338,11 @@ export default async function EventDetailPage({
                       sponsorships — push-ups, free throws, Bible verses, mile
                       runs, service hours, whatever fits.
                     </p>
-                    <span className="coming-soon-tag">Coming in Slice 4.5</span>
+                    <Link href={`/events/${event.id}/challenges/add`} className="next-step-link">
+                      {(eventChallenges?.length || 0) > 0
+                        ? `✓ ${eventChallenges?.length} challenge${(eventChallenges?.length || 0) === 1 ? "" : "s"} added — manage`
+                        : "Add Challenges →"}
+                    </Link>
                   </div>
                 </div>
                 <div className="next-step-item">
@@ -427,6 +438,44 @@ export default async function EventDetailPage({
               </div>
             ) : (
               <p className="dashboard-card-text">No teams linked to this event.</p>
+            )}
+          </div>
+
+          {/* Challenges */}
+          <div className="dashboard-card">
+            <div className="section-header" style={{ marginBottom: "16px" }}>
+              <h2 className="dashboard-card-title">Challenges</h2>
+              <Tooltip text="Add or modify the challenges your players/participants will complete to earn sponsorships.">
+                <Link href={`/events/${event.id}/challenges/add`} className="btn-add">
+                  {(eventChallenges?.length || 0) > 0 ? "+ Add / Manage" : "+ Add Challenges"}
+                </Link>
+              </Tooltip>
+            </div>
+            {(eventChallenges?.length || 0) === 0 ? (
+              <p className="dashboard-card-text">
+                No challenges set yet. Pick from our library or create your own
+                custom challenge.
+              </p>
+            ) : (
+              <div className="challenge-list">
+                {eventChallenges?.map((ec: any) => (
+                  <div key={ec.id} className="challenge-row">
+                    <div className="challenge-row-info">
+                      <span className={`challenge-cat-pill cat-${ec.challenges?.category?.toLowerCase()}`}>
+                        {ec.challenges?.category}
+                      </span>
+                      <div className="challenge-row-name">{ec.challenges?.name}</div>
+                      {ec.challenges?.description && (
+                        <div className="challenge-row-desc">{ec.challenges.description}</div>
+                      )}
+                    </div>
+                    <div className="challenge-row-target">
+                      <div className="challenge-target-num">{ec.rep_target || "—"}</div>
+                      <div className="challenge-target-unit">{ec.challenges?.unit || ""}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
 
