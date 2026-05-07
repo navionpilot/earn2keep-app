@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
@@ -8,7 +8,7 @@ import Tooltip from "@/components/Tooltip";
 
 const CATEGORIES = ["Sports", "Faith", "Scouts", "Fitness", "Academic", "Service"];
 
-export default function NewChallengePage() {
+function NewChallengeForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get("returnTo");
@@ -191,5 +191,25 @@ export default function NewChallengePage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function NewChallengePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="form-page">
+          <main className="form-page-main">
+            <div className="form-card">
+              <p style={{ textAlign: "center", color: "var(--color-text-muted)" }}>
+                Loading...
+              </p>
+            </div>
+          </main>
+        </div>
+      }
+    >
+      <NewChallengeForm />
+    </Suspense>
   );
 }
