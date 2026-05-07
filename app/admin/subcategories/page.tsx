@@ -95,6 +95,8 @@ export default function AdminSubcategoriesPage() {
       parent_category: s.parent_category,
       name: s.name,
       organization_id: s.organization_id,
+      parent_subcategory_id: s.parent_subcategory_id,
+      parent_subcategory_name: s.parent_subcategory_id ? (nameById[s.parent_subcategory_id] || null) : null,
       created_at: s.created_at,
       challenge_count: counts[s.id] || 0,
       org_name: s.organizations?.name || null,
