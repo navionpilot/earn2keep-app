@@ -2092,3 +2092,184 @@ a:hover {
     padding: 24px 18px;
   }
 }
+
+/* ============================================
+   Slice 4.4 v2 — Live Breakdown + Prize Amounts
+   ============================================ */
+
+/* Two-column prize input row (amount + description) */
+.prize-input-row {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.prize-input-amount {
+  min-width: 0;
+}
+
+.prize-input-desc {
+  min-width: 0;
+}
+
+@media (max-width: 600px) {
+  .prize-input-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+/* Live breakdown card - stadium scoreboard style */
+.breakdown-card {
+  background: var(--color-navy);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  margin: 16px 0 8px;
+  position: relative;
+  overflow: hidden;
+  border-top: 4px solid var(--color-blue);
+  border-bottom: 4px solid var(--color-blue);
+  box-shadow: 0 8px 24px rgba(26, 43, 79, 0.15);
+}
+
+.breakdown-eyebrow {
+  display: inline-block;
+  background: var(--color-gold);
+  color: var(--color-navy);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 4px 10px;
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+  border-radius: 3px;
+}
+
+.breakdown-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 900;
+  color: #FFFFFF;
+  letter-spacing: -0.5px;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+
+.breakdown-empty {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  font-style: italic;
+}
+
+.breakdown-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.breakdown-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.breakdown-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.2px;
+}
+
+.breakdown-value {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 800;
+  color: #FFFFFF;
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+}
+
+.breakdown-row-deduct .breakdown-label {
+  color: rgba(252, 165, 165, 0.95);
+}
+
+.breakdown-row-deduct .breakdown-value {
+  color: rgba(252, 165, 165, 1);
+}
+
+.breakdown-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 4px 0;
+}
+
+.breakdown-row-final .breakdown-label {
+  color: var(--color-gold);
+  font-weight: 800;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.breakdown-value-final {
+  color: var(--color-gold) !important;
+  font-size: 30px !important;
+  font-weight: 900 !important;
+  letter-spacing: -1px !important;
+}
+
+.breakdown-per-player {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(37, 99, 235, 0.2);
+  border: 1px solid rgba(37, 99, 235, 0.4);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+.breakdown-per-player strong {
+  color: var(--color-gold);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 16px;
+  margin: 0 2px;
+}
+
+.breakdown-per-player-icon {
+  color: var(--color-gold);
+  font-size: 16px;
+}
+
+.breakdown-per-player-empty {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.7);
+  font-style: italic;
+  font-weight: 500;
+}
+
+.breakdown-per-player-warning {
+  background: rgba(220, 38, 38, 0.18);
+  border-color: rgba(252, 165, 165, 0.5);
+  color: #FECACA;
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .breakdown-card {
+    padding: 22px 20px;
+  }
+  .breakdown-value {
+    font-size: 17px;
+  }
+  .breakdown-value-final {
+    font-size: 24px !important;
+  }
+}

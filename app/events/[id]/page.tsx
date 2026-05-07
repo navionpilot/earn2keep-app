@@ -6,6 +6,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import EventStatusButton from "@/components/EventStatusButton";
 
+const formatMoney = (n: number) =>
+  n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+
 export default async function EventDetailPage({
   params,
 }: {
@@ -40,7 +43,6 @@ export default async function EventDetailPage({
     .eq("id", event.organization_id)
     .single();
 
-  // Get participating teams via event_participants
   const { data: participants } = await supabase
     .from("event_participants")
     .select("team_id, teams(id, name, sport_or_activity, age_group)")
@@ -50,13 +52,25 @@ export default async function EventDetailPage({
     .map((p: any) => p.teams)
     .filter(Boolean);
 
+  // Compute total player count across selected teams
+  const teamIds = teams.map((t: any) => t.id);
+  let totalPlayerCount = 0;
+  if (teamIds.length > 0) {
+    const { count } = await supabase
+      .from("players")
+      .select("*", { count: "exact", head: true })
+      .in("team_id", teamIds)
+      .eq("is_active", true);
+    totalPlayerCount = count || 0;
+  }
+
   // For sidebar
   const { count: totalTeamCount } = await supabase
     .from("teams")
     .select("*", { count: "exact", head: true })
     .eq("owner_id", user?.id);
 
-  const { count: totalPlayerCount } = await supabase
+  const { count: totalPlayerCountSidebar } = await supabase
     .from("players")
     .select("*", { count: "exact", head: true })
     .eq("owner_id", user?.id);
@@ -79,6 +93,18 @@ export default async function EventDetailPage({
     }
     return new Date(start || end!).toLocaleDateString("en-US", opts);
   };
+
+  // Calculate breakdown
+  const goalNum = Number(event.goal_amount) || 0;
+  const firstNum = Number(event.first_place_amount) || 0;
+  const secondNum = Number(event.second_place_amount) || 0;
+  const thirdNum = Number(event.third_place_amount) || 0;
+  const prizePool = firstNum + secondNum + thirdNum;
+  const totalGoal =
+    event.goal_type === "per_team" ? goalNum : goalNum * totalPlayerCount;
+  const netToTeam = totalGoal - prizePool;
+  const perPlayerNet = totalPlayerCount > 0 ? netToTeam / totalPlayerCount : 0;
+  const showBreakdown = goalNum > 0;
 
   return (
     <div className="dashboard">
@@ -103,7 +129,7 @@ export default async function EventDetailPage({
         <OnboardingSidebar
           hasOrganization={true}
           hasTeams={(totalTeamCount || 0) > 0}
-          hasPlayers={(totalPlayerCount || 0) > 0}
+          hasPlayers={(totalPlayerCountSidebar || 0) > 0}
           hasEvent={(totalEventCount || 0) > 0}
         />
 
@@ -160,25 +186,21 @@ export default async function EventDetailPage({
               <div className="event-stat-sub">Participating</div>
             </div>
             <div className="event-stat-cell">
-              <div className="event-stat-label">Goal</div>
-              <div className="event-stat-value">
-                {event.goal_amount
-                  ? `$${Number(event.goal_amount).toLocaleString()}`
-                  : "—"}
-              </div>
-              <div className="event-stat-sub">
-                {event.goal_amount
-                  ? event.goal_type === "per_player"
-                    ? "Per player"
-                    : "Per team"
-                  : "Not set"}
-              </div>
+              <div className="event-stat-label">Players</div>
+              <div className="event-stat-value">{totalPlayerCount}</div>
+              <div className="event-stat-sub">Total roster</div>
             </div>
             <div className="event-stat-cell">
-              <div className="event-stat-label">Prize Tiers</div>
-              <div className="event-stat-value">{event.prize_count || 1}</div>
+              <div className="event-stat-label">Goal</div>
+              <div className="event-stat-value">
+                {goalNum > 0 ? `$${formatMoney(totalGoal)}` : "—"}
+              </div>
               <div className="event-stat-sub">
-                {event.prize_count === 1 ? "Winner" : "Winners"}
+                {goalNum > 0
+                  ? event.goal_type === "per_player"
+                    ? "Per player × players"
+                    : "Per team total"
+                  : "Not set"}
               </div>
             </div>
             <div className="event-stat-cell">
@@ -191,6 +213,55 @@ export default async function EventDetailPage({
               </div>
             </div>
           </div>
+
+          {/* Breakdown card */}
+          {showBreakdown && (
+            <div className="breakdown-card">
+              <div className="breakdown-eyebrow">★ YOUR FUNDRAISING PLAN ★</div>
+              <h3 className="breakdown-title">The Math at a Glance</h3>
+              <div className="breakdown-rows">
+                <div className="breakdown-row">
+                  <span className="breakdown-label">
+                    {event.goal_type === "per_team"
+                      ? "Total Fundraising Goal"
+                      : `${formatMoney(goalNum)} × ${totalPlayerCount} players`}
+                  </span>
+                  <span className="breakdown-value">${formatMoney(totalGoal)}</span>
+                </div>
+                {prizePool > 0 && (
+                  <div className="breakdown-row breakdown-row-deduct">
+                    <span className="breakdown-label">− Prize Pool</span>
+                    <span className="breakdown-value">−${formatMoney(prizePool)}</span>
+                  </div>
+                )}
+                <div className="breakdown-divider"></div>
+                <div className="breakdown-row breakdown-row-final">
+                  <span className="breakdown-label">Net to Your Team</span>
+                  <span className="breakdown-value breakdown-value-final">
+                    ${formatMoney(netToTeam)}
+                  </span>
+                </div>
+              </div>
+
+              {totalPlayerCount === 0 ? (
+                <div className="breakdown-per-player breakdown-per-player-empty">
+                  ★ Add players to your team(s) to see per-player breakdown
+                </div>
+              ) : netToTeam < 0 ? (
+                <div className="breakdown-per-player breakdown-per-player-warning">
+                  ⚠ Prize pool exceeds your goal. Reduce prizes or raise the goal.
+                </div>
+              ) : (
+                <div className="breakdown-per-player">
+                  <span className="breakdown-per-player-icon">★</span>
+                  <span>
+                    {totalPlayerCount} player{totalPlayerCount === 1 ? "" : "s"} ×{" "}
+                    <strong>${formatMoney(perPlayerNet)}</strong> each
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Participating Teams */}
           <div className="dashboard-card">
@@ -217,34 +288,51 @@ export default async function EventDetailPage({
           </div>
 
           {/* Prizes */}
-          {(event.first_place_prize || event.second_place_prize || event.third_place_prize) && (
+          {(event.first_place_prize || event.first_place_amount ||
+            event.second_place_prize || event.second_place_amount ||
+            event.third_place_prize || event.third_place_amount) && (
             <div className="dashboard-card">
               <h2 className="dashboard-card-title">Prizes</h2>
               <div className="prize-list">
-                {event.first_place_prize && (
+                {(event.first_place_prize || event.first_place_amount) && (
                   <div className="prize-row">
                     <span className="prize-medal">🥇</span>
-                    <div>
+                    <div style={{ flex: 1 }}>
                       <div className="prize-place">1st Place</div>
-                      <div className="prize-text">{event.first_place_prize}</div>
+                      <div className="prize-text">
+                        {event.first_place_amount && (
+                          <strong>${formatMoney(Number(event.first_place_amount))} </strong>
+                        )}
+                        {event.first_place_prize}
+                      </div>
                     </div>
                   </div>
                 )}
-                {event.second_place_prize && (
+                {(event.second_place_prize || event.second_place_amount) && (
                   <div className="prize-row">
                     <span className="prize-medal">🥈</span>
-                    <div>
+                    <div style={{ flex: 1 }}>
                       <div className="prize-place">2nd Place</div>
-                      <div className="prize-text">{event.second_place_prize}</div>
+                      <div className="prize-text">
+                        {event.second_place_amount && (
+                          <strong>${formatMoney(Number(event.second_place_amount))} </strong>
+                        )}
+                        {event.second_place_prize}
+                      </div>
                     </div>
                   </div>
                 )}
-                {event.third_place_prize && (
+                {(event.third_place_prize || event.third_place_amount) && (
                   <div className="prize-row">
                     <span className="prize-medal">🥉</span>
-                    <div>
+                    <div style={{ flex: 1 }}>
                       <div className="prize-place">3rd Place</div>
-                      <div className="prize-text">{event.third_place_prize}</div>
+                      <div className="prize-text">
+                        {event.third_place_amount && (
+                          <strong>${formatMoney(Number(event.third_place_amount))} </strong>
+                        )}
+                        {event.third_place_prize}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -252,7 +340,6 @@ export default async function EventDetailPage({
             </div>
           )}
 
-          {/* Coming next placeholders */}
           <div className="dashboard-card">
             <h2 className="dashboard-card-title">
               Challenges
@@ -260,7 +347,6 @@ export default async function EventDetailPage({
             </h2>
             <p className="dashboard-card-text">
               In the next slice, you'll pick from a library of 50+ challenges
-              (push-ups, free throws, Bible verses, mile run, service hours)
               and assign them to this event with rep targets.
             </p>
           </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
@@ -11,7 +11,11 @@ type Team = {
   name: string;
   sport_or_activity: string | null;
   age_group: string | null;
+  playerCount: number;
 };
+
+const formatMoney = (n: number) =>
+  n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
 export default function NewEventPage() {
   const params = useParams();
@@ -29,12 +33,15 @@ export default function NewEventPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([]);
-  const [goalType, setGoalType] = useState<"per_player" | "per_team">("per_player");
+  const [goalType, setGoalType] = useState<"per_player" | "per_team">("per_team");
   const [goalAmount, setGoalAmount] = useState("");
   const [prizeCount, setPrizeCount] = useState<1 | 2 | 3>(1);
   const [firstPlacePrize, setFirstPlacePrize] = useState("");
+  const [firstPlaceAmount, setFirstPlaceAmount] = useState("");
   const [secondPlacePrize, setSecondPlacePrize] = useState("");
+  const [secondPlaceAmount, setSecondPlaceAmount] = useState("");
   const [thirdPlacePrize, setThirdPlacePrize] = useState("");
+  const [thirdPlaceAmount, setThirdPlaceAmount] = useState("");
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -48,7 +55,6 @@ export default function NewEventPage() {
         .select("name")
         .eq("id", orgId)
         .single();
-
       if (org) setOrgName(org.name);
 
       const { data: teamsData } = await supabase
@@ -57,7 +63,27 @@ export default function NewEventPage() {
         .eq("organization_id", orgId)
         .order("name");
 
-      setTeams(teamsData || []);
+      const teamIds = (teamsData || []).map((t) => t.id);
+
+      // Fetch active player counts per team
+      const playerCounts: Record<string, number> = {};
+      if (teamIds.length > 0) {
+        const { data: playerData } = await supabase
+          .from("players")
+          .select("team_id")
+          .in("team_id", teamIds)
+          .eq("is_active", true);
+        (playerData || []).forEach((p) => {
+          playerCounts[p.team_id] = (playerCounts[p.team_id] || 0) + 1;
+        });
+      }
+
+      const teamsWithCounts: Team[] = (teamsData || []).map((t) => ({
+        ...t,
+        playerCount: playerCounts[t.id] || 0,
+      }));
+
+      setTeams(teamsWithCounts);
       setFetching(false);
     };
 
@@ -66,10 +92,8 @@ export default function NewEventPage() {
 
   const toggleTeam = (teamId: string) => {
     if (eventType === "camp") {
-      // Camp: only one team can be selected
       setSelectedTeamIds([teamId]);
     } else {
-      // Tournament: multi-select
       if (selectedTeamIds.includes(teamId)) {
         setSelectedTeamIds(selectedTeamIds.filter((id) => id !== teamId));
       } else {
@@ -78,17 +102,43 @@ export default function NewEventPage() {
     }
   };
 
-  // When event type changes, reset team selection
   const handleEventTypeChange = (newType: "camp" | "tournament") => {
     setEventType(newType);
     setSelectedTeamIds([]);
   };
 
+  // Derived calculations
+  const totalPlayerCount = useMemo(() => {
+    return selectedTeamIds.reduce((sum, teamId) => {
+      const team = teams.find((t) => t.id === teamId);
+      return sum + (team?.playerCount || 0);
+    }, 0);
+  }, [selectedTeamIds, teams]);
+
+  const goalNum = parseFloat(goalAmount) || 0;
+  const firstNum = parseFloat(firstPlaceAmount) || 0;
+  const secondNum = prizeCount >= 2 ? parseFloat(secondPlaceAmount) || 0 : 0;
+  const thirdNum = prizeCount >= 3 ? parseFloat(thirdPlaceAmount) || 0 : 0;
+  const prizePool = firstNum + secondNum + thirdNum;
+
+  // For per_team goal: goal IS the team total. After prizes, divide by players.
+  // For per_player goal: each player raises X. Multiply by players for total. Then minus prizes.
+  const totalGoal =
+    goalType === "per_team"
+      ? goalNum
+      : goalNum * totalPlayerCount;
+
+  const netToTeam = totalGoal - prizePool;
+
+  const perPlayerNet =
+    totalPlayerCount > 0 ? netToTeam / totalPlayerCount : 0;
+
+  const showBreakdown = goalNum > 0;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    // Validation
     if (!name.trim()) {
       setError("Event name is required.");
       return;
@@ -113,8 +163,8 @@ export default function NewEventPage() {
       setError("A Tournament needs at least 2 teams. Use a Camp for single-team events.");
       return;
     }
-    if (goalAmount && Number(goalAmount) < 0) {
-      setError("Goal amount must be a positive number.");
+    if (!goalAmount || goalNum <= 0) {
+      setError("Please enter a fundraising goal amount.");
       return;
     }
 
@@ -131,7 +181,6 @@ export default function NewEventPage() {
       return;
     }
 
-    // Insert the event
     const { data: event, error: insertError } = await supabase
       .from("events")
       .insert({
@@ -143,11 +192,14 @@ export default function NewEventPage() {
         start_date: startDate,
         end_date: endDate,
         goal_type: goalType,
-        goal_amount: goalAmount ? Number(goalAmount) : null,
+        goal_amount: goalNum,
         prize_count: prizeCount,
         first_place_prize: firstPlacePrize.trim() || null,
-        second_place_prize: prizeCount >= 2 ? (secondPlacePrize.trim() || null) : null,
-        third_place_prize: prizeCount >= 3 ? (thirdPlacePrize.trim() || null) : null,
+        first_place_amount: firstNum > 0 ? firstNum : null,
+        second_place_prize: prizeCount >= 2 ? secondPlacePrize.trim() || null : null,
+        second_place_amount: prizeCount >= 2 && secondNum > 0 ? secondNum : null,
+        third_place_prize: prizeCount >= 3 ? thirdPlacePrize.trim() || null : null,
+        third_place_amount: prizeCount >= 3 && thirdNum > 0 ? thirdNum : null,
         status: "draft",
       })
       .select()
@@ -159,7 +211,6 @@ export default function NewEventPage() {
       return;
     }
 
-    // Insert event_participants for each selected team
     const participantRows = selectedTeamIds.map((teamId) => ({
       event_id: event.id,
       team_id: teamId,
@@ -396,6 +447,8 @@ export default function NewEventPage() {
                         <div className="team-pick-meta">
                           {team.sport_or_activity}
                           {team.age_group && ` · ${team.age_group}`}
+                          {" · "}
+                          <strong>{team.playerCount} player{team.playerCount === 1 ? "" : "s"}</strong>
                         </div>
                       </div>
                     </label>
@@ -403,7 +456,8 @@ export default function NewEventPage() {
                 </div>
                 {selectedTeamIds.length > 0 && (
                   <p className="form-section-hint" style={{ marginTop: "8px", color: "var(--color-blue-dark)" }}>
-                    ✓ {selectedTeamIds.length} team{selectedTeamIds.length === 1 ? "" : "s"} selected
+                    ✓ {selectedTeamIds.length} team{selectedTeamIds.length === 1 ? "" : "s"} selected ·{" "}
+                    {totalPlayerCount} total player{totalPlayerCount === 1 ? "" : "s"}
                   </p>
                 )}
               </div>
@@ -413,18 +467,31 @@ export default function NewEventPage() {
             <div className="form-section">
               <h3 className="form-section-title">3. Fundraising Goal</h3>
               <p className="form-section-hint">
-                Tell sponsors what you're aiming to raise. This is for display only —
-                you can hit it, exceed it, or fall short.
+                Set your team's fundraising target. We'll calculate what each
+                player needs to raise automatically.
               </p>
 
               <div>
                 <label className="form-label">
-                  Goal type
-                  <Tooltip text="Per-player makes the goal feel personal (each kid raises X). Per-team makes it a shared mission (we together raise X).">
+                  Is this a per-player or per-team goal? <span className="required">*</span>
+                  <Tooltip text="Per-team is one shared goal split across players. Per-player is a target each player raises individually.">
                     <span className="help-icon">?</span>
                   </Tooltip>
                 </label>
                 <div className="radio-cards-compact">
+                  <label className={`radio-card-small ${goalType === "per_team" ? "radio-card-active" : ""}`}>
+                    <input
+                      type="radio"
+                      name="goalType"
+                      value="per_team"
+                      checked={goalType === "per_team"}
+                      onChange={() => setGoalType("per_team")}
+                    />
+                    <div>
+                      <div className="radio-card-title-small">Per Team</div>
+                      <div className="radio-card-text-small">e.g., $2,000 total</div>
+                    </div>
+                  </label>
                   <label className={`radio-card-small ${goalType === "per_player" ? "radio-card-active" : ""}`}>
                     <input
                       type="radio"
@@ -438,25 +505,19 @@ export default function NewEventPage() {
                       <div className="radio-card-text-small">e.g., $50 per player</div>
                     </div>
                   </label>
-                  <label className={`radio-card-small ${goalType === "per_team" ? "radio-card-active" : ""}`}>
-                    <input
-                      type="radio"
-                      name="goalType"
-                      value="per_team"
-                      checked={goalType === "per_team"}
-                      onChange={() => setGoalType("per_team")}
-                    />
-                    <div>
-                      <div className="radio-card-title-small">Per Team</div>
-                      <div className="radio-card-text-small">e.g., $5,000 total</div>
-                    </div>
-                  </label>
                 </div>
               </div>
 
               <div>
                 <label htmlFor="goalAmount" className="form-label">
-                  Amount (optional)
+                  Fundraising Goal Amount <span className="required">*</span>
+                  <Tooltip text={
+                    goalType === "per_team"
+                      ? "The total your team aims to raise. We'll divide it by the number of players."
+                      : "How much each player should raise. We'll multiply by your roster size for the total."
+                  }>
+                    <span className="help-icon">?</span>
+                  </Tooltip>
                 </label>
                 <div className="input-prefix-wrap">
                   <span className="input-prefix">$</span>
@@ -464,13 +525,19 @@ export default function NewEventPage() {
                     id="goalAmount"
                     type="number"
                     className="form-input form-input-with-prefix"
-                    placeholder={goalType === "per_player" ? "50" : "5000"}
+                    placeholder={goalType === "per_team" ? "2000" : "50"}
                     value={goalAmount}
                     onChange={(e) => setGoalAmount(e.target.value)}
                     min="0"
                     step="0.01"
+                    required
                   />
                 </div>
+                <p className="form-hint">
+                  {goalType === "per_team"
+                    ? "The total amount your team will raise during this event."
+                    : "Each player will raise this amount during the event."}
+                </p>
               </div>
             </div>
 
@@ -478,14 +545,14 @@ export default function NewEventPage() {
             <div className="form-section">
               <h3 className="form-section-title">4. Prizes</h3>
               <p className="form-section-hint">
-                How many prize winners? You can give just a 1st place prize, or
-                add 2nd and 3rd place too.
+                How many prize winners? Prize amounts are subtracted from the
+                total raised — what's left over goes to the team.
               </p>
 
               <div>
                 <label className="form-label">
                   Number of prize winners
-                  <Tooltip text="More prizes = more motivation for players. But it also means more prizes to fund. Pick what works for your fundraiser.">
+                  <Tooltip text="More prizes = more motivation for players. But more prizes also means less money kept by the team. Pick what works.">
                     <span className="help-icon">?</span>
                   </Tooltip>
                 </label>
@@ -529,53 +596,169 @@ export default function NewEventPage() {
                 </div>
               </div>
 
-              <div>
-                <label htmlFor="firstPlace" className="form-label">
-                  🥇 1st place prize
-                </label>
-                <input
-                  id="firstPlace"
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g., $200 cash, signed jersey, or pizza party"
-                  value={firstPlacePrize}
-                  onChange={(e) => setFirstPlacePrize(e.target.value)}
-                  maxLength={200}
-                />
+              <div className="prize-input-row">
+                <div className="prize-input-amount">
+                  <label htmlFor="firstAmount" className="form-label">
+                    🥇 1st place — Amount
+                  </label>
+                  <div className="input-prefix-wrap">
+                    <span className="input-prefix">$</span>
+                    <input
+                      id="firstAmount"
+                      type="number"
+                      className="form-input form-input-with-prefix"
+                      placeholder="200"
+                      value={firstPlaceAmount}
+                      onChange={(e) => setFirstPlaceAmount(e.target.value)}
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+                <div className="prize-input-desc">
+                  <label htmlFor="firstPlace" className="form-label">
+                    Description
+                  </label>
+                  <input
+                    id="firstPlace"
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g., Target gift card"
+                    value={firstPlacePrize}
+                    onChange={(e) => setFirstPlacePrize(e.target.value)}
+                    maxLength={200}
+                  />
+                </div>
               </div>
 
               {prizeCount >= 2 && (
-                <div>
-                  <label htmlFor="secondPlace" className="form-label">
-                    🥈 2nd place prize
-                  </label>
-                  <input
-                    id="secondPlace"
-                    type="text"
-                    className="form-input"
-                    placeholder="e.g., $100 cash or team swag"
-                    value={secondPlacePrize}
-                    onChange={(e) => setSecondPlacePrize(e.target.value)}
-                    maxLength={200}
-                  />
+                <div className="prize-input-row">
+                  <div className="prize-input-amount">
+                    <label htmlFor="secondAmount" className="form-label">
+                      🥈 2nd place — Amount
+                    </label>
+                    <div className="input-prefix-wrap">
+                      <span className="input-prefix">$</span>
+                      <input
+                        id="secondAmount"
+                        type="number"
+                        className="form-input form-input-with-prefix"
+                        placeholder="100"
+                        value={secondPlaceAmount}
+                        onChange={(e) => setSecondPlaceAmount(e.target.value)}
+                        min="0"
+                        step="0.01"
+                      />
+                    </div>
+                  </div>
+                  <div className="prize-input-desc">
+                    <label htmlFor="secondPlace" className="form-label">
+                      Description
+                    </label>
+                    <input
+                      id="secondPlace"
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g., Amazon gift card"
+                      value={secondPlacePrize}
+                      onChange={(e) => setSecondPlacePrize(e.target.value)}
+                      maxLength={200}
+                    />
+                  </div>
                 </div>
               )}
 
               {prizeCount >= 3 && (
-                <div>
-                  <label htmlFor="thirdPlace" className="form-label">
-                    🥉 3rd place prize
-                  </label>
-                  <input
-                    id="thirdPlace"
-                    type="text"
-                    className="form-input"
-                    placeholder="e.g., $50 gift card"
-                    value={thirdPlacePrize}
-                    onChange={(e) => setThirdPlacePrize(e.target.value)}
-                    maxLength={200}
-                  />
+                <div className="prize-input-row">
+                  <div className="prize-input-amount">
+                    <label htmlFor="thirdAmount" className="form-label">
+                      🥉 3rd place — Amount
+                    </label>
+                    <div className="input-prefix-wrap">
+                      <span className="input-prefix">$</span>
+                      <input
+                        id="thirdAmount"
+                        type="number"
+                        className="form-input form-input-with-prefix"
+                        placeholder="50"
+                        value={thirdPlaceAmount}
+                        onChange={(e) => setThirdPlaceAmount(e.target.value)}
+                        min="0"
+                        step="0.01"
+                      />
+                    </div>
+                  </div>
+                  <div className="prize-input-desc">
+                    <label htmlFor="thirdPlace" className="form-label">
+                      Description
+                    </label>
+                    <input
+                      id="thirdPlace"
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g., Local restaurant gift card"
+                      value={thirdPlacePrize}
+                      onChange={(e) => setThirdPlacePrize(e.target.value)}
+                      maxLength={200}
+                    />
+                  </div>
                 </div>
+              )}
+            </div>
+
+            {/* SECTION 5: Live Breakdown */}
+            <div className="breakdown-card">
+              <div className="breakdown-eyebrow">★ YOUR FUNDRAISING PLAN ★</div>
+              <h3 className="breakdown-title">The Math at a Glance</h3>
+
+              {!showBreakdown ? (
+                <p className="breakdown-empty">
+                  Enter a goal amount above to see your fundraising breakdown.
+                </p>
+              ) : (
+                <>
+                  <div className="breakdown-rows">
+                    <div className="breakdown-row">
+                      <span className="breakdown-label">
+                        {goalType === "per_team"
+                          ? "Total Fundraising Goal"
+                          : `${formatMoney(goalNum)} × ${totalPlayerCount} players`}
+                      </span>
+                      <span className="breakdown-value">${formatMoney(totalGoal)}</span>
+                    </div>
+                    {prizePool > 0 && (
+                      <div className="breakdown-row breakdown-row-deduct">
+                        <span className="breakdown-label">− Prize Pool</span>
+                        <span className="breakdown-value">−${formatMoney(prizePool)}</span>
+                      </div>
+                    )}
+                    <div className="breakdown-divider"></div>
+                    <div className="breakdown-row breakdown-row-final">
+                      <span className="breakdown-label">Net to Your Team</span>
+                      <span className="breakdown-value breakdown-value-final">
+                        ${formatMoney(netToTeam)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {totalPlayerCount === 0 ? (
+                    <div className="breakdown-per-player breakdown-per-player-empty">
+                      ★ Add players to your team(s) to see per-player breakdown
+                    </div>
+                  ) : netToTeam < 0 ? (
+                    <div className="breakdown-per-player breakdown-per-player-warning">
+                      ⚠ Prize pool exceeds your goal. Reduce prizes or raise the goal.
+                    </div>
+                  ) : (
+                    <div className="breakdown-per-player">
+                      <span className="breakdown-per-player-icon">★</span>
+                      <span>
+                        {totalPlayerCount} player{totalPlayerCount === 1 ? "" : "s"} ×{" "}
+                        <strong>${formatMoney(perPlayerNet)}</strong> each
+                      </span>
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
