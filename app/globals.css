@@ -5798,3 +5798,579 @@ a:hover {
   margin-right: 4px;
   font-size: 12px;
 }
+
+
+/* ============================================================
+   Slice 4.6 — Sponsor QR Codes (coach UI + public sponsor page)
+   ============================================================ */
+
+
+/* ---- Alert info variant (used on coach QR page banner) ---- */
+
+.alert-info {
+  background: #EAF3FF;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+}
+
+
+/* ---- Coach QR codes page ---- */
+
+.qr-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.qr-toolbar-meta {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.sponsor-pdf-btn-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.qr-team-list {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.qr-team-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+
+.qr-team-header {
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 10px;
+  margin-bottom: 18px;
+}
+
+.qr-team-name {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0 0 4px;
+  letter-spacing: -0.3px;
+}
+
+.qr-team-meta {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.qr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+
+/* ---- Single QR card ---- */
+
+.qr-card {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.qr-card-public-name {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-text);
+  text-align: center;
+  letter-spacing: -0.3px;
+}
+
+.qr-card-private-name {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-align: center;
+  font-style: italic;
+  margin-top: -4px;
+}
+
+.qr-card-img-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
+
+.qr-card-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+}
+
+.qr-card-img-loading {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.qr-card-actions {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.qr-card-btn {
+  flex: 1;
+  font-size: 11px;
+  padding: 6px 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.qr-card-btn:hover:not(:disabled) {
+  background: #F4F6FA;
+}
+
+.qr-card-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+/* ============================================================
+   Public sponsor landing page
+   ============================================================ */
+
+.sponsor-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #F0F6FF 0%, #FFFFFF 360px);
+}
+
+.sponsor-header {
+  background: #fff;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sponsor-header-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sponsor-logo {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 20px;
+  color: var(--color-blue);
+  letter-spacing: -0.3px;
+}
+
+.sponsor-main {
+  flex: 1;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sponsor-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 28px 24px;
+  box-shadow: 0 8px 30px rgba(31, 41, 88, 0.08);
+  border: 1px solid var(--color-border);
+}
+
+.sponsor-card-not-found {
+  text-align: center;
+}
+
+.sponsor-eyebrow {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--color-gold);
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.sponsor-headline {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--color-text);
+  text-align: center;
+  margin: 0 0 14px;
+  letter-spacing: -0.6px;
+  line-height: 1.15;
+}
+
+.sponsor-name {
+  color: var(--color-blue);
+}
+
+.sponsor-subhead {
+  font-size: 15px;
+  color: var(--color-text);
+  text-align: center;
+  margin: 0 0 22px;
+  line-height: 1.5;
+}
+
+.sponsor-event-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  background: #F4F6FA;
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 22px;
+}
+
+.sponsor-event-block {
+  text-align: center;
+}
+
+.sponsor-event-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.sponsor-event-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.3;
+}
+
+.sponsor-event-amount {
+  color: var(--color-blue);
+  font-size: 18px;
+  font-family: var(--font-display);
+}
+
+.sponsor-pitch {
+  background: #FFFAF0;
+  border-left: 4px solid var(--color-gold);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 22px;
+}
+
+.sponsor-pitch p {
+  font-size: 14px;
+  color: var(--color-text);
+  margin: 0 0 8px;
+  line-height: 1.5;
+}
+
+.sponsor-pitch p:last-child {
+  margin-bottom: 0;
+}
+
+.sponsor-pitch-mantra {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  text-align: center;
+  color: var(--color-blue);
+  font-size: 16px !important;
+  margin-top: 12px !important;
+}
+
+
+/* ---- Sponsor CTA button ---- */
+
+.sponsor-cta-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.sponsor-cta-btn {
+  background: var(--color-blue);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 17px;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  letter-spacing: -0.2px;
+  display: inline-block;
+  text-decoration: none;
+  text-align: center;
+}
+
+.sponsor-cta-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+  background: #1E50C9;
+}
+
+.sponsor-cta-btn:active {
+  transform: translateY(0);
+}
+
+.sponsor-cta-hint {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin: 8px 0 0;
+}
+
+
+/* ---- Sponsor trust row + explainer ---- */
+
+.sponsor-trust-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 16px;
+}
+
+.sponsor-trust-item {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.sponsor-explainer {
+  text-align: center;
+  padding: 20px 18px;
+}
+
+.sponsor-explainer-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--color-text);
+  margin: 0 0 12px;
+  letter-spacing: -0.3px;
+}
+
+.sponsor-explainer p {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  margin: 0 0 8px;
+}
+
+.sponsor-explainer-link {
+  color: var(--color-blue);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.sponsor-explainer-link:hover {
+  text-decoration: underline;
+}
+
+
+/* ---- Sponsor footer ---- */
+
+.sponsor-footer {
+  background: #fff;
+  border-top: 1px solid var(--color-border);
+  padding: 16px 20px;
+}
+
+.sponsor-footer-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.sponsor-footer-link {
+  color: var(--color-blue);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.sponsor-footer-link:hover {
+  text-decoration: underline;
+}
+
+
+/* ---- "Coming soon" modal on sponsor page ---- */
+
+.sponsor-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 16px;
+  animation: sponsor-fade-in 150ms ease;
+}
+
+.sponsor-modal-card {
+  position: relative;
+  max-width: 460px;
+  width: 100%;
+  background: #fff;
+  border-radius: 18px;
+  padding: 28px 24px 22px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  animation: sponsor-pop 200ms ease;
+}
+
+.sponsor-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-size: 24px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+}
+
+.sponsor-modal-close:hover {
+  color: var(--color-text);
+}
+
+.sponsor-modal-eyebrow {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--color-gold);
+  margin-bottom: 8px;
+}
+
+.sponsor-modal-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0 0 14px;
+  letter-spacing: -0.4px;
+}
+
+.sponsor-modal-text {
+  font-size: 14px;
+  color: var(--color-text);
+  line-height: 1.55;
+  margin: 0 0 12px;
+}
+
+.sponsor-modal-text:last-of-type {
+  margin-bottom: 18px;
+}
+
+.sponsor-modal-ok-btn {
+  background: var(--color-blue);
+  color: #fff;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 99px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: var(--font-display);
+}
+
+.sponsor-modal-ok-btn:hover {
+  background: #1E50C9;
+}
+
+
+/* ---- Not-found sponsor variant ---- */
+
+.sponsor-not-found-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+
+/* ---- Animations ---- */
+
+@keyframes sponsor-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes sponsor-pop {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+
+/* ---- Mobile breakpoint adjustments ---- */
+
+@media (max-width: 600px) {
+  .sponsor-headline {
+    font-size: 22px;
+  }
+  .sponsor-event-strip {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .sponsor-event-block {
+    text-align: left;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .sponsor-event-label {
+    margin-bottom: 0;
+  }
+  .qr-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

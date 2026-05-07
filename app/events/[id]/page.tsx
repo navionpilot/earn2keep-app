@@ -402,7 +402,9 @@ export default async function EventDetailPage({
                       to share with sponsors. Sponsors scan it to{" "}
                       {event.event_type === "camp" ? "contribute toward the player's fundraising goal" : "pay the player's registration fee"}.
                     </p>
-                    <span className="coming-soon-tag">Coming in Slice 4.6</span>
+                    <Link href={`/events/${event.id}/qr-codes`} className="next-step-link">
+                      📱 Open QR Code Generator →
+                    </Link>
                   </div>
                 </div>
                 <div className="next-step-item">
@@ -613,6 +615,25 @@ export default async function EventDetailPage({
                 })()}
               </>
             )}
+          </div>
+
+          {/* Sponsor QR Codes (Slice 4.6) */}
+          <div className="dashboard-card">
+            <div className="section-header" style={{ marginBottom: "16px" }}>
+              <h2 className="dashboard-card-title">Sponsor QR Codes</h2>
+              <Tooltip text="Each player gets a unique QR code linking to a public sponsor page. Print them, share them, hang them on the fridge.">
+                <Link href={`/events/${event.id}/qr-codes`} className="btn-add">
+                  📱 Open
+                </Link>
+              </Tooltip>
+            </div>
+            <p className="dashboard-card-text">
+              {event.event_type === "camp" ? (
+                <>Generate one-of-a-kind sponsor QR codes for each player so family, friends, and local businesses can back their fundraising goal. Payments arrive in Phase 5 — codes work now to start sharing.</>
+              ) : (
+                <>Generate one-of-a-kind QR codes for each player so sponsors can cover their registration fee. Payments arrive in Phase 5 — codes work now to start sharing.</>
+              )}
+            </p>
           </div>
 
           {/* Prizes */}
