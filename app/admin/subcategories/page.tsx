@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
-import OnboardingSidebar from "@/components/OnboardingSidebar";
 import LogoutButton from "@/components/LogoutButton";
 
+import AppShell from "@/components/AppShell";
 // Hardcoded admin email — replace with proper role system in a future slice
 const ADMIN_EMAIL = "waylon.hdd@comcast.net";
 
@@ -285,28 +285,7 @@ export default function AdminSubcategoriesPage() {
   }
 
   return (
-    <div className="dashboard">
-      <header className="dashboard-header">
-        <div className="dashboard-header-inner">
-          <Link href="/dashboard" className="dashboard-logo">
-            <span className="logo-text">earn<sup className="logo-sup">2</sup>keep</span>
-          </Link>
-          <div className="dashboard-user-section">
-            <span className="dashboard-user-email">{userDisplayName} (admin)</span>
-            <LogoutButton />
-          </div>
-        </div>
-      </header>
-
-      <div className="dashboard-layout">
-        <OnboardingSidebar
-          hasOrganization={true}
-          hasTeams={true}
-          hasPlayers={true}
-          hasEvent={true}
-        />
-
-        <main className="dashboard-main-with-sidebar">
+    <AppShell active="settings" userDisplayName={userDisplayName}>
           <Link href="/dashboard" className="btn-back">
             ← Back to Dashboard
           </Link>
@@ -394,8 +373,6 @@ export default function AdminSubcategoriesPage() {
               </div>
             )}
           </div>
-        </main>
-      </div>
-    </div>
+    </AppShell>
   );
 }

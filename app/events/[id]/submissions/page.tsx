@@ -4,9 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
-import OnboardingSidebar from "@/components/OnboardingSidebar";
 import LogoutButton from "@/components/LogoutButton";
 import SubmissionStatusBadge from "@/components/SubmissionStatusBadge";
+import AppShell from "@/components/AppShell";
 import SubmissionReviewModal, {
   type SubmissionForReview,
 } from "@/components/SubmissionReviewModal";
@@ -222,28 +222,7 @@ export default function SubmissionsQueuePage() {
   }
 
   return (
-    <div className="dashboard">
-      <header className="dashboard-header">
-        <div className="dashboard-header-inner">
-          <Link href="/dashboard" className="dashboard-logo">
-            <span className="logo-text">earn<sup className="logo-sup">2</sup>keep</span>
-          </Link>
-          <div className="dashboard-user-section">
-            <span className="dashboard-user-email">{userDisplayName}</span>
-            <LogoutButton />
-          </div>
-        </div>
-      </header>
-
-      <div className="dashboard-layout">
-        <OnboardingSidebar
-          hasOrganization={true}
-          hasTeams={hasTeams}
-          hasPlayers={hasPlayers}
-          hasEvent={true}
-        />
-
-        <main className="dashboard-main-with-sidebar">
+    <AppShell active="events" userDisplayName={userDisplayName}>
           <Link href={`/events/${eventId}`} className="btn-back">
             ← Back to {event.name}
           </Link>
@@ -367,8 +346,6 @@ export default function SubmissionsQueuePage() {
               })}
             </ul>
           )}
-        </main>
-      </div>
 
       {activeSub && (
         <SubmissionReviewModal
@@ -377,6 +354,6 @@ export default function SubmissionsQueuePage() {
           onSaved={fetchAll}
         />
       )}
-    </div>
+    </AppShell>
   );
 }

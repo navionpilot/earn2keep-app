@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase-server";
 import LogoutButton from "@/components/LogoutButton";
-import OnboardingSidebar from "@/components/OnboardingSidebar";
 import Tooltip from "@/components/Tooltip";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -8,6 +7,7 @@ import EventStatusButton from "@/components/EventStatusButton";
 import DeleteButton from "@/components/DeleteButton";
 import LeaderboardCard from "@/components/LeaderboardCard";
 
+import AppShell from "@/components/AppShell";
 const formatMoney = (n: number) =>
   n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
@@ -163,33 +163,7 @@ export default async function EventDetailPage({
   const showBreakdown = goalNum > 0;
 
   return (
-    <div className="dashboard">
-      <header className="dashboard-header">
-        <div className="dashboard-header-inner">
-          <Link href="/dashboard" className="dashboard-logo">
-            <span className="logo-text">
-              earn<sup className="logo-sup">2</sup>keep
-            </span>
-          </Link>
-
-          <div className="dashboard-user-section">
-            <span className="dashboard-user-email">
-              {profile?.full_name?.trim() || user?.email}
-            </span>
-            <LogoutButton />
-          </div>
-        </div>
-      </header>
-
-      <div className="dashboard-layout">
-        <OnboardingSidebar
-          hasOrganization={true}
-          hasTeams={(totalTeamCount || 0) > 0}
-          hasPlayers={(totalPlayerCountSidebar || 0) > 0}
-          hasEvent={(totalEventCount || 0) > 0}
-        />
-
-        <main className="dashboard-main-with-sidebar">
+    <AppShell active="events" userDisplayName={profile?.full_name?.trim() || ""}>
           {/* Back button */}
           {org && (
             <Link href={`/organizations/${org.id}`} className="btn-back">
@@ -730,8 +704,6 @@ export default async function EventDetailPage({
             ]}
             buttonLabel="Delete this event"
           />
-        </main>
-      </div>
-    </div>
+    </AppShell>
   );
 }

@@ -9,6 +9,7 @@ import CategoryHierarchyPicker, { type Subcategory } from "@/components/Category
 import RecordingSetupSection from "@/components/RecordingSetupSection";
 import ReferencePhotoUpload from "@/components/ReferencePhotoUpload";
 
+import AppShell from "@/components/AppShell";
 const SUBCATEGORY_REQUIRED = new Set(["Sports"]);
 
 // The default export wraps everything in <Suspense> so Next.js can prerender
@@ -227,16 +228,7 @@ function NewChallengeForm() {
   const backHref = returnTo ? `/events/${returnTo}` : "/dashboard";
 
   return (
-    <div className="form-page">
-      <header className="dashboard-header">
-        <div className="dashboard-header-inner">
-          <Link href="/dashboard" className="dashboard-logo">
-            <span className="logo-text">earn<sup className="logo-sup">2</sup>keep</span>
-          </Link>
-          <Link href={backHref} className="btn-link">← Back</Link>
-        </div>
-      </header>
-
+    <AppShell active="settings" userDisplayName={""}>
       <main className="form-page-main">
         <div className="form-card">
           <div style={{ textAlign: "center" }}>
@@ -362,6 +354,6 @@ function NewChallengeForm() {
           </form>
         </div>
       </main>
-    </div>
+    </AppShell>
   );
 }

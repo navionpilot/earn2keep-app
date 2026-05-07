@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 import Tooltip from "@/components/Tooltip";
 
+import AppShell from "@/components/AppShell";
 export default function EditPlayerPage() {
   const params = useParams();
   const playerId = params.id as string;
@@ -117,20 +118,7 @@ export default function EditPlayerPage() {
   }
 
   return (
-    <div className="form-page">
-      <header className="dashboard-header">
-        <div className="dashboard-header-inner">
-          <Link href="/dashboard" className="dashboard-logo">
-            <span className="logo-text">
-              earn<sup className="logo-sup">2</sup>keep
-            </span>
-          </Link>
-          <Link href={`/teams/${teamId}`} className="btn-link">
-            ← Back
-          </Link>
-        </div>
-      </header>
-
+    <AppShell active="participants" userDisplayName={""}>
       <main className="form-page-main">
         <div className="form-card">
           <h1 className="form-title">Edit Player</h1>
@@ -291,6 +279,6 @@ export default function EditPlayerPage() {
           </div>
         </div>
       </main>
-    </div>
+    </AppShell>
   );
 }

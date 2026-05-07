@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 import Tooltip from "@/components/Tooltip";
 
+import AppShell from "@/components/AppShell";
 type Team = {
   id: string;
   name: string;
@@ -262,16 +263,7 @@ export default function EditEventPage() {
     : "The flat entry fee each player pays to register.";
 
   return (
-    <div className="form-page">
-      <header className="dashboard-header">
-        <div className="dashboard-header-inner">
-          <Link href="/dashboard" className="dashboard-logo">
-            <span className="logo-text">earn<sup className="logo-sup">2</sup>keep</span>
-          </Link>
-          <Link href={`/events/${eventId}`} className="btn-link">← Back</Link>
-        </div>
-      </header>
-
+    <AppShell active="events" userDisplayName={""}>
       <main className="form-page-main-wide">
         <div className="form-card">
           <h1 className="form-title">Edit Event</h1>
@@ -600,6 +592,6 @@ export default function EditEventPage() {
           </form>
         </div>
       </main>
-    </div>
+    </AppShell>
   );
 }

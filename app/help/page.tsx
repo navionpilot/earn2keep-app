@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase-server";
 import LogoutButton from "@/components/LogoutButton";
-import OnboardingSidebar from "@/components/OnboardingSidebar";
 import Link from "next/link";
 
+import AppShell from "@/components/AppShell";
 export default async function HelpPage() {
   const supabase = await createClient();
   const {
@@ -23,28 +23,7 @@ export default async function HelpPage() {
   const hasOrganization = (organizations?.length || 0) > 0;
 
   return (
-    <div className="dashboard">
-      <header className="dashboard-header">
-        <div className="dashboard-header-inner">
-          <Link href="/dashboard" className="dashboard-logo">
-            <span className="logo-text">
-              earn<sup className="logo-sup">2</sup>keep
-            </span>
-          </Link>
-
-          <div className="dashboard-user-section">
-            <span className="dashboard-user-email">
-              {profile?.full_name?.trim() || user?.email}
-            </span>
-            <LogoutButton />
-          </div>
-        </div>
-      </header>
-
-      <div className="dashboard-layout">
-        <OnboardingSidebar hasOrganization={hasOrganization} />
-
-        <main className="dashboard-main-with-sidebar">
+    <AppShell active="settings" userDisplayName={profile?.full_name?.trim() || ""}>
           <div className="breadcrumb">
             <Link href="/dashboard" className="breadcrumb-link">Dashboard</Link>
             <span className="breadcrumb-sep">›</span>
@@ -173,8 +152,6 @@ export default async function HelpPage() {
               and we'll get back to you within one business day.
             </p>
           </div>
-        </main>
-      </div>
-    </div>
+    </AppShell>
   );
 }

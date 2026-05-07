@@ -1,11 +1,11 @@
 import { createClient } from "@/lib/supabase-server";
 import LogoutButton from "@/components/LogoutButton";
-import OnboardingSidebar from "@/components/OnboardingSidebar";
 import Tooltip from "@/components/Tooltip";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import DeleteButton from "@/components/DeleteButton";
 
+import AppShell from "@/components/AppShell";
 export default async function TeamDetailPage({
   params,
 }: {
@@ -72,32 +72,7 @@ export default async function TeamDetailPage({
   };
 
   return (
-    <div className="dashboard">
-      <header className="dashboard-header">
-        <div className="dashboard-header-inner">
-          <Link href="/dashboard" className="dashboard-logo">
-            <span className="logo-text">
-              earn<sup className="logo-sup">2</sup>keep
-            </span>
-          </Link>
-
-          <div className="dashboard-user-section">
-            <span className="dashboard-user-email">
-              {profile?.full_name?.trim() || user?.email}
-            </span>
-            <LogoutButton />
-          </div>
-        </div>
-      </header>
-
-      <div className="dashboard-layout">
-        <OnboardingSidebar
-          hasOrganization={true}
-          hasTeams={hasTeams}
-          hasPlayers={hasPlayers}
-        />
-
-        <main className="dashboard-main-with-sidebar">
+    <AppShell active="teams" userDisplayName={profile?.full_name?.trim() || ""}>
           {org && (
             <Link href={`/organizations/${org.id}`} className="btn-back">
               ← Back to {org.name}
@@ -252,8 +227,6 @@ export default async function TeamDetailPage({
             ]}
             buttonLabel="Delete this team"
           />
-        </main>
-      </div>
-    </div>
+    </AppShell>
   );
 }

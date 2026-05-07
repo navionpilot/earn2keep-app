@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 import Tooltip from "@/components/Tooltip";
 
+import AppShell from "@/components/AppShell";
 export default function NewOrganizationPage() {
   const [name, setName] = useState("");
   const [orgType, setOrgType] = useState("");
@@ -52,20 +53,7 @@ export default function NewOrganizationPage() {
   };
 
   return (
-    <div className="form-page">
-      <header className="dashboard-header">
-        <div className="dashboard-header-inner">
-          <Link href="/dashboard" className="dashboard-logo">
-            <span className="logo-text">
-              earn<sup className="logo-sup">2</sup>keep
-            </span>
-          </Link>
-          <Link href="/dashboard" className="btn-link">
-            ← Back to Dashboard
-          </Link>
-        </div>
-      </header>
-
+    <AppShell active="teams" userDisplayName={""}>
       <main className="form-page-main">
         <div className="form-card">
           <div style={{ textAlign: "center" }}>
@@ -185,6 +173,6 @@ export default function NewOrganizationPage() {
           </form>
         </div>
       </main>
-    </div>
+    </AppShell>
   );
 }

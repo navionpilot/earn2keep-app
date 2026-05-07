@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 
+import AppShell from "@/components/AppShell";
 type ParsedRow = {
   raw: Record<string, string>;
   firstName: string;
@@ -379,20 +380,7 @@ export default function ImportPlayersPage() {
   }
 
   return (
-    <div className="form-page">
-      <header className="dashboard-header">
-        <div className="dashboard-header-inner">
-          <Link href="/dashboard" className="dashboard-logo">
-            <span className="logo-text">
-              earn<sup className="logo-sup">2</sup>keep
-            </span>
-          </Link>
-          <Link href={`/teams/${teamId}`} className="btn-link">
-            ← Back
-          </Link>
-        </div>
-      </header>
-
+    <AppShell active="participants" userDisplayName="">
       <main className="form-page-main form-page-main-wide">
         <div className="form-card">
           {step === "upload" && (
@@ -587,6 +575,6 @@ export default function ImportPlayersPage() {
           )}
         </div>
       </main>
-    </div>
+    </AppShell>
   );
 }

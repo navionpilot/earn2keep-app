@@ -4,10 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
-import OnboardingSidebar from "@/components/OnboardingSidebar";
 import LogoutButton from "@/components/LogoutButton";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import SponsorPdfButton from "@/components/SponsorPdfButton";
+import AppShell from "@/components/AppShell";
 import {
   ensureTokensForEvent,
   publicDisplayName,
@@ -241,28 +241,7 @@ export default function SponsorQrCodesPage() {
   const totalPlayers = playersByTeam.reduce((sum, g) => sum + g.players.length, 0);
 
   return (
-    <div className="dashboard">
-      <header className="dashboard-header">
-        <div className="dashboard-header-inner">
-          <Link href="/dashboard" className="dashboard-logo">
-            <span className="logo-text">earn<sup className="logo-sup">2</sup>keep</span>
-          </Link>
-          <div className="dashboard-user-section">
-            <span className="dashboard-user-email">{userDisplayName}</span>
-            <LogoutButton />
-          </div>
-        </div>
-      </header>
-
-      <div className="dashboard-layout">
-        <OnboardingSidebar
-          hasOrganization={true}
-          hasTeams={hasTeams}
-          hasPlayers={hasPlayers}
-          hasEvent={true}
-        />
-
-        <main className="dashboard-main-with-sidebar">
+    <AppShell active="events" userDisplayName={userDisplayName}>
           <Link href={`/events/${eventId}`} className="btn-back">
             ← Back to {event.name}
           </Link>
@@ -358,9 +337,7 @@ export default function SponsorQrCodesPage() {
               ))}
             </div>
           )}
-        </main>
-      </div>
-    </div>
+    </AppShell>
   );
 }
 

@@ -4,11 +4,11 @@ import { useEffect, useState, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
-import OnboardingSidebar from "@/components/OnboardingSidebar";
 import LogoutButton from "@/components/LogoutButton";
 import CSVChallengePreviewTable, { ParsedChallengeRow } from "@/components/CSVChallengePreviewTable";
 import { recommendRecordingSetup } from "@/lib/recordingRecommender";
 
+import AppShell from "@/components/AppShell";
 const VALID_CATEGORIES = ["Sports", "Faith", "Fitness", "Academic", "Scouts", "Service"];
 const VALID_DIFFICULTIES = ["Easy", "Medium", "Hard"];
 const SUBCATEGORY_REQUIRED = new Set(["Sports"]);
@@ -567,28 +567,7 @@ function BulkImportInner() {
   }
 
   return (
-    <div className="dashboard">
-      <header className="dashboard-header">
-        <div className="dashboard-header-inner">
-          <Link href="/dashboard" className="dashboard-logo">
-            <span className="logo-text">earn<sup className="logo-sup">2</sup>keep</span>
-          </Link>
-          <div className="dashboard-user-section">
-            <span className="dashboard-user-email">{userDisplayName}</span>
-            <LogoutButton />
-          </div>
-        </div>
-      </header>
-
-      <div className="dashboard-layout">
-        <OnboardingSidebar
-          hasOrganization={true}
-          hasTeams={hasTeams}
-          hasPlayers={hasPlayers}
-          hasEvent={hasEvent}
-        />
-
-        <main className="dashboard-main-with-sidebar">
+    <AppShell active="settings" userDisplayName={userDisplayName}>
           <Link href={returnTo ? `/events/${returnTo}` : "/dashboard"} className="btn-back">← Back</Link>
 
           <div className="breadcrumb">
@@ -729,8 +708,6 @@ function BulkImportInner() {
               )}
             </>
           )}
-        </main>
-      </div>
-    </div>
+    </AppShell>
   );
 }

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 import Tooltip from "@/components/Tooltip";
 
+import AppShell from "@/components/AppShell";
 type Team = {
   id: string;
   name: string;
@@ -280,16 +281,7 @@ export default function NewEventPage() {
   const goalPlaceholder = eventType === "camp" ? "50" : eventType === "tournament" ? "25" : "";
 
   return (
-    <div className="form-page">
-      <header className="dashboard-header">
-        <div className="dashboard-header-inner">
-          <Link href="/dashboard" className="dashboard-logo">
-            <span className="logo-text">earn<sup className="logo-sup">2</sup>keep</span>
-          </Link>
-          <Link href={`/organizations/${orgId}`} className="btn-link">← Back</Link>
-        </div>
-      </header>
-
+    <AppShell active="events" userDisplayName={""}>
       <main className="form-page-main-wide">
         <div className="form-card">
           <div style={{ textAlign: "center" }}>
@@ -688,6 +680,6 @@ export default function NewEventPage() {
           </form>
         </div>
       </main>
-    </div>
+    </AppShell>
   );
 }

@@ -4,7 +4,6 @@ import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
-import OnboardingSidebar from "@/components/OnboardingSidebar";
 import LogoutButton from "@/components/LogoutButton";
 import CalendarMonthView, { DayChallenge } from "@/components/CalendarMonthView";
 import CalendarWeekView from "@/components/CalendarWeekView";
@@ -14,6 +13,7 @@ import ChallengeLibraryModal, { LibraryChallenge, LibrarySubcategory } from "@/c
 import DeleteChallengeModal, { ChallengeToDelete } from "@/components/DeleteChallengeModal";
 import ApplyToDaysModal from "@/components/ApplyToDaysModal";
 
+import AppShell from "@/components/AppShell";
 type EventChallengeRow = {
   id: string;
   challenge_id: string;
@@ -520,28 +520,7 @@ export default function SchedulePlannerPage() {
   }
 
   return (
-    <div className="dashboard">
-      <header className="dashboard-header">
-        <div className="dashboard-header-inner">
-          <Link href="/dashboard" className="dashboard-logo">
-            <span className="logo-text">earn<sup className="logo-sup">2</sup>keep</span>
-          </Link>
-          <div className="dashboard-user-section">
-            <span className="dashboard-user-email">{userDisplayName}</span>
-            <LogoutButton />
-          </div>
-        </div>
-      </header>
-
-      <div className="dashboard-layout">
-        <OnboardingSidebar
-          hasOrganization={true}
-          hasTeams={hasTeams}
-          hasPlayers={hasPlayers}
-          hasEvent={hasEvent}
-        />
-
-        <main className="dashboard-main-with-sidebar">
+    <AppShell active="events" userDisplayName={userDisplayName}>
           <Link href={`/events/${eventId}`} className="btn-back">
             ← Back to {eventName}
           </Link>
@@ -663,8 +642,6 @@ export default function SchedulePlannerPage() {
               Done — Back to Event →
             </Link>
           </div>
-        </main>
-      </div>
 
       <ChallengeLibraryModal
         open={showLibraryModal}
@@ -711,6 +688,6 @@ export default function SchedulePlannerPage() {
           await fetchAll();
         }}
       />
-    </div>
+    </AppShell>
   );
 }

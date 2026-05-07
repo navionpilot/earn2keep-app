@@ -14,14 +14,14 @@ export default function AppHeader({
   unreadCount = 0,
   onMobileMenuClick,
 }: AppHeaderProps) {
-  // Derive initials for the avatar circle
-  const initials = userDisplayName
-    .split(" ")
-    .map((p) => p[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase() || "?";
+  const initials =
+    userDisplayName
+      .split(" ")
+      .map((p) => p[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "?";
 
   return (
     <header className="e2k-header">
@@ -57,8 +57,8 @@ export default function AppHeader({
           }
         >
           <svg
-            width="18"
-            height="18"
+            width="20"
+            height="20"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
