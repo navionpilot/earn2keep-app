@@ -1,7 +1,10 @@
 "use client";
 
+import { RECORDING_TEMPLATES } from "@/lib/recordingRecommender";
+
 export type ParsedChallengeRow = {
   rowNumber: number;
+  // Raw values from CSV
   name: string;
   description: string;
   category: string;
@@ -10,13 +13,20 @@ export type ParsedChallengeRow = {
   unit: string;
   defaultRepTarget: string;
   difficulty: string;
-  setupTemplate: string;
+  // Recording fields (added in 4.5.3b)
+  setupTemplate: string;       // template key, blank = will auto-recommend
   recordingInstructions: string;
   verificationMode: string;
+  // Recommendation pre-computed during parse (so the preview can show it)
+  recommendedSetupTemplate?: string;     // what we'll auto-fill if setupTemplate is blank
+  recommendedConfidence?: "high" | "medium" | "low";
+  // Parsed/validated values
   isValid: boolean;
   errors: string[];
   warnings: string[];
+  // Whether the user wants to include this row in the import
   include: boolean;
+  // If a new subcategory will be auto-created, mark it
   willCreateSubcategory?: boolean;
   willCreateSubSubcategory?: boolean;
 };
@@ -27,6 +37,15 @@ interface CSVChallengePreviewTableProps {
   onToggleAll: (include: boolean) => void;
 }
 
+const verificationModeLabel = (mode: string): string => {
+  switch (mode) {
+    case "ai_only": return "🤖 AI only";
+    case "coach_only": return "👤 Coach only";
+    case "ai_and_coach": return "🤖+👤 AI + Coach";
+    default: return "—";
+  }
+};
+
 export default function CSVChallengePreviewTable({
   rows,
   onToggleRow,
@@ -34,9 +53,15 @@ export default function CSVChallengePreviewTable({
 }: CSVChallengePreviewTableProps) {
   const validCount = rows.filter((r) => r.isValid && r.include).length;
   const errorCount = rows.filter((r) => !r.isValid).length;
-  const willCreateSubCount = rows.filter((r) => r.willCreateSubcategory && r.include).length;
-  const willCreateSubSubCount = rows.filter((r) => r.willCreateSubSubcategory && r.include).length;
-  const allValidIncluded = rows.filter((r) => r.isValid).every((r) => r.include);
+  const willCreateCount = rows.filter(
+    (r) => (r.willCreateSubcategory || r.willCreateSubSubcategory) && r.include
+  ).length;
+  const autoRecommendCount = rows.filter(
+    (r) => !r.setupTemplate && r.recommendedSetupTemplate && r.include
+  ).length;
+  const allValidIncluded = rows
+    .filter((r) => r.isValid)
+    .every((r) => r.include);
 
   return (
     <div className="csv-preview">
@@ -51,16 +76,16 @@ export default function CSVChallengePreviewTable({
             <span className="csv-preview-stat-label">with errors (skipped)</span>
           </div>
         )}
-        {willCreateSubCount > 0 && (
+        {willCreateCount > 0 && (
           <div className="csv-preview-stat">
-            <span className="csv-preview-stat-num csv-preview-stat-warning">{willCreateSubCount}</span>
+            <span className="csv-preview-stat-num csv-preview-stat-warning">{willCreateCount}</span>
             <span className="csv-preview-stat-label">new subcategories</span>
           </div>
         )}
-        {willCreateSubSubCount > 0 && (
+        {autoRecommendCount > 0 && (
           <div className="csv-preview-stat">
-            <span className="csv-preview-stat-num csv-preview-stat-warning">{willCreateSubSubCount}</span>
-            <span className="csv-preview-stat-label">new sub-subcategories</span>
+            <span className="csv-preview-stat-num csv-preview-stat-info">{autoRecommendCount}</span>
+            <span className="csv-preview-stat-label">auto-recommended setup</span>
           </div>
         )}
         <div className="csv-preview-toggle-all">
@@ -87,76 +112,119 @@ export default function CSVChallengePreviewTable({
               <th>Sub-subcategory</th>
               <th>Unit</th>
               <th>Target</th>
+              <th>Difficulty</th>
+              <th>Recording</th>
+              <th>Verification</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
-              <tr
-                key={row.rowNumber}
-                className={!row.isValid ? "csv-preview-row-error" : !row.include ? "csv-preview-row-excluded" : ""}
-              >
-                <td className="csv-preview-row-num">{row.rowNumber}</td>
-                <td>
-                  <input
-                    type="checkbox"
-                    checked={row.include && row.isValid}
-                    disabled={!row.isValid}
-                    onChange={(e) => onToggleRow(row.rowNumber, e.target.checked)}
-                  />
-                </td>
-                <td className="csv-preview-cell-name">{row.name || <em>missing</em>}</td>
-                <td>{row.category || <em>missing</em>}</td>
-                <td>
-                  {row.subcategory ? (
-                    <>
-                      {row.subcategory}
-                      {row.willCreateSubcategory && (
-                        <span className="csv-preview-new-sub-pill" title="Will be created as a new private subcategory">
-                          NEW
+            {rows.map((row) => {
+              // Effective setup template = user's choice OR auto-recommended
+              const effectiveTemplateKey = row.setupTemplate || row.recommendedSetupTemplate || "";
+              const effectiveTemplate = effectiveTemplateKey ? RECORDING_TEMPLATES[effectiveTemplateKey] : null;
+              const isAutoRecommended = !row.setupTemplate && row.recommendedSetupTemplate;
+              // Effective verification mode
+              const effectiveVerification = row.verificationMode
+                || (effectiveTemplate ? effectiveTemplate.recommendedVerificationMode : "coach_only");
+              const isVerificationDefault = !row.verificationMode;
+
+              return (
+                <tr
+                  key={row.rowNumber}
+                  className={
+                    !row.isValid
+                      ? "csv-preview-row-error"
+                      : !row.include
+                        ? "csv-preview-row-excluded"
+                        : ""
+                  }
+                >
+                  <td className="csv-preview-row-num">{row.rowNumber}</td>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={row.include && row.isValid}
+                      disabled={!row.isValid}
+                      onChange={(e) => onToggleRow(row.rowNumber, e.target.checked)}
+                    />
+                  </td>
+                  <td className="csv-preview-cell-name">{row.name || <em>missing</em>}</td>
+                  <td>{row.category || <em>missing</em>}</td>
+                  <td>
+                    {row.subcategory ? (
+                      <>
+                        {row.subcategory}
+                        {row.willCreateSubcategory && (
+                          <span className="csv-preview-new-sub-pill" title="Will be created as a new private subcategory">
+                            NEW
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <em>—</em>
+                    )}
+                  </td>
+                  <td>
+                    {row.subSubcategory ? (
+                      <>
+                        {row.subSubcategory}
+                        {row.willCreateSubSubcategory && (
+                          <span className="csv-preview-new-sub-pill" title="Will be created as a new private sub-subcategory">
+                            NEW
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <em>—</em>
+                    )}
+                  </td>
+                  <td>{row.unit || <em>missing</em>}</td>
+                  <td>{row.defaultRepTarget || <em>—</em>}</td>
+                  <td>{row.difficulty || <em>—</em>}</td>
+                  <td>
+                    {effectiveTemplate ? (
+                      <span
+                        className={`csv-preview-template ${isAutoRecommended ? "csv-preview-template-auto" : ""}`}
+                        title={isAutoRecommended ? `Auto-recommended (${row.recommendedConfidence} confidence): ${effectiveTemplate.shortDescription}` : effectiveTemplate.shortDescription}
+                      >
+                        <span className="csv-preview-template-icon">{effectiveTemplate.icon}</span>
+                        <span className="csv-preview-template-name">
+                          {effectiveTemplate.label}
+                          {isAutoRecommended && <span className="csv-preview-template-auto-pill">auto</span>}
                         </span>
-                      )}
-                    </>
-                  ) : (
-                    <em>—</em>
-                  )}
-                </td>
-                <td>
-                  {row.subSubcategory ? (
-                    <>
-                      {row.subSubcategory}
-                      {row.willCreateSubSubcategory && (
-                        <span className="csv-preview-new-sub-pill" title="Will be created as a new private sub-subcategory">
-                          NEW
-                        </span>
-                      )}
-                    </>
-                  ) : (
-                    <em>—</em>
-                  )}
-                </td>
-                <td>{row.unit || <em>missing</em>}</td>
-                <td>{row.defaultRepTarget || <em>—</em>}</td>
-                <td>
-                  {row.isValid ? (
-                    <span className="csv-preview-status-good">✓ Ready</span>
-                  ) : (
-                    <div className="csv-preview-errors">
-                      {row.errors.map((err, i) => (
-                        <span key={i} className="csv-preview-error-msg">⚠ {err}</span>
-                      ))}
-                    </div>
-                  )}
-                  {row.warnings.length > 0 && (
-                    <div className="csv-preview-warnings">
-                      {row.warnings.map((w, i) => (
-                        <span key={i} className="csv-preview-warning-msg">ℹ {w}</span>
-                      ))}
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))}
+                      </span>
+                    ) : (
+                      <em>—</em>
+                    )}
+                  </td>
+                  <td>
+                    <span className={isVerificationDefault ? "csv-preview-verification-default" : ""}>
+                      {verificationModeLabel(effectiveVerification)}
+                      {isVerificationDefault && <span className="csv-preview-template-auto-pill">default</span>}
+                    </span>
+                  </td>
+                  <td>
+                    {row.isValid ? (
+                      <span className="csv-preview-status-good">✓ Ready</span>
+                    ) : (
+                      <div className="csv-preview-errors">
+                        {row.errors.map((err, i) => (
+                          <span key={i} className="csv-preview-error-msg">⚠ {err}</span>
+                        ))}
+                      </div>
+                    )}
+                    {row.warnings.length > 0 && (
+                      <div className="csv-preview-warnings">
+                        {row.warnings.map((w, i) => (
+                          <span key={i} className="csv-preview-warning-msg">ℹ {w}</span>
+                        ))}
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

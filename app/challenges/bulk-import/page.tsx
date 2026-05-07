@@ -302,7 +302,9 @@ function BulkImportInner() {
           }
         }
 
-        // If setup_template is blank, run the recommender so we can show a hint
+        // If setup_template is blank, run the recommender so we can show what will be used
+        let recommendedSetupTemplate: string | undefined;
+        let recommendedConfidence: "high" | "medium" | "low" | undefined;
         if (!setupTemplate && category) {
           const rec = recommendRecordingSetup({
             category,
@@ -311,7 +313,8 @@ function BulkImportInner() {
             name,
           });
           if (rec) {
-            warnings.push(`Will use AI-recommended template: ${rec.template.label}`);
+            recommendedSetupTemplate = rec.templateKey;
+            recommendedConfidence = rec.confidence;
           }
         }
 
@@ -329,6 +332,8 @@ function BulkImportInner() {
           setupTemplate,
           recordingInstructions,
           verificationMode,
+          recommendedSetupTemplate,
+          recommendedConfidence,
           isValid,
           errors,
           warnings,

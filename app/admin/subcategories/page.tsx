@@ -15,7 +15,7 @@ type PrivateSubcategory = {
   name: string;
   organization_id: string;
   parent_subcategory_id: string | null;
-  parent_subcategory_name: string | null; // resolved from lookup
+  parent_subcategory_name: string | null;
   created_at: string;
   challenge_count: number;
   org_name: string | null;
@@ -56,7 +56,7 @@ export default function AdminSubcategoriesPage() {
       .single();
     if (profile?.full_name) setUserDisplayName(profile.full_name);
 
-    // Fetch all private subcategories with their org names
+    // Fetch all private subcategories with their org names + parent subcategory ids
     const { data: privSubs, error: subErr } = await supabase
       .from("challenge_subcategories")
       .select("id, parent_category, name, organization_id, parent_subcategory_id, created_at, organizations(name)")
@@ -70,12 +70,12 @@ export default function AdminSubcategoriesPage() {
       return;
     }
 
-    // Also fetch ALL subcategories so we can resolve parent_subcategory_id → name (parents may be public)
+    // Build a name lookup for ALL subcategories (so we can resolve parent names — public Tier 2 ids can be parents)
     const { data: allSubs } = await supabase
       .from("challenge_subcategories")
       .select("id, name");
-    const subNameById: Record<string, string> = {};
-    (allSubs || []).forEach((s: any) => { subNameById[s.id] = s.name; });
+    const nameById: Record<string, string> = {};
+    (allSubs || []).forEach((s: any) => { nameById[s.id] = s.name; });
 
     // Get challenge counts per subcategory
     const ids = (privSubs || []).map((s: any) => s.id);
@@ -95,8 +95,6 @@ export default function AdminSubcategoriesPage() {
       parent_category: s.parent_category,
       name: s.name,
       organization_id: s.organization_id,
-      parent_subcategory_id: s.parent_subcategory_id,
-      parent_subcategory_name: s.parent_subcategory_id ? (subNameById[s.parent_subcategory_id] || null) : null,
       created_at: s.created_at,
       challenge_count: counts[s.id] || 0,
       org_name: s.organizations?.name || null,
@@ -178,6 +176,74 @@ export default function AdminSubcategoriesPage() {
     }
 
     setSuccessMsg(`Deleted "${name}"`);
+    await fetchAll();
+  };
+
+  // Re-parent a subcategory to be a child of another subcategory (Tier 3 nesting)
+  const handleReparent = async (subId: string, name: string, parentCategory: string) => {
+    // Build list of possible parents — Tier 2 entries in the same parent_category
+    // (excluding self)
+    const possibleParents = subs
+      .filter((s) => s.parent_category === parentCategory && s.id !== subId && !s.parent_subcategory_id)
+      .map((s) => ({ id: s.id, name: s.name }));
+
+    // Also include public Tier 2 subcategories from the same parent_category
+    const supabase = createClient();
+    const { data: publicTier2 } = await supabase
+      .from("challenge_subcategories")
+      .select("id, name")
+      .eq("parent_category", parentCategory)
+      .eq("is_public", true)
+      .is("parent_subcategory_id", null)
+      .order("name");
+
+    const allParents = [
+      ...(publicTier2 || []).map((p: any) => ({ id: p.id, name: p.name + " (public)" })),
+      ...possibleParents.map((p) => ({ id: p.id, name: p.name + " (private)" })),
+    ];
+
+    if (allParents.length === 0) {
+      alert(`No possible parents in ${parentCategory}. Create a Tier 2 subcategory first.`);
+      return;
+    }
+
+    // Build a numbered prompt
+    let promptText = `Move "${name}" to be a sub-type under which subcategory?\n\n`;
+    promptText += `0. (top-level — not nested)\n`;
+    allParents.forEach((p, i) => {
+      promptText += `${i + 1}. ${p.name}\n`;
+    });
+    promptText += `\nEnter the number:`;
+
+    const choice = window.prompt(promptText, "0");
+    if (choice === null) return; // cancelled
+
+    const choiceNum = parseInt(choice);
+    if (isNaN(choiceNum) || choiceNum < 0 || choiceNum > allParents.length) {
+      alert("Invalid choice. Cancelled.");
+      return;
+    }
+
+    const newParentId = choiceNum === 0 ? null : allParents[choiceNum - 1].id;
+
+    setError(null);
+    setSuccessMsg(null);
+
+    const { error: updErr } = await supabase
+      .from("challenge_subcategories")
+      .update({ parent_subcategory_id: newParentId })
+      .eq("id", subId);
+
+    if (updErr) {
+      setError(`Failed to re-parent: ${updErr.message}`);
+      return;
+    }
+
+    setSuccessMsg(
+      newParentId === null
+        ? `Moved "${name}" to top-level (Tier 2)`
+        : `Moved "${name}" under "${allParents[choiceNum - 1].name}"`
+    );
     await fetchAll();
   };
 
@@ -276,23 +342,10 @@ export default function AdminSubcategoriesPage() {
                   <tbody>
                     {subs.map((s) => (
                       <tr key={s.id}>
-                        <td className="admin-table-name">
-                          {s.name}
-                          {s.parent_subcategory_name && (
-                            <div className="admin-table-path">
-                              ↳ under {s.parent_category} › {s.parent_subcategory_name}
-                            </div>
-                          )}
-                          {!s.parent_subcategory_name && (
-                            <div className="admin-table-path">
-                              ↳ under {s.parent_category} (top-level)
-                            </div>
-                          )}
-                        </td>
+                        <td className="admin-table-name">{s.name}</td>
                         <td>
                           <span className={`challenge-cat-pill cat-${s.parent_category.toLowerCase()}`}>
                             {s.parent_category}
-                            {s.parent_subcategory_name ? ` › ${s.parent_subcategory_name}` : ""}
                           </span>
                         </td>
                         <td>
@@ -312,6 +365,15 @@ export default function AdminSubcategoriesPage() {
                               disabled={promoting === s.id}
                             >
                               {promoting === s.id ? "Promoting..." : "↑ Promote to global"}
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-secondary"
+                              style={{ fontSize: "12px", padding: "6px 12px" }}
+                              onClick={() => handleReparent(s.id, s.name, s.parent_category)}
+                              title="Move this subcategory to be nested under another"
+                            >
+                              ↳ Re-parent
                             </button>
                             <button
                               type="button"

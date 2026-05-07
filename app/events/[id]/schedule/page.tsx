@@ -23,6 +23,12 @@ type EventChallengeRow = {
     name: string;
     category: string;
     unit: string | null;
+    description: string | null;
+    difficulty: string | null;
+    setup_template_key: string | null;
+    recording_instructions: string | null;
+    verification_mode: string | null;
+    subcategory_id: string | null;
   } | null;
 };
 
@@ -145,7 +151,7 @@ export default function SchedulePlannerPage() {
     // Fetch scheduled challenges with challenge details
     const { data: scheduled } = await supabase
       .from("event_challenges")
-      .select("id, challenge_id, day_index, rep_target, challenges(id, name, category, unit)")
+      .select("id, challenge_id, day_index, rep_target, challenges(id, name, category, unit, description, difficulty, setup_template_key, recording_instructions, verification_mode, subcategory_id)")
       .eq("event_id", eventId)
       .order("day_index", { ascending: true });
 
@@ -197,6 +203,27 @@ export default function SchedulePlannerPage() {
     return map;
   }, [scheduledRows, eventStartDate]);
 
+  // Build a quick lookup for subcategories so we can resolve the full hierarchy path
+  const subcategoryById = useMemo(() => {
+    const map: Record<string, { id: string; name: string; parent_subcategory_id: string | null }> = {};
+    librarySubcategories.forEach((s) => {
+      map[s.id] = { id: s.id, name: s.name, parent_subcategory_id: s.parent_subcategory_id };
+    });
+    return map;
+  }, [librarySubcategories]);
+
+  // Resolve "Soccer › Ball Control" path from a subcategory_id
+  const resolveSubcategoryPath = (subId: string | null | undefined): string | null => {
+    if (!subId) return null;
+    const sub = subcategoryById[subId];
+    if (!sub) return null;
+    if (sub.parent_subcategory_id) {
+      const parent = subcategoryById[sub.parent_subcategory_id];
+      if (parent) return `${parent.name} › ${sub.name}`;
+    }
+    return sub.name;
+  };
+
   // Derive challenges for the currently selected day
   const selectedDayChallenges: AssignedChallenge[] = useMemo(() => {
     if (!eventStartDate || !selectedDate) return [];
@@ -210,8 +237,15 @@ export default function SchedulePlannerPage() {
         category: r.challenges?.category || "Sports",
         unit: r.challenges?.unit || null,
         repTarget: r.rep_target,
+        description: r.challenges?.description || null,
+        difficulty: r.challenges?.difficulty || null,
+        setupTemplateKey: r.challenges?.setup_template_key || null,
+        recordingInstructions: r.challenges?.recording_instructions || null,
+        verificationMode: r.challenges?.verification_mode || null,
+        subcategoryPath: resolveSubcategoryPath(r.challenges?.subcategory_id),
       }));
-  }, [scheduledRows, selectedDate, eventStartDate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scheduledRows, selectedDate, eventStartDate, subcategoryById]);
 
   // Already-assigned challenge IDs on the selected day (so library modal can disable them)
   const alreadyOnDay = useMemo(() => {

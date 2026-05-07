@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { RECORDING_TEMPLATES } from "@/lib/recordingRecommender";
 
 export type AssignedChallenge = {
   id: string; // event_challenges.id
@@ -9,6 +10,13 @@ export type AssignedChallenge = {
   category: string;
   unit: string | null;
   repTarget: number | null;
+  // New fields for expandable details
+  description?: string | null;
+  difficulty?: string | null;
+  setupTemplateKey?: string | null;
+  recordingInstructions?: string | null;
+  verificationMode?: string | null;
+  subcategoryPath?: string | null; // e.g., "Soccer › Ball Control"
 };
 
 interface DayPlanSidebarProps {
@@ -55,6 +63,25 @@ export default function DayPlanSidebar({
   onRepeatWeekly,
 }: DayPlanSidebarProps) {
   const [confirmingRest, setConfirmingRest] = useState(false);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  const toggleExpanded = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const verificationLabel = (mode?: string | null): string => {
+    switch (mode) {
+      case "ai_only": return "🤖 AI verification only";
+      case "coach_only": return "👤 Coach manual review";
+      case "ai_and_coach": return "🤖 + 👤 AI suggests, coach confirms";
+      default: return "👤 Coach manual review";
+    }
+  };
 
   const totalReps = challenges.reduce((sum, c) => sum + (c.repTarget || 0), 0);
 
@@ -74,41 +101,111 @@ export default function DayPlanSidebar({
 
       {challenges.length > 0 && (
         <div className="day-sidebar-list">
-          {challenges.map((c) => (
-            <div key={c.id} className="day-challenge-row">
-              <span
-                className="day-challenge-dot"
-                style={{ background: CATEGORY_COLORS[c.category] || "#6B7280" }}
-              />
-              <div className="day-challenge-info">
-                <div className="day-challenge-name">{c.name}</div>
-                <div className="day-challenge-target">
-                  <input
-                    type="number"
-                    min="1"
-                    className="day-challenge-target-input"
-                    value={c.repTarget || ""}
-                    onChange={(e) => {
-                      const val = parseInt(e.target.value);
-                      if (!isNaN(val) && val > 0) {
-                        onUpdateRepTarget(c.id, val);
-                      }
-                    }}
+          {challenges.map((c) => {
+            const isExpanded = expandedIds.has(c.id);
+            const recordingTemplate = c.setupTemplateKey ? RECORDING_TEMPLATES[c.setupTemplateKey] : null;
+            return (
+              <div key={c.id} className={`day-challenge-row ${isExpanded ? "day-challenge-row-expanded" : ""}`}>
+                <div className="day-challenge-row-main">
+                  <span
+                    className="day-challenge-dot"
+                    style={{ background: CATEGORY_COLORS[c.category] || "#6B7280" }}
                   />
-                  <span className="day-challenge-unit">{c.unit || "reps"}</span>
+                  <div className="day-challenge-info">
+                    <button
+                      type="button"
+                      className="day-challenge-name day-challenge-name-clickable"
+                      onClick={() => toggleExpanded(c.id)}
+                      title={isExpanded ? "Collapse details" : "View details"}
+                    >
+                      {c.name}
+                      {recordingTemplate && (
+                        <span className="day-challenge-rec-icon" title={`Recording: ${recordingTemplate.label}`}>
+                          {recordingTemplate.icon}
+                        </span>
+                      )}
+                      <span className="day-challenge-expand-arrow">{isExpanded ? "▾" : "▸"}</span>
+                    </button>
+                    <div className="day-challenge-target">
+                      <input
+                        type="number"
+                        min="1"
+                        className="day-challenge-target-input"
+                        value={c.repTarget || ""}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          if (!isNaN(val) && val > 0) {
+                            onUpdateRepTarget(c.id, val);
+                          }
+                        }}
+                      />
+                      <span className="day-challenge-unit">{c.unit || "reps"}</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="day-challenge-remove"
+                    onClick={() => onRemoveChallenge(c.id)}
+                    aria-label="Remove challenge"
+                    title="Remove from this day"
+                  >
+                    ×
+                  </button>
                 </div>
+
+                {isExpanded && (
+                  <div className="day-challenge-details">
+                    {c.subcategoryPath && (
+                      <div className="day-challenge-detail-row">
+                        <span className="day-challenge-detail-label">Filed under:</span>
+                        <span className="day-challenge-detail-value">
+                          {c.category} › {c.subcategoryPath}
+                        </span>
+                      </div>
+                    )}
+                    {c.difficulty && (
+                      <div className="day-challenge-detail-row">
+                        <span className="day-challenge-detail-label">Difficulty:</span>
+                        <span className={`challenge-diff-pill diff-${c.difficulty.toLowerCase()}`}>
+                          {c.difficulty}
+                        </span>
+                      </div>
+                    )}
+                    {c.description && (
+                      <div className="day-challenge-detail-block">
+                        <div className="day-challenge-detail-label">Description</div>
+                        <p className="day-challenge-detail-text">{c.description}</p>
+                      </div>
+                    )}
+                    {recordingTemplate && (
+                      <div className="day-challenge-detail-block">
+                        <div className="day-challenge-detail-label">
+                          {recordingTemplate.icon} Recording setup: {recordingTemplate.label}
+                        </div>
+                        {c.recordingInstructions ? (
+                          <div className="day-challenge-detail-text day-challenge-rec-text">
+                            {c.recordingInstructions.split("\n\n").map((para, i) => (
+                              <p key={i}>{para}</p>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="day-challenge-detail-text day-challenge-rec-text">
+                            {recordingTemplate.shortDescription}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    <div className="day-challenge-detail-row">
+                      <span className="day-challenge-detail-label">Verification:</span>
+                      <span className="day-challenge-detail-value">
+                        {verificationLabel(c.verificationMode)}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
-              <button
-                type="button"
-                className="day-challenge-remove"
-                onClick={() => onRemoveChallenge(c.id)}
-                aria-label="Remove challenge"
-                title="Remove from this day"
-              >
-                ×
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

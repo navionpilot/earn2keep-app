@@ -5256,3 +5256,160 @@ a:hover {
   margin-top: 2px;
   letter-spacing: 0.2px;
 }
+
+/* ============================================
+   Slice 4.5.3b-part1 fix1 — Recording column in CSV preview + expandable day plan
+   ============================================ */
+
+/* --- CSV preview Recording column --- */
+.csv-preview-template {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.csv-preview-template-icon {
+  font-size: 14px;
+}
+
+.csv-preview-template-name {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.csv-preview-template-auto .csv-preview-template-name {
+  color: var(--color-blue);
+  font-style: italic;
+  font-weight: 500;
+}
+
+.csv-preview-template-auto-pill {
+  display: inline-block;
+  background: #DBEAFE;
+  color: var(--color-blue-dark);
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+.csv-preview-verification-default {
+  color: var(--color-text-muted);
+  font-style: italic;
+  font-size: 11px;
+}
+
+.csv-preview-stat-info {
+  color: var(--color-blue);
+}
+
+/* --- DayPlanSidebar expandable details --- */
+.day-challenge-row-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+}
+
+.day-challenge-name-clickable {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  width: 100%;
+}
+
+.day-challenge-name-clickable:hover {
+  color: var(--color-blue);
+}
+
+.day-challenge-rec-icon {
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.day-challenge-expand-arrow {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.day-challenge-row-expanded .day-challenge-expand-arrow {
+  color: var(--color-blue);
+}
+
+.day-challenge-details {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.day-challenge-detail-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.day-challenge-detail-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.day-challenge-detail-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.day-challenge-detail-value {
+  font-size: 12px;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.day-challenge-detail-text {
+  font-size: 12px;
+  color: var(--color-text);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.day-challenge-rec-text {
+  background: #F0F6FF;
+  border-left: 3px solid var(--color-blue);
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  font-size: 11px;
+}
+
+.day-challenge-rec-text p {
+  margin: 0 0 6px;
+}
+
+.day-challenge-rec-text p:last-child {
+  margin: 0;
+}
