@@ -20,6 +20,8 @@ interface DayPlanSidebarProps {
   onRemoveChallenge: (id: string) => void;
   onUpdateRepTarget: (id: string, newTarget: number) => void;
   onMarkAsRestDay: () => void;       // clears all challenges for this day
+  onApplyToOtherDays: () => void;    // opens "apply to days" modal
+  onRepeatWeekly: () => void;        // copies the current week's pattern across all remaining weeks
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -49,6 +51,8 @@ export default function DayPlanSidebar({
   onRemoveChallenge,
   onUpdateRepTarget,
   onMarkAsRestDay,
+  onApplyToOtherDays,
+  onRepeatWeekly,
 }: DayPlanSidebarProps) {
   const [confirmingRest, setConfirmingRest] = useState(false);
 
@@ -120,6 +124,26 @@ export default function DayPlanSidebar({
         <div className="day-quick-actions-label">Quick Actions</div>
 
         {challenges.length > 0 && (
+          <>
+            <button
+              type="button"
+              className="day-quick-action"
+              onClick={onApplyToOtherDays}
+            >
+              📋 Apply this day to other days
+            </button>
+            <button
+              type="button"
+              className="day-quick-action"
+              onClick={onRepeatWeekly}
+              title="Copy this week's plan to all remaining weeks of the event"
+            >
+              🔁 Repeat this week's pattern
+            </button>
+          </>
+        )}
+
+        {challenges.length > 0 && (
           confirmingRest ? (
             <div className="day-confirm-inline">
               <span>Clear all challenges?</span>
@@ -144,7 +168,7 @@ export default function DayPlanSidebar({
           ) : (
             <button
               type="button"
-              className="day-quick-action"
+              className="day-quick-action day-quick-action-danger"
               onClick={() => setConfirmingRest(true)}
             >
               🛌 Mark as rest day
@@ -152,9 +176,11 @@ export default function DayPlanSidebar({
           )
         )}
 
-        <p className="day-quick-actions-hint">
-          More actions like "Apply this day to other days" and "Repeat weekly pattern" coming next.
-        </p>
+        {challenges.length === 0 && (
+          <p className="day-quick-actions-hint">
+            Add a challenge above to unlock quick actions like copying this day's plan to other days.
+          </p>
+        )}
       </div>
     </div>
   );

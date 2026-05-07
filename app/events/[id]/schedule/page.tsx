@@ -7,8 +7,11 @@ import { createClient } from "@/lib/supabase-browser";
 import OnboardingSidebar from "@/components/OnboardingSidebar";
 import LogoutButton from "@/components/LogoutButton";
 import CalendarMonthView, { DayChallenge } from "@/components/CalendarMonthView";
+import CalendarWeekView from "@/components/CalendarWeekView";
+import CalendarListView from "@/components/CalendarListView";
 import DayPlanSidebar, { AssignedChallenge } from "@/components/DayPlanSidebar";
 import ChallengeLibraryModal, { LibraryChallenge } from "@/components/ChallengeLibraryModal";
+import ApplyToDaysModal from "@/components/ApplyToDaysModal";
 
 type EventChallengeRow = {
   id: string;
@@ -74,7 +77,11 @@ export default function SchedulePlannerPage() {
 
   const [fetching, setFetching] = useState(true);
   const [showLibraryModal, setShowLibraryModal] = useState(false);
+  const [showApplyModal, setShowApplyModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // View mode: "month" | "week" | "list"
+  const [viewMode, setViewMode] = useState<"month" | "week" | "list">("month");
 
   // Sidebar state for the OnboardingSidebar
   const [userDisplayName, setUserDisplayName] = useState<string>("");
@@ -301,6 +308,146 @@ export default function SchedulePlannerPage() {
     await fetchAll();
   };
 
+  // Apply this day's plan to selected target days
+  const handleApplyToDays = async (targetDates: string[], replaceExisting: boolean) => {
+    setError(null);
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not logged in");
+
+    const sourceDayIdx = dayIndexFromDate(selectedDate, eventStartDate);
+    const sourceRows = scheduledRows.filter((r) => r.day_index === sourceDayIdx);
+    if (sourceRows.length === 0) throw new Error("No challenges to copy from this day");
+
+    // Convert target dates to day indices
+    const targetIndices = targetDates.map((d) => dayIndexFromDate(d, eventStartDate));
+
+    // If replaceExisting, delete all existing challenges on target days first
+    if (replaceExisting && targetIndices.length > 0) {
+      const { error: delErr } = await supabase
+        .from("event_challenges")
+        .delete()
+        .eq("event_id", eventId)
+        .in("day_index", targetIndices);
+      if (delErr) throw new Error(delErr.message);
+    }
+
+    // Build rows to insert. If MERGING, skip rows where (challenge_id, day_index) already exists.
+    let existingByKey = new Set<string>();
+    if (!replaceExisting) {
+      // Refetch fresh state of all rows in target days
+      const { data: existing } = await supabase
+        .from("event_challenges")
+        .select("challenge_id, day_index")
+        .eq("event_id", eventId)
+        .in("day_index", targetIndices);
+      existingByKey = new Set((existing || []).map((r: any) => `${r.challenge_id}::${r.day_index}`));
+    }
+
+    const rowsToInsert: any[] = [];
+    for (const targetIdx of targetIndices) {
+      for (const src of sourceRows) {
+        const key = `${src.challenge_id}::${targetIdx}`;
+        if (!replaceExisting && existingByKey.has(key)) continue; // skip duplicates in merge mode
+        rowsToInsert.push({
+          event_id: eventId,
+          challenge_id: src.challenge_id,
+          day_index: targetIdx,
+          rep_target: src.rep_target,
+          owner_id: user.id,
+        });
+      }
+    }
+
+    if (rowsToInsert.length > 0) {
+      const { error: insErr } = await supabase.from("event_challenges").insert(rowsToInsert);
+      if (insErr) throw new Error(insErr.message);
+    }
+
+    setShowApplyModal(false);
+    await fetchAll();
+  };
+
+  // Repeat the current week's pattern across all remaining weeks of the event
+  const handleRepeatWeekly = async () => {
+    setError(null);
+    if (!confirm("This will copy this week's plan (Sunday-Saturday containing the selected day) to all remaining weeks of the event. Continue?")) return;
+
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setError("Not logged in"); return; }
+
+    // Determine the Sunday of the week containing the selected date
+    const selectedD = new Date(selectedDate + "T12:00:00");
+    const dow = selectedD.getDay();
+    const sundayOfWeek = new Date(selectedD);
+    sundayOfWeek.setDate(sundayOfWeek.getDate() - dow);
+
+    // Build the 7-day pattern: { dayOfWeekIdx: [source rows for that day] }
+    // We look at the event_challenges within the source week
+    const startD = new Date(eventStartDate + "T12:00:00");
+    const endD = new Date(eventEndDate + "T12:00:00");
+
+    const pattern: Record<number, typeof scheduledRows> = {}; // 0-6 (Sun-Sat) => rows
+    for (let i = 0; i < 7; i++) {
+      const dateOfWeek = new Date(sundayOfWeek);
+      dateOfWeek.setDate(sundayOfWeek.getDate() + i);
+      if (dateOfWeek < startD || dateOfWeek > endD) continue;
+      const idx = Math.floor((dateOfWeek.getTime() - startD.getTime()) / (1000 * 60 * 60 * 24));
+      pattern[i] = scheduledRows.filter((r) => r.day_index === idx);
+    }
+
+    // Find all dates in event window AFTER the source week's Saturday
+    const saturdayOfWeek = new Date(sundayOfWeek);
+    saturdayOfWeek.setDate(saturdayOfWeek.getDate() + 6);
+
+    const targetWeeks: { dayOfWeek: number; dayIndex: number }[] = [];
+    const cursor = new Date(saturdayOfWeek);
+    cursor.setDate(cursor.getDate() + 1); // start day after source Saturday
+    while (cursor <= endD) {
+      const idx = Math.floor((cursor.getTime() - startD.getTime()) / (1000 * 60 * 60 * 24));
+      targetWeeks.push({ dayOfWeek: cursor.getDay(), dayIndex: idx });
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    if (targetWeeks.length === 0) {
+      setError("No remaining weeks to copy to. The selected week is the last week of the event.");
+      return;
+    }
+
+    // Build rows to insert
+    const targetIndices = targetWeeks.map((w) => w.dayIndex);
+
+    // Delete existing on target days (replace mode for repeat-weekly)
+    const { error: delErr } = await supabase
+      .from("event_challenges")
+      .delete()
+      .eq("event_id", eventId)
+      .in("day_index", targetIndices);
+    if (delErr) { setError(delErr.message); return; }
+
+    const rowsToInsert: any[] = [];
+    for (const tw of targetWeeks) {
+      const sourceRows = pattern[tw.dayOfWeek] || [];
+      for (const src of sourceRows) {
+        rowsToInsert.push({
+          event_id: eventId,
+          challenge_id: src.challenge_id,
+          day_index: tw.dayIndex,
+          rep_target: src.rep_target,
+          owner_id: user.id,
+        });
+      }
+    }
+
+    if (rowsToInsert.length > 0) {
+      const { error: insErr } = await supabase.from("event_challenges").insert(rowsToInsert);
+      if (insErr) { setError(insErr.message); return; }
+    }
+
+    await fetchAll();
+  };
+
   if (fetching) {
     return (
       <div className="form-page">
@@ -362,29 +509,78 @@ export default function SchedulePlannerPage() {
 
           <div className="schedule-toolbar">
             <div className="schedule-month-nav">
-              <button type="button" className="btn-icon" onClick={goPrevMonth} aria-label="Previous month">←</button>
-              <span className="schedule-month-label">{monthLabel}</span>
-              <button type="button" className="btn-icon" onClick={goNextMonth} aria-label="Next month">→</button>
+              {viewMode === "month" && (
+                <>
+                  <button type="button" className="btn-icon" onClick={goPrevMonth} aria-label="Previous month">←</button>
+                  <span className="schedule-month-label">{monthLabel}</span>
+                  <button type="button" className="btn-icon" onClick={goNextMonth} aria-label="Next month">→</button>
+                </>
+              )}
+              {viewMode !== "month" && (
+                <span className="schedule-month-label" style={{ minWidth: "auto" }}>
+                  {totalDays}-day event
+                </span>
+              )}
             </div>
             <div className="schedule-view-toggle">
-              <button type="button" className="schedule-view-btn schedule-view-btn-active">📅 Calendar</button>
-              <button type="button" className="schedule-view-btn schedule-view-btn-disabled" disabled title="Coming next">📋 List</button>
-              <button type="button" className="schedule-view-btn schedule-view-btn-disabled" disabled title="Coming next">📊 Week</button>
+              <button
+                type="button"
+                className={`schedule-view-btn ${viewMode === "month" ? "schedule-view-btn-active" : ""}`}
+                onClick={() => setViewMode("month")}
+              >
+                📅 Calendar
+              </button>
+              <button
+                type="button"
+                className={`schedule-view-btn ${viewMode === "week" ? "schedule-view-btn-active" : ""}`}
+                onClick={() => setViewMode("week")}
+              >
+                📊 Week
+              </button>
+              <button
+                type="button"
+                className={`schedule-view-btn ${viewMode === "list" ? "schedule-view-btn-active" : ""}`}
+                onClick={() => setViewMode("list")}
+              >
+                📋 List
+              </button>
             </div>
           </div>
 
           <div className="schedule-layout">
             <div className="schedule-calendar-area">
-              <CalendarMonthView
-                year={displayYear}
-                month={displayMonth}
-                eventStartDate={eventStartDate}
-                eventEndDate={eventEndDate}
-                selectedDate={selectedDate}
-                dayContent={dayContent}
-                onSelectDay={(date) => setSelectedDate(date)}
-                today={today}
-              />
+              {viewMode === "month" && (
+                <CalendarMonthView
+                  year={displayYear}
+                  month={displayMonth}
+                  eventStartDate={eventStartDate}
+                  eventEndDate={eventEndDate}
+                  selectedDate={selectedDate}
+                  dayContent={dayContent}
+                  onSelectDay={(date) => setSelectedDate(date)}
+                  today={today}
+                />
+              )}
+              {viewMode === "week" && (
+                <CalendarWeekView
+                  eventStartDate={eventStartDate}
+                  eventEndDate={eventEndDate}
+                  selectedDate={selectedDate}
+                  dayContent={dayContent}
+                  onSelectDay={(date) => setSelectedDate(date)}
+                  today={today}
+                />
+              )}
+              {viewMode === "list" && (
+                <CalendarListView
+                  eventStartDate={eventStartDate}
+                  eventEndDate={eventEndDate}
+                  selectedDate={selectedDate}
+                  dayContent={dayContent}
+                  onSelectDay={(date) => setSelectedDate(date)}
+                  today={today}
+                />
+              )}
             </div>
 
             <div className="schedule-sidebar-area">
@@ -397,6 +593,8 @@ export default function SchedulePlannerPage() {
                 onRemoveChallenge={handleRemoveChallenge}
                 onUpdateRepTarget={handleUpdateRepTarget}
                 onMarkAsRestDay={handleMarkAsRestDay}
+                onApplyToOtherDays={() => setShowApplyModal(true)}
+                onRepeatWeekly={handleRepeatWeekly}
               />
             </div>
           </div>
@@ -417,6 +615,17 @@ export default function SchedulePlannerPage() {
         alreadyOnDay={alreadyOnDay}
         selectedDateLabel={selectedDate ? formatShortDate(selectedDate) : ""}
         createCustomHref={`/challenges/new?returnTo=${eventId}/schedule`}
+      />
+
+      <ApplyToDaysModal
+        open={showApplyModal}
+        onClose={() => setShowApplyModal(false)}
+        eventStartDate={eventStartDate}
+        eventEndDate={eventEndDate}
+        sourceDate={selectedDate}
+        sourceChallengeCount={selectedDayChallenges.length}
+        daysWithContent={new Set(Object.keys(dayContent))}
+        onApply={handleApplyToDays}
       />
     </div>
   );
