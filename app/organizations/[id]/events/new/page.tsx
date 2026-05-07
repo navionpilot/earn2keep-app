@@ -14,8 +14,28 @@ type Team = {
   playerCount: number;
 };
 
+const GIFT_CARD_OPTIONS = [
+  "Amazon Gift Card",
+  "Walmart Gift Card",
+  "Dick's Sporting Goods Gift Card",
+  "Academy Sports Gift Card",
+  "Soccer.com Gift Card",
+  "Visa/Mastercard Gift Card",
+  "Other",
+];
+
 const formatMoney = (n: number) =>
   n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+
+// Helper to combine dropdown + custom into a single string for the DB
+const combineGiftCard = (selection: string, custom: string): string | null => {
+  if (!selection) return null;
+  if (selection === "Other") {
+    const trimmed = custom.trim();
+    return trimmed || null;
+  }
+  return selection;
+};
 
 export default function NewEventPage() {
   const params = useParams();
@@ -36,12 +56,19 @@ export default function NewEventPage() {
   const [goalType, setGoalType] = useState<"per_player" | "per_team">("per_team");
   const [goalAmount, setGoalAmount] = useState("");
   const [prizeCount, setPrizeCount] = useState<1 | 2 | 3>(1);
-  const [firstPlacePrize, setFirstPlacePrize] = useState("");
+
+  // Each prize: amount, gift card selection, and custom text (if "Other")
   const [firstPlaceAmount, setFirstPlaceAmount] = useState("");
-  const [secondPlacePrize, setSecondPlacePrize] = useState("");
+  const [firstPlaceGiftCard, setFirstPlaceGiftCard] = useState("");
+  const [firstPlaceCustom, setFirstPlaceCustom] = useState("");
+
   const [secondPlaceAmount, setSecondPlaceAmount] = useState("");
-  const [thirdPlacePrize, setThirdPlacePrize] = useState("");
+  const [secondPlaceGiftCard, setSecondPlaceGiftCard] = useState("");
+  const [secondPlaceCustom, setSecondPlaceCustom] = useState("");
+
   const [thirdPlaceAmount, setThirdPlaceAmount] = useState("");
+  const [thirdPlaceGiftCard, setThirdPlaceGiftCard] = useState("");
+  const [thirdPlaceCustom, setThirdPlaceCustom] = useState("");
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -64,8 +91,6 @@ export default function NewEventPage() {
         .order("name");
 
       const teamIds = (teamsData || []).map((t) => t.id);
-
-      // Fetch active player counts per team
       const playerCounts: Record<string, number> = {};
       if (teamIds.length > 0) {
         const { data: playerData } = await supabase
@@ -78,12 +103,10 @@ export default function NewEventPage() {
         });
       }
 
-      const teamsWithCounts: Team[] = (teamsData || []).map((t) => ({
+      setTeams((teamsData || []).map((t) => ({
         ...t,
         playerCount: playerCounts[t.id] || 0,
-      }));
-
-      setTeams(teamsWithCounts);
+      })));
       setFetching(false);
     };
 
@@ -107,7 +130,6 @@ export default function NewEventPage() {
     setSelectedTeamIds([]);
   };
 
-  // Derived calculations
   const totalPlayerCount = useMemo(() => {
     return selectedTeamIds.reduce((sum, teamId) => {
       const team = teams.find((t) => t.id === teamId);
@@ -120,47 +142,25 @@ export default function NewEventPage() {
   const secondNum = prizeCount >= 2 ? parseFloat(secondPlaceAmount) || 0 : 0;
   const thirdNum = prizeCount >= 3 ? parseFloat(thirdPlaceAmount) || 0 : 0;
   const prizePool = firstNum + secondNum + thirdNum;
-
-  // For per_team goal: goal IS the team total. After prizes, divide by players.
-  // For per_player goal: each player raises X. Multiply by players for total. Then minus prizes.
-  const totalGoal =
-    goalType === "per_team"
-      ? goalNum
-      : goalNum * totalPlayerCount;
-
+  const totalGoal = goalType === "per_team" ? goalNum : goalNum * totalPlayerCount;
   const netToTeam = totalGoal - prizePool;
-
-  const perPlayerNet =
-    totalPlayerCount > 0 ? netToTeam / totalPlayerCount : 0;
-
+  const perPlayerNet = totalPlayerCount > 0 ? netToTeam / totalPlayerCount : 0;
   const showBreakdown = goalNum > 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    if (!name.trim()) {
-      setError("Event name is required.");
-      return;
-    }
-    if (!eventType) {
-      setError("Please pick Camp or Tournament.");
-      return;
-    }
-    if (!startDate || !endDate) {
-      setError("Please set start and end dates.");
-      return;
-    }
-    if (new Date(endDate) < new Date(startDate)) {
-      setError("End date must be on or after start date.");
-      return;
-    }
+    if (!name.trim()) { setError("Event name is required."); return; }
+    if (!eventType) { setError("Please pick Camp or Tournament."); return; }
+    if (!startDate || !endDate) { setError("Please set start and end dates."); return; }
+    if (new Date(endDate) < new Date(startDate)) { setError("End date must be on or after start date."); return; }
     if (selectedTeamIds.length === 0) {
       setError(eventType === "camp" ? "Please pick a team." : "Please pick at least one team.");
       return;
     }
     if (eventType === "tournament" && selectedTeamIds.length < 2) {
-      setError("A Tournament needs at least 2 teams. Use a Camp for single-team events.");
+      setError("A Tournament needs at least 2 teams.");
       return;
     }
     if (!goalAmount || goalNum <= 0) {
@@ -171,15 +171,12 @@ export default function NewEventPage() {
     setLoading(true);
 
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setError("You must be logged in."); setLoading(false); return; }
 
-    if (!user) {
-      setError("You must be logged in.");
-      setLoading(false);
-      return;
-    }
+    const firstPrize = combineGiftCard(firstPlaceGiftCard, firstPlaceCustom);
+    const secondPrize = prizeCount >= 2 ? combineGiftCard(secondPlaceGiftCard, secondPlaceCustom) : null;
+    const thirdPrize = prizeCount >= 3 ? combineGiftCard(thirdPlaceGiftCard, thirdPlaceCustom) : null;
 
     const { data: event, error: insertError } = await supabase
       .from("events")
@@ -194,11 +191,11 @@ export default function NewEventPage() {
         goal_type: goalType,
         goal_amount: goalNum,
         prize_count: prizeCount,
-        first_place_prize: firstPlacePrize.trim() || null,
+        first_place_prize: firstPrize,
         first_place_amount: firstNum > 0 ? firstNum : null,
-        second_place_prize: prizeCount >= 2 ? secondPlacePrize.trim() || null : null,
+        second_place_prize: secondPrize,
         second_place_amount: prizeCount >= 2 && secondNum > 0 ? secondNum : null,
-        third_place_prize: prizeCount >= 3 ? thirdPlacePrize.trim() || null : null,
+        third_place_prize: thirdPrize,
         third_place_amount: prizeCount >= 3 && thirdNum > 0 ? thirdNum : null,
         status: "draft",
       })
@@ -217,10 +214,7 @@ export default function NewEventPage() {
       owner_id: user.id,
     }));
 
-    const { error: partError } = await supabase
-      .from("event_participants")
-      .insert(participantRows);
-
+    const { error: partError } = await supabase.from("event_participants").insert(participantRows);
     if (partError) {
       setError(`Event created but failed to link teams: ${partError.message}`);
       setLoading(false);
@@ -249,26 +243,19 @@ export default function NewEventPage() {
         <header className="dashboard-header">
           <div className="dashboard-header-inner">
             <Link href="/dashboard" className="dashboard-logo">
-              <span className="logo-text">
-                earn<sup className="logo-sup">2</sup>keep
-              </span>
+              <span className="logo-text">earn<sup className="logo-sup">2</sup>keep</span>
             </Link>
-            <Link href={`/organizations/${orgId}`} className="btn-link">
-              ← Back
-            </Link>
+            <Link href={`/organizations/${orgId}`} className="btn-link">← Back</Link>
           </div>
         </header>
         <main className="form-page-main">
           <div className="form-card">
             <h1 className="form-title">No Teams Yet</h1>
             <p className="form-subtitle">
-              You need at least one team before creating an event. Add a team to{" "}
-              <strong>{orgName}</strong> first.
+              You need at least one team before creating an event. Add a team to <strong>{orgName}</strong> first.
             </p>
             <div style={{ textAlign: "center", marginTop: "24px" }}>
-              <Link href={`/organizations/${orgId}/teams/new`} className="btn-primary-link">
-                Add a Team →
-              </Link>
+              <Link href={`/organizations/${orgId}/teams/new`} className="btn-primary-link">Add a Team →</Link>
             </div>
           </div>
         </main>
@@ -281,13 +268,9 @@ export default function NewEventPage() {
       <header className="dashboard-header">
         <div className="dashboard-header-inner">
           <Link href="/dashboard" className="dashboard-logo">
-            <span className="logo-text">
-              earn<sup className="logo-sup">2</sup>keep
-            </span>
+            <span className="logo-text">earn<sup className="logo-sup">2</sup>keep</span>
           </Link>
-          <Link href={`/organizations/${orgId}`} className="btn-link">
-            ← Back
-          </Link>
+          <Link href={`/organizations/${orgId}`} className="btn-link">← Back</Link>
         </div>
       </header>
 
@@ -299,8 +282,7 @@ export default function NewEventPage() {
 
           <h1 className="form-title">Create Event</h1>
           <p className="form-subtitle">
-            Setting up an event for <strong>{orgName}</strong>. Fill in the
-            sections below — you can change anything after creating it.
+            Setting up an event for <strong>{orgName}</strong>. Fill in the sections below — you can change anything after creating it.
           </p>
 
           <form className="auth-form" onSubmit={handleSubmit}>
@@ -311,61 +293,42 @@ export default function NewEventPage() {
               <div>
                 <label htmlFor="name" className="form-label">
                   Event name <span className="required">*</span>
-                  <Tooltip text="What sponsors and players will see. Be specific and time-bound (e.g., add the year).">
+                  <Tooltip text="What sponsors and players/participants will see. Be specific (e.g., add the year).">
                     <span className="help-icon">?</span>
                   </Tooltip>
                 </label>
                 <input
-                  id="name"
-                  type="text"
-                  className="form-input"
+                  id="name" type="text" className="form-input"
                   placeholder='e.g., "Lincoln Lions Spring Camp 2026"'
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  maxLength={120}
-                  autoFocus
+                  value={name} onChange={(e) => setName(e.target.value)}
+                  required maxLength={120} autoFocus
                 />
               </div>
 
               <div>
                 <label className="form-label">
                   Event type <span className="required">*</span>
-                  <Tooltip text="A Camp is one team competing internally for individual prizes. A Tournament is multiple teams competing against each other.">
+                  <Tooltip text="A Camp is one team competing internally. A Tournament is multiple teams competing against each other.">
                     <span className="help-icon">?</span>
                   </Tooltip>
                 </label>
                 <div className="radio-cards">
                   <label className={`radio-card ${eventType === "camp" ? "radio-card-active" : ""}`}>
-                    <input
-                      type="radio"
-                      name="eventType"
-                      value="camp"
-                      checked={eventType === "camp"}
-                      onChange={() => handleEventTypeChange("camp")}
-                    />
+                    <input type="radio" name="eventType" value="camp"
+                      checked={eventType === "camp"} onChange={() => handleEventTypeChange("camp")} />
                     <div className="radio-card-content">
                       <div className="radio-card-icon">🏃</div>
                       <div className="radio-card-title">Camp</div>
-                      <div className="radio-card-text">
-                        One team. Players compete against each other for individual prizes.
-                      </div>
+                      <div className="radio-card-text">One team. Players/participants compete against each other for individual prizes.</div>
                     </div>
                   </label>
                   <label className={`radio-card ${eventType === "tournament" ? "radio-card-active" : ""}`}>
-                    <input
-                      type="radio"
-                      name="eventType"
-                      value="tournament"
-                      checked={eventType === "tournament"}
-                      onChange={() => handleEventTypeChange("tournament")}
-                    />
+                    <input type="radio" name="eventType" value="tournament"
+                      checked={eventType === "tournament"} onChange={() => handleEventTypeChange("tournament")} />
                     <div className="radio-card-content">
                       <div className="radio-card-icon">🏆</div>
                       <div className="radio-card-title">Tournament</div>
-                      <div className="radio-card-text">
-                        Multiple teams. Teams compete against each other for team prizes.
-                      </div>
+                      <div className="radio-card-text">Multiple teams competing against each other for team prizes.</div>
                     </div>
                   </label>
                 </div>
@@ -373,46 +336,23 @@ export default function NewEventPage() {
 
               <div className="form-row">
                 <div style={{ flex: 1 }}>
-                  <label htmlFor="startDate" className="form-label">
-                    Start date <span className="required">*</span>
-                  </label>
-                  <input
-                    id="startDate"
-                    type="date"
-                    className="form-input"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    required
-                  />
+                  <label htmlFor="startDate" className="form-label">Start date <span className="required">*</span></label>
+                  <input id="startDate" type="date" className="form-input"
+                    value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label htmlFor="endDate" className="form-label">
-                    End date <span className="required">*</span>
-                  </label>
-                  <input
-                    id="endDate"
-                    type="date"
-                    className="form-input"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    required
-                  />
+                  <label htmlFor="endDate" className="form-label">End date <span className="required">*</span></label>
+                  <input id="endDate" type="date" className="form-input"
+                    value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="description" className="form-label">
-                  Description (optional)
-                </label>
-                <textarea
-                  id="description"
-                  className="form-input form-textarea"
+                <label htmlFor="description" className="form-label">Description (optional)</label>
+                <textarea id="description" className="form-input form-textarea"
                   placeholder="Describe the theme or purpose of this event..."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={3}
-                  maxLength={500}
-                />
+                  value={description} onChange={(e) => setDescription(e.target.value)}
+                  rows={3} maxLength={500} />
               </div>
             </div>
 
@@ -430,25 +370,17 @@ export default function NewEventPage() {
 
                 <div className="team-picker">
                   {teams.map((team) => (
-                    <label
-                      key={team.id}
-                      className={`team-pick-card ${
-                        selectedTeamIds.includes(team.id) ? "team-pick-card-active" : ""
-                      }`}
-                    >
-                      <input
-                        type={eventType === "camp" ? "radio" : "checkbox"}
-                        name="team"
-                        checked={selectedTeamIds.includes(team.id)}
-                        onChange={() => toggleTeam(team.id)}
-                      />
+                    <label key={team.id}
+                      className={`team-pick-card ${selectedTeamIds.includes(team.id) ? "team-pick-card-active" : ""}`}>
+                      <input type={eventType === "camp" ? "radio" : "checkbox"} name="team"
+                        checked={selectedTeamIds.includes(team.id)} onChange={() => toggleTeam(team.id)} />
                       <div className="team-pick-content">
                         <div className="team-pick-name">{team.name}</div>
                         <div className="team-pick-meta">
                           {team.sport_or_activity}
                           {team.age_group && ` · ${team.age_group}`}
                           {" · "}
-                          <strong>{team.playerCount} player{team.playerCount === 1 ? "" : "s"}</strong>
+                          <strong>{team.playerCount} player{team.playerCount === 1 ? "" : "s"}/participant{team.playerCount === 1 ? "" : "s"}</strong>
                         </div>
                       </div>
                     </label>
@@ -457,137 +389,101 @@ export default function NewEventPage() {
                 {selectedTeamIds.length > 0 && (
                   <p className="form-section-hint" style={{ marginTop: "8px", color: "var(--color-blue-dark)" }}>
                     ✓ {selectedTeamIds.length} team{selectedTeamIds.length === 1 ? "" : "s"} selected ·{" "}
-                    {totalPlayerCount} total player{totalPlayerCount === 1 ? "" : "s"}
+                    {totalPlayerCount} total
                   </p>
                 )}
               </div>
             )}
 
-            {/* SECTION 3: Fundraising Goal */}
+            {/* SECTION 3: Fundraising Goal — REORDERED: Amount FIRST, then toggle */}
             <div className="form-section">
               <h3 className="form-section-title">3. Fundraising Goal</h3>
               <p className="form-section-hint">
                 Set your team's fundraising target. We'll calculate what each
-                player needs to raise automatically.
+                player or participant needs to raise automatically.
               </p>
 
               <div>
+                <label htmlFor="goalAmount" className="form-label">
+                  Fundraising Goal Amount <span className="required">*</span>
+                  <Tooltip text="Enter the dollar amount you want to raise. After this, choose whether it's a per-team total or a per-person target.">
+                    <span className="help-icon">?</span>
+                  </Tooltip>
+                </label>
+                <div className="input-prefix-wrap">
+                  <span className="input-prefix">$</span>
+                  <input id="goalAmount" type="number"
+                    className="form-input form-input-with-prefix" placeholder="2000"
+                    value={goalAmount} onChange={(e) => setGoalAmount(e.target.value)}
+                    min="0" step="0.01" required />
+                </div>
+              </div>
+
+              <div>
                 <label className="form-label">
-                  Is this a per-player or per-team goal? <span className="required">*</span>
-                  <Tooltip text="Per-team is one shared goal split across players. Per-player is a target each player raises individually.">
+                  Is this a per-team or per-player/participant goal? <span className="required">*</span>
+                  <Tooltip text="Per-team is one shared total split across the roster. Per-player/participant is a target each person raises individually.">
                     <span className="help-icon">?</span>
                   </Tooltip>
                 </label>
                 <div className="radio-cards-compact">
                   <label className={`radio-card-small ${goalType === "per_team" ? "radio-card-active" : ""}`}>
-                    <input
-                      type="radio"
-                      name="goalType"
-                      value="per_team"
-                      checked={goalType === "per_team"}
-                      onChange={() => setGoalType("per_team")}
-                    />
+                    <input type="radio" name="goalType" value="per_team"
+                      checked={goalType === "per_team"} onChange={() => setGoalType("per_team")} />
                     <div>
                       <div className="radio-card-title-small">Per Team</div>
                       <div className="radio-card-text-small">e.g., $2,000 total</div>
                     </div>
                   </label>
                   <label className={`radio-card-small ${goalType === "per_player" ? "radio-card-active" : ""}`}>
-                    <input
-                      type="radio"
-                      name="goalType"
-                      value="per_player"
-                      checked={goalType === "per_player"}
-                      onChange={() => setGoalType("per_player")}
-                    />
+                    <input type="radio" name="goalType" value="per_player"
+                      checked={goalType === "per_player"} onChange={() => setGoalType("per_player")} />
                     <div>
-                      <div className="radio-card-title-small">Per Player</div>
-                      <div className="radio-card-text-small">e.g., $50 per player</div>
+                      <div className="radio-card-title-small">Per Player / Participant</div>
+                      <div className="radio-card-text-small">e.g., $50 each</div>
                     </div>
                   </label>
                 </div>
-              </div>
-
-              <div>
-                <label htmlFor="goalAmount" className="form-label">
-                  Fundraising Goal Amount <span className="required">*</span>
-                  <Tooltip text={
-                    goalType === "per_team"
-                      ? "The total your team aims to raise. We'll divide it by the number of players."
-                      : "How much each player should raise. We'll multiply by your roster size for the total."
-                  }>
-                    <span className="help-icon">?</span>
-                  </Tooltip>
-                </label>
-                <div className="input-prefix-wrap">
-                  <span className="input-prefix">$</span>
-                  <input
-                    id="goalAmount"
-                    type="number"
-                    className="form-input form-input-with-prefix"
-                    placeholder={goalType === "per_team" ? "2000" : "50"}
-                    value={goalAmount}
-                    onChange={(e) => setGoalAmount(e.target.value)}
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                </div>
-                <p className="form-hint">
+                <p className="form-hint" style={{ marginTop: "8px" }}>
                   {goalType === "per_team"
-                    ? "The total amount your team will raise during this event."
-                    : "Each player will raise this amount during the event."}
+                    ? "The total amount your whole team will raise during this event."
+                    : "The amount each player/participant will raise individually."}
                 </p>
               </div>
             </div>
 
-            {/* SECTION 4: Prizes */}
+            {/* SECTION 4: Prizes — Gift Card dropdowns */}
             <div className="form-section">
               <h3 className="form-section-title">4. Prizes</h3>
               <p className="form-section-hint">
-                How many prize winners? Prize amounts are subtracted from the
-                total raised — what's left over goes to the team.
+                How many prize winners? Pick the gift card type and amount —
+                the prize pool is subtracted from your fundraising goal.
               </p>
 
               <div>
                 <label className="form-label">
                   Number of prize winners
-                  <Tooltip text="More prizes = more motivation for players. But more prizes also means less money kept by the team. Pick what works.">
+                  <Tooltip text="More prizes = more motivation, but more cost to the team. Pick what works.">
                     <span className="help-icon">?</span>
                   </Tooltip>
                 </label>
                 <div className="radio-cards-compact">
                   <label className={`radio-card-small ${prizeCount === 1 ? "radio-card-active" : ""}`}>
-                    <input
-                      type="radio"
-                      name="prizeCount"
-                      checked={prizeCount === 1}
-                      onChange={() => setPrizeCount(1)}
-                    />
+                    <input type="radio" checked={prizeCount === 1} onChange={() => setPrizeCount(1)} />
                     <div>
                       <div className="radio-card-title-small">1 Winner</div>
                       <div className="radio-card-text-small">1st place only</div>
                     </div>
                   </label>
                   <label className={`radio-card-small ${prizeCount === 2 ? "radio-card-active" : ""}`}>
-                    <input
-                      type="radio"
-                      name="prizeCount"
-                      checked={prizeCount === 2}
-                      onChange={() => setPrizeCount(2)}
-                    />
+                    <input type="radio" checked={prizeCount === 2} onChange={() => setPrizeCount(2)} />
                     <div>
                       <div className="radio-card-title-small">2 Winners</div>
                       <div className="radio-card-text-small">1st & 2nd</div>
                     </div>
                   </label>
                   <label className={`radio-card-small ${prizeCount === 3 ? "radio-card-active" : ""}`}>
-                    <input
-                      type="radio"
-                      name="prizeCount"
-                      checked={prizeCount === 3}
-                      onChange={() => setPrizeCount(3)}
-                    />
+                    <input type="radio" checked={prizeCount === 3} onChange={() => setPrizeCount(3)} />
                     <div>
                       <div className="radio-card-title-small">3 Winners</div>
                       <div className="radio-card-text-small">1st, 2nd, 3rd</div>
@@ -596,117 +492,124 @@ export default function NewEventPage() {
                 </div>
               </div>
 
-              <div className="prize-input-row">
-                <div className="prize-input-amount">
-                  <label htmlFor="firstAmount" className="form-label">
-                    🥇 1st place — Amount
-                  </label>
-                  <div className="input-prefix-wrap">
-                    <span className="input-prefix">$</span>
-                    <input
-                      id="firstAmount"
-                      type="number"
-                      className="form-input form-input-with-prefix"
-                      placeholder="200"
-                      value={firstPlaceAmount}
-                      onChange={(e) => setFirstPlaceAmount(e.target.value)}
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                </div>
-                <div className="prize-input-desc">
-                  <label htmlFor="firstPlace" className="form-label">
-                    Description
-                  </label>
-                  <input
-                    id="firstPlace"
-                    type="text"
-                    className="form-input"
-                    placeholder="e.g., Target gift card"
-                    value={firstPlacePrize}
-                    onChange={(e) => setFirstPlacePrize(e.target.value)}
-                    maxLength={200}
-                  />
-                </div>
-              </div>
-
-              {prizeCount >= 2 && (
+              {/* 1st place */}
+              <div className="prize-input-group">
                 <div className="prize-input-row">
                   <div className="prize-input-amount">
-                    <label htmlFor="secondAmount" className="form-label">
-                      🥈 2nd place — Amount
-                    </label>
+                    <label htmlFor="firstAmount" className="form-label">🥇 1st place — Amount</label>
                     <div className="input-prefix-wrap">
                       <span className="input-prefix">$</span>
-                      <input
-                        id="secondAmount"
-                        type="number"
-                        className="form-input form-input-with-prefix"
-                        placeholder="100"
-                        value={secondPlaceAmount}
-                        onChange={(e) => setSecondPlaceAmount(e.target.value)}
-                        min="0"
-                        step="0.01"
-                      />
+                      <input id="firstAmount" type="number"
+                        className="form-input form-input-with-prefix" placeholder="200"
+                        value={firstPlaceAmount} onChange={(e) => setFirstPlaceAmount(e.target.value)}
+                        min="0" step="0.01" />
                     </div>
                   </div>
                   <div className="prize-input-desc">
-                    <label htmlFor="secondPlace" className="form-label">
-                      Description
+                    <label htmlFor="firstGiftCard" className="form-label">
+                      Gift Card Type
+                      <Tooltip text="The form of prize payment. Pick a retailer or Visa/Mastercard for cash-equivalent gift cards.">
+                        <span className="help-icon">?</span>
+                      </Tooltip>
                     </label>
-                    <input
-                      id="secondPlace"
-                      type="text"
-                      className="form-input"
-                      placeholder="e.g., Amazon gift card"
-                      value={secondPlacePrize}
-                      onChange={(e) => setSecondPlacePrize(e.target.value)}
-                      maxLength={200}
-                    />
+                    <select id="firstGiftCard" className="form-input"
+                      value={firstPlaceGiftCard} onChange={(e) => setFirstPlaceGiftCard(e.target.value)}>
+                      <option value="">Select gift card type...</option>
+                      {GIFT_CARD_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
                   </div>
+                </div>
+                {firstPlaceGiftCard === "Other" && (
+                  <div className="prize-custom-row">
+                    <label htmlFor="firstCustom" className="form-label">
+                      Specify gift card / prize
+                    </label>
+                    <input id="firstCustom" type="text" className="form-input"
+                      placeholder="e.g., Target Gift Card, Local pizza place"
+                      value={firstPlaceCustom} onChange={(e) => setFirstPlaceCustom(e.target.value)}
+                      maxLength={200} />
+                  </div>
+                )}
+              </div>
+
+              {/* 2nd place */}
+              {prizeCount >= 2 && (
+                <div className="prize-input-group">
+                  <div className="prize-input-row">
+                    <div className="prize-input-amount">
+                      <label htmlFor="secondAmount" className="form-label">🥈 2nd place — Amount</label>
+                      <div className="input-prefix-wrap">
+                        <span className="input-prefix">$</span>
+                        <input id="secondAmount" type="number"
+                          className="form-input form-input-with-prefix" placeholder="100"
+                          value={secondPlaceAmount} onChange={(e) => setSecondPlaceAmount(e.target.value)}
+                          min="0" step="0.01" />
+                      </div>
+                    </div>
+                    <div className="prize-input-desc">
+                      <label htmlFor="secondGiftCard" className="form-label">Gift Card Type</label>
+                      <select id="secondGiftCard" className="form-input"
+                        value={secondPlaceGiftCard} onChange={(e) => setSecondPlaceGiftCard(e.target.value)}>
+                        <option value="">Select gift card type...</option>
+                        {GIFT_CARD_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  {secondPlaceGiftCard === "Other" && (
+                    <div className="prize-custom-row">
+                      <label htmlFor="secondCustom" className="form-label">Specify gift card / prize</label>
+                      <input id="secondCustom" type="text" className="form-input"
+                        placeholder="e.g., Target Gift Card"
+                        value={secondPlaceCustom} onChange={(e) => setSecondPlaceCustom(e.target.value)}
+                        maxLength={200} />
+                    </div>
+                  )}
                 </div>
               )}
 
+              {/* 3rd place */}
               {prizeCount >= 3 && (
-                <div className="prize-input-row">
-                  <div className="prize-input-amount">
-                    <label htmlFor="thirdAmount" className="form-label">
-                      🥉 3rd place — Amount
-                    </label>
-                    <div className="input-prefix-wrap">
-                      <span className="input-prefix">$</span>
-                      <input
-                        id="thirdAmount"
-                        type="number"
-                        className="form-input form-input-with-prefix"
-                        placeholder="50"
-                        value={thirdPlaceAmount}
-                        onChange={(e) => setThirdPlaceAmount(e.target.value)}
-                        min="0"
-                        step="0.01"
-                      />
+                <div className="prize-input-group">
+                  <div className="prize-input-row">
+                    <div className="prize-input-amount">
+                      <label htmlFor="thirdAmount" className="form-label">🥉 3rd place — Amount</label>
+                      <div className="input-prefix-wrap">
+                        <span className="input-prefix">$</span>
+                        <input id="thirdAmount" type="number"
+                          className="form-input form-input-with-prefix" placeholder="50"
+                          value={thirdPlaceAmount} onChange={(e) => setThirdPlaceAmount(e.target.value)}
+                          min="0" step="0.01" />
+                      </div>
+                    </div>
+                    <div className="prize-input-desc">
+                      <label htmlFor="thirdGiftCard" className="form-label">Gift Card Type</label>
+                      <select id="thirdGiftCard" className="form-input"
+                        value={thirdPlaceGiftCard} onChange={(e) => setThirdPlaceGiftCard(e.target.value)}>
+                        <option value="">Select gift card type...</option>
+                        {GIFT_CARD_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
-                  <div className="prize-input-desc">
-                    <label htmlFor="thirdPlace" className="form-label">
-                      Description
-                    </label>
-                    <input
-                      id="thirdPlace"
-                      type="text"
-                      className="form-input"
-                      placeholder="e.g., Local restaurant gift card"
-                      value={thirdPlacePrize}
-                      onChange={(e) => setThirdPlacePrize(e.target.value)}
-                      maxLength={200}
-                    />
-                  </div>
+                  {thirdPlaceGiftCard === "Other" && (
+                    <div className="prize-custom-row">
+                      <label htmlFor="thirdCustom" className="form-label">Specify gift card / prize</label>
+                      <input id="thirdCustom" type="text" className="form-input"
+                        placeholder="e.g., Target Gift Card"
+                        value={thirdPlaceCustom} onChange={(e) => setThirdPlaceCustom(e.target.value)}
+                        maxLength={200} />
+                    </div>
+                  )}
                 </div>
               )}
             </div>
 
-            {/* SECTION 5: Live Breakdown */}
+            {/* Live Breakdown */}
             <div className="breakdown-card">
               <div className="breakdown-eyebrow">★ YOUR FUNDRAISING PLAN ★</div>
               <h3 className="breakdown-title">The Math at a Glance</h3>
@@ -722,7 +625,7 @@ export default function NewEventPage() {
                       <span className="breakdown-label">
                         {goalType === "per_team"
                           ? "Total Fundraising Goal"
-                          : `${formatMoney(goalNum)} × ${totalPlayerCount} players`}
+                          : `${formatMoney(goalNum)} × ${totalPlayerCount}`}
                       </span>
                       <span className="breakdown-value">${formatMoney(totalGoal)}</span>
                     </div>
@@ -743,7 +646,7 @@ export default function NewEventPage() {
 
                   {totalPlayerCount === 0 ? (
                     <div className="breakdown-per-player breakdown-per-player-empty">
-                      ★ Add players to your team(s) to see per-player breakdown
+                      ★ Add players or participants to your team(s) to see per-person breakdown
                     </div>
                   ) : netToTeam < 0 ? (
                     <div className="breakdown-per-player breakdown-per-player-warning">
@@ -753,7 +656,7 @@ export default function NewEventPage() {
                     <div className="breakdown-per-player">
                       <span className="breakdown-per-player-icon">★</span>
                       <span>
-                        {totalPlayerCount} player{totalPlayerCount === 1 ? "" : "s"} ×{" "}
+                        {totalPlayerCount} player{totalPlayerCount === 1 ? "" : "s"}/participant{totalPlayerCount === 1 ? "" : "s"} ×{" "}
                         <strong>${formatMoney(perPlayerNet)}</strong> each
                       </span>
                     </div>
@@ -765,9 +668,7 @@ export default function NewEventPage() {
             {error && <div className="alert alert-error">{error}</div>}
 
             <div className="form-actions">
-              <Link href={`/organizations/${orgId}`} className="btn-cancel">
-                Cancel
-              </Link>
+              <Link href={`/organizations/${orgId}`} className="btn-cancel">Cancel</Link>
               <button type="submit" className="btn-primary btn-inline" disabled={loading}>
                 {loading ? "Creating..." : "Create Event →"}
               </button>
