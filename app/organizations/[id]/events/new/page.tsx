@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase-browser";
 import Tooltip from "@/components/Tooltip";
 
 import AppShell from "@/components/AppShell";
+import EventCreationGuide from "@/components/EventCreationGuide";
 type Team = {
   id: string;
   name: string;
@@ -282,8 +283,9 @@ export default function NewEventPage() {
 
   return (
     <AppShell active="events" userDisplayName={""}>
-      <main className="form-page-main-wide">
-        <div className="form-card">
+      <div className="e2k-form-2col">
+        <main className="e2k-form-main">
+          <div className="form-card">
           <div style={{ textAlign: "center" }}>
             <span className="auth-eyebrow">★ STEP 4 OF YOUR JOURNEY ★</span>
           </div>
@@ -680,6 +682,17 @@ export default function NewEventPage() {
           </form>
         </div>
       </main>
+
+      <EventCreationGuide
+        eventType={eventType}
+        hasName={name.trim().length > 0}
+        hasStartDate={startDate.length > 0}
+        hasEndDate={endDate.length > 0}
+        selectedTeamCount={selectedTeamIds.length}
+        hasGoalAmount={goalAmount.trim().length > 0 && Number(goalAmount) > 0}
+        hasFirstPrize={firstPlaceAmount.trim().length > 0}
+      />
+      </div>
     </AppShell>
   );
 }

@@ -8,6 +8,7 @@ export type NavKey =
   | "events"
   | "teams"
   | "participants"
+  | "help"
   | "settings";
 
 interface NavItem {
@@ -61,6 +62,13 @@ const Icon = {
       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06 .06a2 2 0 0 1 0 2.83a2 2 0 0 1 -2.83 0l-.06-.06a1.65 1.65 0 0 0 -1.82 -.33a1.65 1.65 0 0 0 -1 1.51v.17a2 2 0 0 1 -2 2a2 2 0 0 1 -2 -2v-.09a1.65 1.65 0 0 0 -1.08 -1.51a1.65 1.65 0 0 0 -1.82 .33l-.06.06a2 2 0 0 1 -2.83 0a2 2 0 0 1 0 -2.83l.06-.06a1.65 1.65 0 0 0 .33 -1.82a1.65 1.65 0 0 0 -1.51 -1h-.17a2 2 0 0 1 -2 -2a2 2 0 0 1 2 -2h.09a1.65 1.65 0 0 0 1.51 -1.08a1.65 1.65 0 0 0 -.33 -1.82l-.06-.06a2 2 0 0 1 0 -2.83a2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82 .33h.01a1.65 1.65 0 0 0 1 -1.51v-.17a2 2 0 0 1 2 -2a2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82 -.33l.06-.06a2 2 0 0 1 2.83 0a2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0 -.33 1.82v.01a1.65 1.65 0 0 0 1.51 1h.17a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-.09a1.65 1.65 0 0 0 -1.51 1z" />
     </svg>
   ),
+  Help: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 17v.01" />
+      <path d="M12 13.5a1.5 1.5 0 0 1 1 -1.5a2.6 2.6 0 1 0 -3 -4" />
+    </svg>
+  ),
 };
 
 const items: NavItem[] = [
@@ -68,6 +76,7 @@ const items: NavItem[] = [
   { key: "events", label: "Events", href: "/events", icon: Icon.Calendar },
   { key: "teams", label: "Teams", href: "/teams", icon: Icon.Users },
   { key: "participants", label: "Participants", href: "/participants", icon: Icon.User },
+  { key: "help", label: "Help", href: "/help", icon: Icon.Help },
   { key: "settings", label: "Settings", href: "/settings", icon: Icon.Settings },
 ];
 

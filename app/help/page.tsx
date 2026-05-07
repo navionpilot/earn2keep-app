@@ -23,7 +23,7 @@ export default async function HelpPage() {
   const hasOrganization = (organizations?.length || 0) > 0;
 
   return (
-    <AppShell active="settings" userDisplayName={profile?.full_name?.trim() || ""}>
+    <AppShell active="help" userDisplayName={profile?.full_name?.trim() || ""}>
           <div className="breadcrumb">
             <Link href="/dashboard" className="breadcrumb-link">Dashboard</Link>
             <span className="breadcrumb-sep">›</span>
