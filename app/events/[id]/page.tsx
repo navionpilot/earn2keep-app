@@ -71,12 +71,12 @@ export default async function EventDetailPage({
     totalPlayerCount = count || 0;
   }
 
-  // Fetch challenges assigned to this event
+  // Fetch challenges assigned to this event (now scheduled per day)
   const { data: eventChallenges } = await supabase
     .from("event_challenges")
-    .select("id, rep_target, notes, challenges(id, name, description, category, unit, difficulty)")
+    .select("id, day_index, rep_target, notes, challenges(id, name, description, category, unit, difficulty)")
     .eq("event_id", id)
-    .order("created_at", { ascending: true });
+    .order("day_index", { ascending: true });
 
   // Calculate the ordinal for this event (is it the user's 1st, 2nd, 3rd...?)
   const { count: eventOrdinal } = await supabase
@@ -344,10 +344,10 @@ export default async function EventDetailPage({
                       mile runs, service hours, whatever fits. The more reps
                       they hit (and {event.event_type === "camp" ? "the more they raise above the minimum" : "the better they perform"}), the more points they earn.
                     </p>
-                    <Link href={`/events/${event.id}/challenges/add`} className="next-step-link">
+                    <Link href={`/events/${event.id}/schedule`} className="next-step-link">
                       {(eventChallenges?.length || 0) > 0
-                        ? `✓ ${eventChallenges?.length} challenge${(eventChallenges?.length || 0) === 1 ? "" : "s"} added — manage`
-                        : "Add Challenges →"}
+                        ? `✓ ${eventChallenges?.length} challenge${(eventChallenges?.length || 0) === 1 ? "" : "s"} scheduled — open planner`
+                        : "Open Schedule Planner →"}
                     </Link>
                   </div>
                 </div>
@@ -482,41 +482,97 @@ export default async function EventDetailPage({
             )}
           </div>
 
-          {/* Challenges */}
+          {/* Training Schedule */}
           <div className="dashboard-card">
             <div className="section-header" style={{ marginBottom: "16px" }}>
-              <h2 className="dashboard-card-title">Challenges</h2>
-              <Tooltip text="Add or modify the challenges your players/participants will complete to compete for prizes.">
-                <Link href={`/events/${event.id}/challenges/add`} className="btn-add">
-                  {(eventChallenges?.length || 0) > 0 ? "+ Add / Manage" : "+ Add Challenges"}
+              <h2 className="dashboard-card-title">Training Schedule</h2>
+              <Tooltip text="Plan which challenges happen each day of the event. Click 'Open Planner' to set up the calendar.">
+                <Link href={`/events/${event.id}/schedule`} className="btn-add">
+                  {(eventChallenges?.length || 0) > 0 ? "📅 Open Planner" : "+ Open Planner"}
                 </Link>
               </Tooltip>
             </div>
             {(eventChallenges?.length || 0) === 0 ? (
               <p className="dashboard-card-text">
-                No challenges set yet. Pick from our library or create your own
-                custom challenge.
+                No challenges scheduled yet. Open the planner to assign challenges
+                to specific days of the event.
               </p>
             ) : (
-              <div className="challenge-list">
-                {eventChallenges?.map((ec: any) => (
-                  <div key={ec.id} className="challenge-row">
-                    <div className="challenge-row-info">
-                      <span className={`challenge-cat-pill cat-${ec.challenges?.category?.toLowerCase()}`}>
-                        {ec.challenges?.category}
-                      </span>
-                      <div className="challenge-row-name">{ec.challenges?.name}</div>
-                      {ec.challenges?.description && (
-                        <div className="challenge-row-desc">{ec.challenges.description}</div>
-                      )}
-                    </div>
-                    <div className="challenge-row-target">
-                      <div className="challenge-target-num">{ec.rep_target || "—"}</div>
-                      <div className="challenge-target-unit">{ec.challenges?.unit || ""}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <>
+                {(() => {
+                  // Group challenges by day_index
+                  const grouped: Record<number, any[]> = {};
+                  (eventChallenges || []).forEach((ec: any) => {
+                    const idx = ec.day_index ?? 0;
+                    if (!grouped[idx]) grouped[idx] = [];
+                    grouped[idx].push(ec);
+                  });
+                  const dayIndices = Object.keys(grouped).map(Number).sort((a, b) => a - b);
+                  const totalReps = (eventChallenges || []).reduce((sum: number, ec: any) => sum + (Number(ec.rep_target) || 0), 0);
+
+                  // Calculate total event days
+                  const startD = new Date(event.start_date + "T12:00:00");
+                  const endD = new Date(event.end_date + "T12:00:00");
+                  const totalDays = Math.floor((endD.getTime() - startD.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                  const restDays = totalDays - dayIndices.length;
+
+                  return (
+                    <>
+                      <div className="schedule-summary-row">
+                        <div className="schedule-summary-stat">
+                          <div className="schedule-summary-num">{dayIndices.length}</div>
+                          <div className="schedule-summary-label">Active days</div>
+                        </div>
+                        <div className="schedule-summary-stat">
+                          <div className="schedule-summary-num">{restDays}</div>
+                          <div className="schedule-summary-label">Rest days</div>
+                        </div>
+                        <div className="schedule-summary-stat">
+                          <div className="schedule-summary-num">{eventChallenges?.length || 0}</div>
+                          <div className="schedule-summary-label">Challenges</div>
+                        </div>
+                        <div className="schedule-summary-stat">
+                          <div className="schedule-summary-num">{totalReps.toLocaleString()}</div>
+                          <div className="schedule-summary-label">Total reps</div>
+                        </div>
+                      </div>
+
+                      <div className="schedule-day-list">
+                        {dayIndices.slice(0, 5).map((dayIdx) => {
+                          const dayDate = new Date(startD);
+                          dayDate.setDate(dayDate.getDate() + dayIdx);
+                          const label = dayDate.toLocaleDateString("en-US", {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                          });
+                          const dayChalls = grouped[dayIdx];
+                          return (
+                            <div key={dayIdx} className="schedule-day-row">
+                              <div className="schedule-day-label">
+                                <div className="schedule-day-num">Day {dayIdx + 1}</div>
+                                <div className="schedule-day-date">{label}</div>
+                              </div>
+                              <div className="schedule-day-challenges">
+                                {dayChalls.map((ec: any) => (
+                                  <span key={ec.id} className={`schedule-day-pill cat-${ec.challenges?.category?.toLowerCase()}`}>
+                                    {ec.challenges?.name} ({ec.rep_target || "—"} {ec.challenges?.unit || ""})
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {dayIndices.length > 5 && (
+                          <p className="schedule-more-link">
+                            + {dayIndices.length - 5} more day{dayIndices.length - 5 === 1 ? "" : "s"} scheduled. <Link href={`/events/${event.id}/schedule`}>Open the planner</Link> to see all.
+                          </p>
+                        )}
+                      </div>
+                    </>
+                  );
+                })()}
+              </>
             )}
           </div>
 
@@ -580,7 +636,7 @@ export default async function EventDetailPage({
             recordName={event.name}
             redirectTo={org ? `/organizations/${org.id}` : "/dashboard"}
             consequences={[
-              `${eventChallenges?.length || 0} assigned challenge${(eventChallenges?.length || 0) === 1 ? "" : "s"}`,
+              `${eventChallenges?.length || 0} scheduled challenge slot${(eventChallenges?.length || 0) === 1 ? "" : "s"} across all days`,
               `${event.prize_count || 0} prize tier${(event.prize_count || 0) === 1 ? "" : "s"}`,
               `${teams.length} team link${teams.length === 1 ? "" : "s"} (the teams themselves stay)`,
             ]}
