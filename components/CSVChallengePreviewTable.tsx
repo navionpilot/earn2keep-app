@@ -2,22 +2,23 @@
 
 export type ParsedChallengeRow = {
   rowNumber: number;
-  // Raw values from CSV
   name: string;
   description: string;
   category: string;
   subcategory: string;
+  subSubcategory: string;
   unit: string;
   defaultRepTarget: string;
   difficulty: string;
-  // Parsed/validated values
+  setupTemplate: string;
+  recordingInstructions: string;
+  verificationMode: string;
   isValid: boolean;
   errors: string[];
   warnings: string[];
-  // Whether the user wants to include this row in the import
   include: boolean;
-  // If a new subcategory will be auto-created, mark it
   willCreateSubcategory?: boolean;
+  willCreateSubSubcategory?: boolean;
 };
 
 interface CSVChallengePreviewTableProps {
@@ -34,9 +35,8 @@ export default function CSVChallengePreviewTable({
   const validCount = rows.filter((r) => r.isValid && r.include).length;
   const errorCount = rows.filter((r) => !r.isValid).length;
   const willCreateSubCount = rows.filter((r) => r.willCreateSubcategory && r.include).length;
-  const allValidIncluded = rows
-    .filter((r) => r.isValid)
-    .every((r) => r.include);
+  const willCreateSubSubCount = rows.filter((r) => r.willCreateSubSubcategory && r.include).length;
+  const allValidIncluded = rows.filter((r) => r.isValid).every((r) => r.include);
 
   return (
     <div className="csv-preview">
@@ -55,6 +55,12 @@ export default function CSVChallengePreviewTable({
           <div className="csv-preview-stat">
             <span className="csv-preview-stat-num csv-preview-stat-warning">{willCreateSubCount}</span>
             <span className="csv-preview-stat-label">new subcategories</span>
+          </div>
+        )}
+        {willCreateSubSubCount > 0 && (
+          <div className="csv-preview-stat">
+            <span className="csv-preview-stat-num csv-preview-stat-warning">{willCreateSubSubCount}</span>
+            <span className="csv-preview-stat-label">new sub-subcategories</span>
           </div>
         )}
         <div className="csv-preview-toggle-all">
@@ -78,9 +84,9 @@ export default function CSVChallengePreviewTable({
               <th>Name</th>
               <th>Category</th>
               <th>Subcategory</th>
+              <th>Sub-subcategory</th>
               <th>Unit</th>
               <th>Target</th>
-              <th>Difficulty</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -88,13 +94,7 @@ export default function CSVChallengePreviewTable({
             {rows.map((row) => (
               <tr
                 key={row.rowNumber}
-                className={
-                  !row.isValid
-                    ? "csv-preview-row-error"
-                    : !row.include
-                      ? "csv-preview-row-excluded"
-                      : ""
-                }
+                className={!row.isValid ? "csv-preview-row-error" : !row.include ? "csv-preview-row-excluded" : ""}
               >
                 <td className="csv-preview-row-num">{row.rowNumber}</td>
                 <td>
@@ -121,9 +121,22 @@ export default function CSVChallengePreviewTable({
                     <em>—</em>
                   )}
                 </td>
+                <td>
+                  {row.subSubcategory ? (
+                    <>
+                      {row.subSubcategory}
+                      {row.willCreateSubSubcategory && (
+                        <span className="csv-preview-new-sub-pill" title="Will be created as a new private sub-subcategory">
+                          NEW
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <em>—</em>
+                  )}
+                </td>
                 <td>{row.unit || <em>missing</em>}</td>
                 <td>{row.defaultRepTarget || <em>—</em>}</td>
-                <td>{row.difficulty || <em>—</em>}</td>
                 <td>
                   {row.isValid ? (
                     <span className="csv-preview-status-good">✓ Ready</span>

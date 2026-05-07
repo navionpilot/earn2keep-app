@@ -163,7 +163,7 @@ export default function SchedulePlannerPage() {
     // Fetch subcategories (RLS automatically filters to public + own org)
     const { data: subs } = await supabase
       .from("challenge_subcategories")
-      .select("id, parent_category, name, is_public")
+      .select("id, parent_category, name, is_public, parent_subcategory_id")
       .order("display_order", { ascending: true })
       .order("name", { ascending: true });
 

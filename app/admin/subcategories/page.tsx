@@ -14,6 +14,8 @@ type PrivateSubcategory = {
   parent_category: string;
   name: string;
   organization_id: string;
+  parent_subcategory_id: string | null;
+  parent_subcategory_name: string | null; // resolved from lookup
   created_at: string;
   challenge_count: number;
   org_name: string | null;
@@ -57,7 +59,7 @@ export default function AdminSubcategoriesPage() {
     // Fetch all private subcategories with their org names
     const { data: privSubs, error: subErr } = await supabase
       .from("challenge_subcategories")
-      .select("id, parent_category, name, organization_id, created_at, organizations(name)")
+      .select("id, parent_category, name, organization_id, parent_subcategory_id, created_at, organizations(name)")
       .eq("is_public", false)
       .order("parent_category", { ascending: true })
       .order("name", { ascending: true });
@@ -67,6 +69,13 @@ export default function AdminSubcategoriesPage() {
       setFetching(false);
       return;
     }
+
+    // Also fetch ALL subcategories so we can resolve parent_subcategory_id → name (parents may be public)
+    const { data: allSubs } = await supabase
+      .from("challenge_subcategories")
+      .select("id, name");
+    const subNameById: Record<string, string> = {};
+    (allSubs || []).forEach((s: any) => { subNameById[s.id] = s.name; });
 
     // Get challenge counts per subcategory
     const ids = (privSubs || []).map((s: any) => s.id);
@@ -86,6 +95,8 @@ export default function AdminSubcategoriesPage() {
       parent_category: s.parent_category,
       name: s.name,
       organization_id: s.organization_id,
+      parent_subcategory_id: s.parent_subcategory_id,
+      parent_subcategory_name: s.parent_subcategory_id ? (subNameById[s.parent_subcategory_id] || null) : null,
       created_at: s.created_at,
       challenge_count: counts[s.id] || 0,
       org_name: s.organizations?.name || null,
@@ -265,10 +276,23 @@ export default function AdminSubcategoriesPage() {
                   <tbody>
                     {subs.map((s) => (
                       <tr key={s.id}>
-                        <td className="admin-table-name">{s.name}</td>
+                        <td className="admin-table-name">
+                          {s.name}
+                          {s.parent_subcategory_name && (
+                            <div className="admin-table-path">
+                              ↳ under {s.parent_category} › {s.parent_subcategory_name}
+                            </div>
+                          )}
+                          {!s.parent_subcategory_name && (
+                            <div className="admin-table-path">
+                              ↳ under {s.parent_category} (top-level)
+                            </div>
+                          )}
+                        </td>
                         <td>
                           <span className={`challenge-cat-pill cat-${s.parent_category.toLowerCase()}`}>
                             {s.parent_category}
+                            {s.parent_subcategory_name ? ` › ${s.parent_subcategory_name}` : ""}
                           </span>
                         </td>
                         <td>

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 import Tooltip from "@/components/Tooltip";
-import SubcategoryPicker, { type Subcategory } from "@/components/SubcategoryPicker";
+import CategoryHierarchyPicker, { type Subcategory } from "@/components/CategoryHierarchyPicker";
 import RecordingSetupSection from "@/components/RecordingSetupSection";
 
 const SUBCATEGORY_REQUIRED = new Set(["Sports"]);
@@ -41,6 +41,7 @@ function NewChallengeForm() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [subcategoryId, setSubcategoryId] = useState<string | null>(null);
+  const [subSubcategoryId, setSubSubcategoryId] = useState<string | null>(null);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [unit, setUnit] = useState("");
   const [difficulty, setDifficulty] = useState("Medium");
@@ -105,7 +106,7 @@ function NewChallengeForm() {
       // 2. Look up the subcategory NAME from the selected ID for the recommender
       const { data: subs } = await supabase
         .from("challenge_subcategories")
-        .select("id, parent_category, name, display_order, is_public, organization_id")
+        .select("id, parent_category, name, display_order, is_public, organization_id, parent_subcategory_id")
         .order("display_order", { ascending: true })
         .order("name", { ascending: true });
       setSubcategories((subs as any) || []);
@@ -116,11 +117,17 @@ function NewChallengeForm() {
     fetchOrg();
   }, [returnTo]);
 
-  // Look up the subcategory name for the recommender
+  // Look up the deepest selected subcategory name for the recommender
+  // (use Tier 3 name if set, else Tier 2 name)
   const subcategoryName = useMemo(() => {
-    if (!subcategoryId) return null;
-    return subcategories.find((s) => s.id === subcategoryId)?.name || null;
-  }, [subcategoryId, subcategories]);
+    if (subSubcategoryId) {
+      return subcategories.find((s) => s.id === subSubcategoryId)?.name || null;
+    }
+    if (subcategoryId) {
+      return subcategories.find((s) => s.id === subcategoryId)?.name || null;
+    }
+    return null;
+  }, [subcategoryId, subSubcategoryId, subcategories]);
 
   const handleSubcategoryCreated = (newSub: Subcategory) => {
     setSubcategories((prev) => [...prev, newSub]);
@@ -146,11 +153,15 @@ function NewChallengeForm() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setError("You must be logged in."); setLoading(false); return; }
 
+    // File the challenge under the DEEPEST selected level
+    // (Tier 3 if available, else Tier 2)
+    const finalSubcategoryId = subSubcategoryId || subcategoryId;
+
     const { error: insertError } = await supabase.from("challenges").insert({
       name: name.trim(),
       description: description.trim() || null,
       category,
-      subcategory_id: subcategoryId,
+      subcategory_id: finalSubcategoryId,
       unit: unit.trim(),
       difficulty,
       default_rep_target: defaultRepTarget ? parseInt(defaultRepTarget) : null,
@@ -247,11 +258,13 @@ function NewChallengeForm() {
               />
             </div>
 
-            <SubcategoryPicker
+            <CategoryHierarchyPicker
               category={category}
               setCategory={setCategory}
               subcategoryId={subcategoryId}
               setSubcategoryId={setSubcategoryId}
+              subSubcategoryId={subSubcategoryId}
+              setSubSubcategoryId={setSubSubcategoryId}
               organizationId={organizationId}
               subcategories={subcategories}
               onSubcategoryCreated={handleSubcategoryCreated}

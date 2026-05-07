@@ -7,19 +7,33 @@ import { createClient } from "@/lib/supabase-browser";
 import OnboardingSidebar from "@/components/OnboardingSidebar";
 import LogoutButton from "@/components/LogoutButton";
 import CSVChallengePreviewTable, { ParsedChallengeRow } from "@/components/CSVChallengePreviewTable";
+import { recommendRecordingSetup } from "@/lib/recordingRecommender";
 
 const VALID_CATEGORIES = ["Sports", "Faith", "Fitness", "Academic", "Scouts", "Service"];
 const VALID_DIFFICULTIES = ["Easy", "Medium", "Hard"];
 const SUBCATEGORY_REQUIRED = new Set(["Sports"]);
+const VALID_SETUP_TEMPLATES = [
+  "side_angle_floor",
+  "selfie_audio",
+  "behind_player_target",
+  "top_down_closeup",
+  "gps_with_endpoints",
+  "photo_completion",
+  "wide_angle_court",
+  "selfie_with_object",
+  "custom",
+];
+const VALID_VERIFICATION_MODES = ["ai_only", "coach_only", "ai_and_coach"];
 
-const CSV_TEMPLATE_CONTENT = `name,description,category,subcategory,unit,default_rep_target,difficulty
-Push-Ups,Total push-ups completed (proper form),Fitness,Calisthenics,push-ups,50,Medium
-Mile Run,Run one full mile. Track time or just completion.,Fitness,Cardio,miles,1,Hard
-Bible Verses Memorized,Number of full Bible verses memorized and recited correctly,Faith,Bible Memorization,verses,10,Medium
-Books Read,Total books read cover-to-cover during the event,Academic,Reading,books,3,Easy
-Free Throws Made,Free throws successfully made out of 25 attempts,Sports,Basketball,shots,15,Medium
-Soccer Juggles,Consecutive juggles with one foot,Sports,Soccer,juggles,30,Medium
-Volunteer Hours,Hours volunteered at a community organization,Service,Volunteer Hours,hours,5,Easy`;
+const CSV_TEMPLATE_CONTENT = `name,description,category,subcategory,sub_subcategory,unit,default_rep_target,difficulty,setup_template,recording_instructions,verification_mode
+Push-Ups,Total push-ups completed (proper form),Fitness,Calisthenics,,push-ups,50,Medium,side_angle_floor,,ai_and_coach
+Mile Run,Run one full mile. Track time or just completion.,Fitness,Cardio,,miles,1,Hard,gps_with_endpoints,,ai_and_coach
+Bible Verses Memorized,Number of full Bible verses memorized and recited correctly,Faith,Bible Memorization,New Testament,verses,10,Medium,selfie_audio,,ai_and_coach
+Books Read,Total books read cover-to-cover during the event,Academic,Reading,,books,3,Easy,photo_completion,,coach_only
+Free Throws Made,Free throws successfully made out of 25 attempts,Sports,Basketball,Free Throws,shots,15,Medium,behind_player_target,,ai_and_coach
+Solo Juggling - Feet Only,Consecutive juggles using only the feet,Sports,Soccer,Ball Control,touches,50,Medium,side_angle_floor,,ai_and_coach
+Wall Passes Both Feet,Successful wall passes alternating feet,Sports,Soccer,Passing,passes,40,Medium,wide_angle_court,,ai_and_coach
+Volunteer Hours,Hours volunteered at a community organization,Service,Volunteer Hours,,hours,5,Easy,photo_completion,,coach_only`;
 
 export default function BulkImportPage() {
   return (
@@ -41,6 +55,8 @@ function LoadingFallback() {
   );
 }
 
+type OrgSub = { id: string; parent_category: string; name: string; is_public: boolean; parent_subcategory_id: string | null };
+
 function BulkImportInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -53,12 +69,12 @@ function BulkImportInner() {
   const [hasPlayers, setHasPlayers] = useState(false);
   const [hasEvent, setHasEvent] = useState(false);
   const [fetching, setFetching] = useState(true);
-  const [orgSubcategories, setOrgSubcategories] = useState<{ id: string; parent_category: string; name: string; is_public: boolean }[]>([]);
+  const [orgSubcategories, setOrgSubcategories] = useState<OrgSub[]>([]);
 
   const [parsedRows, setParsedRows] = useState<ParsedChallengeRow[]>([]);
   const [parseError, setParseError] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
-  const [importDone, setImportDone] = useState<{ inserted: number; subsCreated: number } | null>(null);
+  const [importDone, setImportDone] = useState<{ inserted: number; subsCreated: number; subSubsCreated: number } | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -67,12 +83,8 @@ function BulkImportInner() {
     const init = async () => {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setFetching(false);
-        return;
-      }
+      if (!user) { setFetching(false); return; }
 
-      // Display name
       const { data: profile } = await supabase
         .from("profiles")
         .select("full_name")
@@ -80,7 +92,6 @@ function BulkImportInner() {
         .single();
       if (profile?.full_name) setUserDisplayName(profile.full_name);
 
-      // Onboarding sidebar counts
       const [{ count: teamCount }, { count: playerCount }, { count: eventCount }] = await Promise.all([
         supabase.from("teams").select("*", { count: "exact", head: true }).eq("owner_id", user.id),
         supabase.from("players").select("*", { count: "exact", head: true }).eq("owner_id", user.id),
@@ -90,7 +101,6 @@ function BulkImportInner() {
       setHasPlayers((playerCount || 0) > 0);
       setHasEvent((eventCount || 0) > 0);
 
-      // Resolve organization context
       let foundOrgId: string | null = null;
       let foundOrgName: string = "";
       if (returnTo) {
@@ -124,10 +134,9 @@ function BulkImportInner() {
         setOrganizationId(foundOrgId);
         setOrgName(foundOrgName);
 
-        // Fetch subcategories visible to this org (public + own org's private)
         const { data: subs } = await supabase
           .from("challenge_subcategories")
-          .select("id, parent_category, name, is_public")
+          .select("id, parent_category, name, is_public, parent_subcategory_id")
           .order("display_order", { ascending: true })
           .order("name", { ascending: true });
         setOrgSubcategories((subs as any) || []);
@@ -151,25 +160,16 @@ function BulkImportInner() {
   };
 
   const parseCSVRow = (line: string): string[] => {
-    // Simple CSV parser handling quoted fields
     const result: string[] = [];
     let current = "";
     let inQuotes = false;
     for (let i = 0; i < line.length; i++) {
       const c = line[i];
       if (c === '"') {
-        if (inQuotes && line[i + 1] === '"') {
-          current += '"';
-          i++;
-        } else {
-          inQuotes = !inQuotes;
-        }
-      } else if (c === "," && !inQuotes) {
-        result.push(current);
-        current = "";
-      } else {
-        current += c;
-      }
+        if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
+        else { inQuotes = !inQuotes; }
+      } else if (c === "," && !inQuotes) { result.push(current); current = ""; }
+      else { current += c; }
     }
     result.push(current);
     return result.map((s) => s.trim());
@@ -189,26 +189,14 @@ function BulkImportInner() {
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target?.result as string;
-      if (!text) {
-        setParseError("Could not read the file.");
-        return;
-      }
+      if (!text) { setParseError("Could not read the file."); return; }
 
-      // Parse lines (handle Windows \r\n + Unix \n)
-      const lines = text
-        .split(/\r?\n/)
-        .map((l) => l)
-        .filter((l) => l.trim().length > 0);
-
-      if (lines.length < 2) {
-        setParseError("CSV must have a header row plus at least one data row.");
-        return;
-      }
+      const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+      if (lines.length < 2) { setParseError("CSV must have a header row plus at least one data row."); return; }
 
       const headerCells = parseCSVRow(lines[0]).map((h) => h.toLowerCase().replace(/[\s_]+/g, ""));
-      // Expected: name, description, category, subcategory, unit, default_rep_target, difficulty
-      const expectedHeaders = ["name", "description", "category", "subcategory", "unit", "defaultreptarget", "difficulty"];
-      const missingHeaders = expectedHeaders.filter((h) => !headerCells.includes(h));
+      const requiredHeaders = ["name", "category", "unit"];
+      const missingHeaders = requiredHeaders.filter((h) => !headerCells.includes(h));
       if (missingHeaders.length > 0) {
         setParseError(`Missing required columns: ${missingHeaders.join(", ")}. Download the template to see the correct format.`);
         return;
@@ -217,15 +205,16 @@ function BulkImportInner() {
       const colIndex: Record<string, number> = {};
       headerCells.forEach((h, idx) => { colIndex[h] = idx; });
 
-      // Build a fast lookup: "Sports::Soccer" → existing subcategory
-      const subLookup: Record<string, { id: string; is_public: boolean }> = {};
+      // Build a fast lookup keyed by (parent_category, name lowercase, parent_subcategory_id or "null")
+      const subLookup: Record<string, { id: string; parent_subcategory_id: string | null }> = {};
       orgSubcategories.forEach((s) => {
-        const key = `${s.parent_category}::${s.name.toLowerCase()}`;
-        subLookup[key] = { id: s.id, is_public: s.is_public };
+        const parentKey = s.parent_subcategory_id || "null";
+        const key = `${s.parent_category}::${s.name.toLowerCase()}::${parentKey}`;
+        subLookup[key] = { id: s.id, parent_subcategory_id: s.parent_subcategory_id };
       });
 
-      // Track which new subcategories will be created (so we don't double-count duplicates within the CSV)
-      const newSubsInCSV = new Set<string>();
+      const newTier2Keys = new Set<string>();
+      const newTier3Keys = new Set<string>();
 
       const parsed: ParsedChallengeRow[] = [];
       for (let i = 1; i < lines.length; i++) {
@@ -234,44 +223,95 @@ function BulkImportInner() {
         const warnings: string[] = [];
 
         const name = (cells[colIndex.name] || "").trim();
-        const description = (cells[colIndex.description] || "").trim();
+        const description = colIndex.description !== undefined ? (cells[colIndex.description] || "").trim() : "";
         const categoryRaw = (cells[colIndex.category] || "").trim();
-        const subcategory = (cells[colIndex.subcategory] || "").trim();
+        const subcategory = colIndex.subcategory !== undefined ? (cells[colIndex.subcategory] || "").trim() : "";
+        const subSubcategory = colIndex.subsubcategory !== undefined ? (cells[colIndex.subsubcategory] || "").trim() : "";
         const unit = (cells[colIndex.unit] || "").trim();
-        const defaultRepTargetStr = (cells[colIndex.defaultreptarget] || "").trim();
-        const difficultyRaw = (cells[colIndex.difficulty] || "").trim();
+        const defaultRepTargetStr = colIndex.defaultreptarget !== undefined ? (cells[colIndex.defaultreptarget] || "").trim() : "";
+        const difficultyRaw = colIndex.difficulty !== undefined ? (cells[colIndex.difficulty] || "").trim() : "";
+        const setupTemplate = colIndex.setuptemplate !== undefined ? (cells[colIndex.setuptemplate] || "").trim() : "";
+        const recordingInstructions = colIndex.recordinginstructions !== undefined ? (cells[colIndex.recordinginstructions] || "").trim() : "";
+        const verificationMode = colIndex.verificationmode !== undefined ? (cells[colIndex.verificationmode] || "").trim() : "";
 
-        // Normalize category (case-insensitive match against valid list)
         const category = VALID_CATEGORIES.find((c) => c.toLowerCase() === categoryRaw.toLowerCase()) || "";
         const difficulty = VALID_DIFFICULTIES.find((d) => d.toLowerCase() === difficultyRaw.toLowerCase()) || (difficultyRaw === "" ? "Medium" : "");
 
-        // Validation
         if (!name) errors.push("Name is required");
         else if (name.length > 120) errors.push("Name too long (max 120 chars)");
         if (!categoryRaw) errors.push("Category is required");
         else if (!category) errors.push(`Category "${categoryRaw}" is not valid (must be one of: ${VALID_CATEGORIES.join(", ")})`);
         if (!unit) errors.push("Unit is required");
         else if (unit.length > 30) errors.push("Unit too long (max 30 chars)");
-        if (difficultyRaw && !difficulty) errors.push(`Difficulty "${difficultyRaw}" is not valid (must be Easy, Medium, or Hard, or blank)`);
+        if (difficultyRaw && !difficulty) errors.push(`Difficulty "${difficultyRaw}" is not valid (Easy/Medium/Hard)`);
 
-        // Validate rep target
         if (defaultRepTargetStr) {
           const n = parseInt(defaultRepTargetStr);
           if (isNaN(n) || n < 1) errors.push(`Default rep target "${defaultRepTargetStr}" must be a positive whole number`);
         }
 
-        // Subcategory required for Sports
-        let willCreateSubcategory = false;
+        if (setupTemplate && !VALID_SETUP_TEMPLATES.includes(setupTemplate)) {
+          errors.push(`Setup template "${setupTemplate}" is not valid`);
+        }
+        if (verificationMode && !VALID_VERIFICATION_MODES.includes(verificationMode)) {
+          errors.push(`Verification mode "${verificationMode}" must be ai_only, coach_only, or ai_and_coach`);
+        }
+
         if (category === "Sports" && !subcategory) {
           errors.push("Subcategory (sport) is required for Sports challenges");
         }
+        if (subSubcategory && !subcategory) {
+          errors.push("Sub-subcategory requires a subcategory to be set");
+        }
+
+        // Check Tier 2 (subcategory) - find existing or flag for creation
+        let willCreateSubcategory = false;
+        let tier2Id: string | null = null;
         if (category && subcategory) {
-          const lookupKey = `${category}::${subcategory.toLowerCase()}`;
-          if (!subLookup[lookupKey] && !newSubsInCSV.has(lookupKey)) {
-            // This will be created as a private subcategory
-            newSubsInCSV.add(lookupKey);
+          const tier2Key = `${category}::${subcategory.toLowerCase()}::null`;
+          const existing = subLookup[tier2Key];
+          if (existing) {
+            tier2Id = existing.id;
+          } else if (newTier2Keys.has(tier2Key)) {
+            // already flagged in this CSV
+          } else {
+            newTier2Keys.add(tier2Key);
             willCreateSubcategory = true;
             warnings.push(`Will create "${subcategory}" as a new private ${category} subcategory`);
+          }
+        }
+
+        // Check Tier 3 (sub-subcategory)
+        let willCreateSubSubcategory = false;
+        if (category && subcategory && subSubcategory) {
+          if (tier2Id) {
+            const tier3Key = `${category}::${subSubcategory.toLowerCase()}::${tier2Id}`;
+            if (!subLookup[tier3Key] && !newTier3Keys.has(tier3Key)) {
+              newTier3Keys.add(tier3Key);
+              willCreateSubSubcategory = true;
+              warnings.push(`Will create "${subSubcategory}" as a new private sub-subcategory under ${subcategory}`);
+            }
+          } else {
+            // Tier 2 is also new — Tier 3 must also be new
+            const tier3Key = `${category}::${subSubcategory.toLowerCase()}::NEW_TIER2:${subcategory.toLowerCase()}`;
+            if (!newTier3Keys.has(tier3Key)) {
+              newTier3Keys.add(tier3Key);
+              willCreateSubSubcategory = true;
+              warnings.push(`Will create "${subSubcategory}" as a new private sub-subcategory under new "${subcategory}"`);
+            }
+          }
+        }
+
+        // If setup_template is blank, run the recommender so we can show a hint
+        if (!setupTemplate && category) {
+          const rec = recommendRecordingSetup({
+            category,
+            subcategoryName: subSubcategory || subcategory || null,
+            unit,
+            name,
+          });
+          if (rec) {
+            warnings.push(`Will use AI-recommended template: ${rec.template.label}`);
           }
         }
 
@@ -282,23 +322,26 @@ function BulkImportInner() {
           description,
           category,
           subcategory,
+          subSubcategory,
           unit,
           defaultRepTarget: defaultRepTargetStr,
           difficulty,
+          setupTemplate,
+          recordingInstructions,
+          verificationMode,
           isValid,
           errors,
           warnings,
           include: isValid,
           willCreateSubcategory,
+          willCreateSubSubcategory,
         });
       }
 
       setParsedRows(parsed);
     };
 
-    reader.onerror = () => {
-      setParseError("Could not read the file.");
-    };
+    reader.onerror = () => setParseError("Could not read the file.");
     reader.readAsText(file);
   };
 
@@ -308,27 +351,14 @@ function BulkImportInner() {
     const file = e.dataTransfer.files[0];
     if (file) handleFileSelected(file);
   };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
+  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
+  const handleDragLeave = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(false); };
 
   const handleToggleRow = (rowNumber: number, include: boolean) => {
-    setParsedRows((rows) =>
-      rows.map((r) => (r.rowNumber === rowNumber ? { ...r, include } : r))
-    );
+    setParsedRows((rows) => rows.map((r) => (r.rowNumber === rowNumber ? { ...r, include } : r)));
   };
-
   const handleToggleAll = (include: boolean) => {
-    setParsedRows((rows) =>
-      rows.map((r) => (r.isValid ? { ...r, include } : r))
-    );
+    setParsedRows((rows) => rows.map((r) => (r.isValid ? { ...r, include } : r)));
   };
 
   const handleImport = async () => {
@@ -342,40 +372,38 @@ function BulkImportInner() {
     setImporting(true);
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      setImportError("Not logged in.");
-      setImporting(false);
-      return;
-    }
+    if (!user) { setImportError("Not logged in."); setImporting(false); return; }
 
-    // Step 1: collect every (category, subcategory) pair we need that doesn't exist yet
-    // We'll create them as private to the org first, then map their IDs.
+    // Build the existing lookup keyed by (parent_category, name lowercase, parent_subcategory_id or "null")
     const existingByKey: Record<string, string> = {};
     orgSubcategories.forEach((s) => {
-      existingByKey[`${s.parent_category}::${s.name.toLowerCase()}`] = s.id;
+      const parentKey = s.parent_subcategory_id || "null";
+      const key = `${s.parent_category}::${s.name.toLowerCase()}::${parentKey}`;
+      existingByKey[key] = s.id;
     });
 
-    const newSubsToCreate: { parent_category: string; name: string; key: string }[] = [];
-    const seenKeys = new Set<string>();
+    // STEP 1: Collect Tier 2 subcategories that need creation
+    const tier2ToCreate: { parent_category: string; name: string; key: string }[] = [];
+    const seenTier2 = new Set<string>();
     for (const row of rowsToImport) {
       if (!row.subcategory) continue;
-      const key = `${row.category}::${row.subcategory.toLowerCase()}`;
+      const key = `${row.category}::${row.subcategory.toLowerCase()}::null`;
       if (existingByKey[key]) continue;
-      if (seenKeys.has(key)) continue;
-      seenKeys.add(key);
-      newSubsToCreate.push({ parent_category: row.category, name: row.subcategory, key });
+      if (seenTier2.has(key)) continue;
+      seenTier2.add(key);
+      tier2ToCreate.push({ parent_category: row.category, name: row.subcategory, key });
     }
 
-    // Insert new subcategories
     let subsCreated = 0;
-    if (newSubsToCreate.length > 0) {
-      const subRows = newSubsToCreate.map((s) => ({
+    if (tier2ToCreate.length > 0) {
+      const subRows = tier2ToCreate.map((s) => ({
         parent_category: s.parent_category,
         name: s.name,
         is_public: false,
         organization_id: organizationId,
         created_by: user.id,
         display_order: 500,
+        parent_subcategory_id: null,
       }));
       const { data: insertedSubs, error: subErr } = await supabase
         .from("challenge_subcategories")
@@ -387,30 +415,109 @@ function BulkImportInner() {
         return;
       }
       (insertedSubs || []).forEach((s: any) => {
-        const key = `${s.parent_category}::${s.name.toLowerCase()}`;
+        const key = `${s.parent_category}::${s.name.toLowerCase()}::null`;
         existingByKey[key] = s.id;
         subsCreated++;
       });
     }
 
-    // Step 2: build challenge insert rows
+    // STEP 2: Now that all Tier 2 ids are known, collect Tier 3 to create
+    const tier3ToCreate: { parent_category: string; name: string; parent_subcategory_id: string; key: string }[] = [];
+    const seenTier3 = new Set<string>();
+    for (const row of rowsToImport) {
+      if (!row.subcategory || !row.subSubcategory) continue;
+      const tier2Key = `${row.category}::${row.subcategory.toLowerCase()}::null`;
+      const tier2Id = existingByKey[tier2Key];
+      if (!tier2Id) continue;
+      const tier3Key = `${row.category}::${row.subSubcategory.toLowerCase()}::${tier2Id}`;
+      if (existingByKey[tier3Key]) continue;
+      if (seenTier3.has(tier3Key)) continue;
+      seenTier3.add(tier3Key);
+      tier3ToCreate.push({
+        parent_category: row.category,
+        name: row.subSubcategory,
+        parent_subcategory_id: tier2Id,
+        key: tier3Key,
+      });
+    }
+
+    let subSubsCreated = 0;
+    if (tier3ToCreate.length > 0) {
+      const subRows = tier3ToCreate.map((s) => ({
+        parent_category: s.parent_category,
+        name: s.name,
+        is_public: false,
+        organization_id: organizationId,
+        created_by: user.id,
+        display_order: 500,
+        parent_subcategory_id: s.parent_subcategory_id,
+      }));
+      const { data: insertedSubs, error: subErr } = await supabase
+        .from("challenge_subcategories")
+        .insert(subRows)
+        .select("id, parent_category, name, parent_subcategory_id");
+      if (subErr) {
+        setImportError(`Failed to create sub-subcategories: ${subErr.message}`);
+        setImporting(false);
+        return;
+      }
+      (insertedSubs || []).forEach((s: any) => {
+        const key = `${s.parent_category}::${s.name.toLowerCase()}::${s.parent_subcategory_id}`;
+        existingByKey[key] = s.id;
+        subSubsCreated++;
+      });
+    }
+
+    // STEP 3: Build challenge insert rows
     const challengeRows = rowsToImport.map((row) => {
-      const subKey = row.subcategory ? `${row.category}::${row.subcategory.toLowerCase()}` : null;
-      const subcategoryId = subKey ? existingByKey[subKey] || null : null;
+      let finalSubcategoryId: string | null = null;
+      if (row.subcategory) {
+        const tier2Key = `${row.category}::${row.subcategory.toLowerCase()}::null`;
+        const tier2Id = existingByKey[tier2Key] || null;
+        if (row.subSubcategory && tier2Id) {
+          const tier3Key = `${row.category}::${row.subSubcategory.toLowerCase()}::${tier2Id}`;
+          finalSubcategoryId = existingByKey[tier3Key] || tier2Id;
+        } else {
+          finalSubcategoryId = tier2Id;
+        }
+      }
+
+      // Run recommender for blank setup_template rows
+      let setupTemplateKey: string | null = row.setupTemplate || null;
+      let recordingInstructions: string | null = row.recordingInstructions || null;
+      let verificationMode: string | null = row.verificationMode || null;
+
+      if (!setupTemplateKey && row.category) {
+        const rec = recommendRecordingSetup({
+          category: row.category,
+          subcategoryName: row.subSubcategory || row.subcategory || null,
+          unit: row.unit,
+          name: row.name,
+        });
+        if (rec) {
+          setupTemplateKey = rec.templateKey;
+          if (!recordingInstructions) recordingInstructions = rec.template.instructions;
+          if (!verificationMode) verificationMode = rec.template.recommendedVerificationMode;
+        }
+      }
+
       return {
         name: row.name,
         description: row.description || null,
         category: row.category,
-        subcategory_id: subcategoryId,
+        subcategory_id: finalSubcategoryId,
         unit: row.unit,
         difficulty: row.difficulty || "Medium",
         default_rep_target: row.defaultRepTarget ? parseInt(row.defaultRepTarget) : null,
+        setup_template_key: setupTemplateKey,
+        recording_instructions: recordingInstructions,
+        verification_mode: verificationMode || "coach_only",
         owner_id: user.id,
         is_public: false,
       };
     });
 
-    // Insert challenges in chunks of 100 to avoid hitting payload limits
+    // STEP 4: Insert challenges in chunks of 100
     const chunkSize = 100;
     let inserted = 0;
     for (let i = 0; i < challengeRows.length; i += chunkSize) {
@@ -425,12 +532,10 @@ function BulkImportInner() {
     }
 
     setImporting(false);
-    setImportDone({ inserted, subsCreated });
+    setImportDone({ inserted, subsCreated, subSubsCreated });
   };
 
-  if (fetching) {
-    return <LoadingFallback />;
-  }
+  if (fetching) return <LoadingFallback />;
 
   if (!organizationId) {
     return (
@@ -446,9 +551,7 @@ function BulkImportInner() {
         <main className="form-page-main">
           <div className="form-card">
             <h1 className="form-title">Set Up an Organization First</h1>
-            <p className="form-subtitle">
-              Bulk-imported challenges are scoped to your organization. Create an organization first.
-            </p>
+            <p className="form-subtitle">Bulk-imported challenges are scoped to your organization.</p>
             <div style={{ textAlign: "center", marginTop: "20px" }}>
               <Link href="/organizations/new" className="btn-primary-link">Create an Organization →</Link>
             </div>
@@ -481,9 +584,7 @@ function BulkImportInner() {
         />
 
         <main className="dashboard-main-with-sidebar">
-          <Link href={returnTo ? `/events/${returnTo}` : "/dashboard"} className="btn-back">
-            ← Back
-          </Link>
+          <Link href={returnTo ? `/events/${returnTo}` : "/dashboard"} className="btn-back">← Back</Link>
 
           <div className="breadcrumb">
             <Link href="/dashboard" className="breadcrumb-link">Dashboard</Link>
@@ -504,6 +605,9 @@ function BulkImportInner() {
                 Successfully imported <strong>{importDone.inserted}</strong> challenge{importDone.inserted === 1 ? "" : "s"}
                 {importDone.subsCreated > 0 && (
                   <> and created <strong>{importDone.subsCreated}</strong> new subcategor{importDone.subsCreated === 1 ? "y" : "ies"}</>
+                )}
+                {importDone.subSubsCreated > 0 && (
+                  <> + <strong>{importDone.subSubsCreated}</strong> new sub-subcategor{importDone.subSubsCreated === 1 ? "y" : "ies"}</>
                 )}.
               </p>
               <div className="form-actions">
@@ -513,10 +617,7 @@ function BulkImportInner() {
                 <button
                   type="button"
                   className="btn-cancel"
-                  onClick={() => {
-                    setImportDone(null);
-                    setParsedRows([]);
-                  }}
+                  onClick={() => { setImportDone(null); setParsedRows([]); }}
                 >
                   Import another batch
                 </button>
@@ -533,13 +634,19 @@ function BulkImportInner() {
                   <p className="csv-template-info-text">
                     <strong>Required columns:</strong> name, category, unit
                     <br />
-                    <strong>Optional columns:</strong> description, subcategory, default_rep_target, difficulty
+                    <strong>Optional columns:</strong> description, subcategory, sub_subcategory, default_rep_target, difficulty, setup_template, recording_instructions, verification_mode
                     <br />
                     <strong>Categories:</strong> Sports, Faith, Fitness, Academic, Scouts, Service
                     <br />
                     <strong>Difficulty:</strong> Easy, Medium, or Hard (defaults to Medium if blank)
                     <br />
-                    <strong>Subcategory:</strong> required for Sports, optional otherwise. New ones will be auto-created as private to your org.
+                    <strong>Subcategory:</strong> required for Sports (e.g., Soccer, Basketball, Bible Memorization, Cardio).
+                    <br />
+                    <strong>Sub-subcategory (NEW):</strong> optional third level (e.g., Ball Control, Free Throws, New Testament). New entries auto-created as private to your org.
+                    <br />
+                    <strong>Setup template (optional):</strong> side_angle_floor, selfie_audio, behind_player_target, top_down_closeup, gps_with_endpoints, photo_completion, wide_angle_court, selfie_with_object, custom. If blank, AI auto-recommends.
+                    <br />
+                    <strong>Verification mode (optional):</strong> ai_only, coach_only, or ai_and_coach. Defaults to coach_only.
                   </p>
                 </div>
                 <button type="button" className="btn-primary" onClick={downloadTemplate}>
@@ -580,7 +687,7 @@ function BulkImportInner() {
               {parsedRows.length > 0 && (
                 <>
                   <div className="dashboard-card">
-                    <h2 className="dashboard-card-title">Step 3 — Review & confirm</h2>
+                    <h2 className="dashboard-card-title">Step 3 — Review &amp; confirm</h2>
                     <p className="dashboard-card-text">
                       Check the rows below. Rows with errors are skipped automatically. You can also uncheck individual rows you don't want to import.
                     </p>
@@ -597,10 +704,7 @@ function BulkImportInner() {
                     <button
                       type="button"
                       className="btn-cancel"
-                      onClick={() => {
-                        setParsedRows([]);
-                        setParseError(null);
-                      }}
+                      onClick={() => { setParsedRows([]); setParseError(null); }}
                       disabled={importing}
                     >
                       Cancel — start over
