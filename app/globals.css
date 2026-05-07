@@ -5413,3 +5413,213 @@ a:hover {
 .day-challenge-rec-text p:last-child {
   margin: 0;
 }
+
+/* ============================================
+   Slice 4.5.5 — Library management (delete)
+   ============================================ */
+
+/* --- Manage mode banner --- */
+.library-manage-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #FEF3C7;
+  border: 1px solid #FACC15;
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin: 8px 0 12px;
+  flex-wrap: wrap;
+}
+
+.library-manage-banner-text {
+  font-size: 12px;
+  color: #92400E;
+  flex: 1 1 auto;
+  min-width: 200px;
+  line-height: 1.5;
+}
+
+.library-manage-banner-text strong {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  font-size: 11px;
+  color: #92400E;
+}
+
+.library-manage-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.library-manage-count {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--color-blue-dark);
+  background: #DBEAFE;
+  padding: 4px 10px;
+  border-radius: 99px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+/* --- Library card in manage mode --- */
+.library-card-manage-overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 5;
+}
+
+.library-card {
+  position: relative;
+}
+
+.library-card-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: 4px 10px;
+  border-radius: 99px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text);
+  user-select: none;
+}
+
+.library-card-checkbox-label:hover {
+  border-color: var(--color-blue);
+  color: var(--color-blue);
+}
+
+.library-card-checkbox-label input[type="checkbox"] {
+  margin: 0;
+}
+
+.library-card-locked-label {
+  display: inline-block;
+  background: #F0EDE5;
+  color: var(--color-text-muted);
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  font-style: italic;
+}
+
+.library-card-selected {
+  border-color: var(--color-blue);
+  border-width: 2px;
+  background: #F0F6FF;
+}
+
+.library-card-locked {
+  opacity: 0.7;
+}
+
+.library-card-delete-btn {
+  width: 100%;
+  font-size: 13px;
+  padding: 8px 16px;
+}
+
+/* --- Delete modal styles --- */
+.delete-modal-intro {
+  font-size: 14px;
+  color: var(--color-text);
+  line-height: 1.6;
+  margin: 0 0 14px;
+  background: #FEE2E2;
+  border-left: 3px solid #DC2626;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+}
+
+.delete-modal-impact-block {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-top: 14px;
+}
+
+.delete-modal-impact-header {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.delete-modal-impact-summary {
+  font-size: 13px;
+  color: var(--color-text);
+  line-height: 1.5;
+  margin: 0 0 10px;
+}
+
+.delete-modal-impact-clean {
+  background: #DCFCE7;
+  border-left: 3px solid #14532D;
+  color: #14532D;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  margin-top: 14px;
+}
+
+.delete-modal-impact-list {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+.delete-modal-impact-list li {
+  margin-bottom: 4px;
+}
+
+.delete-modal-impact-list strong {
+  color: var(--color-text);
+}
+
+.alert-warning {
+  background: #FEF3C7;
+  border-left: 3px solid #F59E0B;
+  color: #92400E;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  margin: 10px 0;
+}
+
+/* btn-secondary styles a button without making it a link */
+.btn-secondary {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.btn-secondary:hover {
+  border-color: var(--color-blue);
+  color: var(--color-blue);
+}

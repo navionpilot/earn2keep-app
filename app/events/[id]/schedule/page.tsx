@@ -11,6 +11,7 @@ import CalendarWeekView from "@/components/CalendarWeekView";
 import CalendarListView from "@/components/CalendarListView";
 import DayPlanSidebar, { AssignedChallenge } from "@/components/DayPlanSidebar";
 import ChallengeLibraryModal, { LibraryChallenge, LibrarySubcategory } from "@/components/ChallengeLibraryModal";
+import DeleteChallengeModal, { ChallengeToDelete } from "@/components/DeleteChallengeModal";
 import ApplyToDaysModal from "@/components/ApplyToDaysModal";
 
 type EventChallengeRow = {
@@ -87,6 +88,11 @@ export default function SchedulePlannerPage() {
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Delete modal state
+  const [deleteCandidates, setDeleteCandidates] = useState<ChallengeToDelete[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string>("");
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+
   // View mode: "month" | "week" | "list"
   const [viewMode, setViewMode] = useState<"month" | "week" | "list">("month");
 
@@ -103,6 +109,9 @@ export default function SchedulePlannerPage() {
 
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
+      setCurrentUserId(user.id);
+      setIsAdmin(user.email === "waylon.hdd@comcast.net");
+
       const { data: profile } = await supabase
         .from("profiles")
         .select("full_name")
@@ -661,6 +670,16 @@ export default function SchedulePlannerPage() {
         selectedDateLabel={selectedDate ? formatShortDate(selectedDate) : ""}
         createCustomHref={`/challenges/new?returnTo=${eventId}/schedule`}
         bulkImportHref={`/challenges/bulk-import?returnTo=${eventId}/schedule`}
+        currentUserId={currentUserId}
+        isAdmin={isAdmin}
+        onRequestDelete={(toDelete) => {
+          setDeleteCandidates(toDelete.map((c) => ({
+            id: c.id,
+            name: c.name,
+            is_public: c.is_public,
+            owner_id: c.owner_id,
+          })));
+        }}
       />
 
       <ApplyToDaysModal
@@ -672,6 +691,19 @@ export default function SchedulePlannerPage() {
         sourceChallengeCount={selectedDayChallenges.length}
         daysWithContent={new Set(Object.keys(dayContent))}
         onApply={handleApplyToDays}
+      />
+
+      <DeleteChallengeModal
+        open={deleteCandidates.length > 0}
+        onClose={() => setDeleteCandidates([])}
+        challenges={deleteCandidates}
+        currentUserId={currentUserId}
+        isAdmin={isAdmin}
+        onDeleted={async () => {
+          setDeleteCandidates([]);
+          // Refetch the schedule + library so deleted items disappear
+          await fetchAll();
+        }}
       />
     </div>
   );

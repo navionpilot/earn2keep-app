@@ -12,6 +12,7 @@ export type LibraryChallenge = {
   difficulty: string | null;
   default_rep_target: number | null;
   is_public: boolean;
+  owner_id: string | null;
   setup_template_key?: string | null;
   recording_instructions?: string | null;
   verification_mode?: string | null;
@@ -54,6 +55,12 @@ interface ChallengeLibraryModalProps {
   createCustomHref: string;
   // Bulk import link
   bulkImportHref: string;
+  // For management actions
+  currentUserId: string;
+  isAdmin: boolean;
+  // Called with array of challenges that the user wants to delete; parent handles
+  // showing the DeleteChallengeModal and refetching the library after success.
+  onRequestDelete: (challenges: LibraryChallenge[]) => void;
 }
 
 export default function ChallengeLibraryModal({
@@ -66,6 +73,9 @@ export default function ChallengeLibraryModal({
   selectedDateLabel,
   createCustomHref,
   bulkImportHref,
+  currentUserId,
+  isAdmin,
+  onRequestDelete,
 }: ChallengeLibraryModalProps) {
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [activeSubcategoryId, setActiveSubcategoryId] = useState<string>("");
@@ -73,6 +83,30 @@ export default function ChallengeLibraryModal({
   const [search, setSearch] = useState("");
   const [pendingChallenge, setPendingChallenge] = useState<LibraryChallenge | null>(null);
   const [pendingTarget, setPendingTarget] = useState<string>("");
+  // Manage-mode state
+  const [manageMode, setManageMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Helper: can the current user delete this challenge?
+  const canDelete = (c: LibraryChallenge): boolean => {
+    if (isAdmin) return true;
+    if (c.is_public) return false;
+    return c.owner_id === currentUserId;
+  };
+
+  const exitManageMode = () => {
+    setManageMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   // Build subcategory lookup map
   const subcategoryById = useMemo(() => {
@@ -236,13 +270,61 @@ export default function ChallengeLibraryModal({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
-              <a href={bulkImportHref} className="btn-secondary-link library-custom-btn" title="Upload many challenges from a CSV file">
-                📥 Bulk
-              </a>
-              <a href={createCustomHref} className="btn-secondary-link library-custom-btn">
-                + Custom
-              </a>
+              {manageMode ? (
+                <button
+                  type="button"
+                  className="btn-secondary library-custom-btn"
+                  onClick={exitManageMode}
+                  title="Exit manage mode"
+                >
+                  ✓ Done managing
+                </button>
+              ) : (
+                <>
+                  <a href={bulkImportHref} className="btn-secondary-link library-custom-btn" title="Upload many challenges from a CSV file">
+                    📥 Bulk
+                  </a>
+                  <a href={createCustomHref} className="btn-secondary-link library-custom-btn">
+                    + Custom
+                  </a>
+                  <button
+                    type="button"
+                    className="btn-secondary library-custom-btn"
+                    onClick={() => setManageMode(true)}
+                    title="Select multiple challenges to delete"
+                  >
+                    ✏ Manage
+                  </button>
+                </>
+              )}
             </div>
+
+            {manageMode && (
+              <div className="library-manage-banner">
+                <div className="library-manage-banner-text">
+                  <strong>Manage mode</strong> — pick challenges to delete. Public/seeded challenges can't be deleted (only the platform admin can).
+                </div>
+                <div className="library-manage-banner-actions">
+                  {selectedIds.size > 0 && (
+                    <span className="library-manage-count">
+                      {selectedIds.size} selected
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    className="btn-danger"
+                    style={{ fontSize: "12px", padding: "6px 14px" }}
+                    disabled={selectedIds.size === 0}
+                    onClick={() => {
+                      const toDelete = challenges.filter((c) => selectedIds.has(c.id));
+                      onRequestDelete(toDelete);
+                    }}
+                  >
+                    🗑 Delete {selectedIds.size > 0 ? selectedIds.size : ""} selected
+                  </button>
+                </div>
+              </div>
+            )}
 
             <div className="filter-chips">
               <button
@@ -340,11 +422,32 @@ export default function ChallengeLibraryModal({
                   const already = alreadyOnDay.has(c.id);
                   const hierarchyPath = getHierarchyPath(c);
                   const recIcon = c.setup_template_key ? TEMPLATE_ICONS[c.setup_template_key] : null;
+                  const userCanDelete = canDelete(c);
+                  const isSelected = selectedIds.has(c.id);
                   return (
                     <div
                       key={c.id}
-                      className={`library-card ${already ? "library-card-disabled" : ""}`}
+                      className={`library-card ${already && !manageMode ? "library-card-disabled" : ""} ${isSelected ? "library-card-selected" : ""} ${manageMode && !userCanDelete ? "library-card-locked" : ""}`}
                     >
+                      {manageMode && (
+                        <div className="library-card-manage-overlay">
+                          {userCanDelete ? (
+                            <label className="library-card-checkbox-label">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => toggleSelected(c.id)}
+                              />
+                              <span>{isSelected ? "Selected" : "Select"}</span>
+                            </label>
+                          ) : (
+                            <span className="library-card-locked-label" title="Public/seeded challenges can only be deleted by the platform admin">
+                              🔒 Library
+                            </span>
+                          )}
+                        </div>
+                      )}
+
                       <div className="library-card-header">
                         <span className={`challenge-cat-pill cat-${c.category.toLowerCase()}`}>
                           {hierarchyPath}
@@ -369,14 +472,36 @@ export default function ChallengeLibraryModal({
                       <div className="library-card-meta">
                         Default: {c.default_rep_target || "—"} {c.unit}
                       </div>
-                      <button
-                        type="button"
-                        className={already ? "btn-already-added" : "btn-add-challenge"}
-                        disabled={already}
-                        onClick={() => handleAddClick(c)}
-                      >
-                        {already ? "✓ Already on this day" : "+ Add"}
-                      </button>
+
+                      {manageMode ? (
+                        userCanDelete ? (
+                          <button
+                            type="button"
+                            className="btn-danger library-card-delete-btn"
+                            onClick={() => onRequestDelete([c])}
+                            title="Delete this challenge permanently"
+                          >
+                            🗑 Delete
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn-already-added"
+                            disabled
+                          >
+                            🔒 Admin only
+                          </button>
+                        )
+                      ) : (
+                        <button
+                          type="button"
+                          className={already ? "btn-already-added" : "btn-add-challenge"}
+                          disabled={already}
+                          onClick={() => handleAddClick(c)}
+                        >
+                          {already ? "✓ Already on this day" : "+ Add"}
+                        </button>
+                      )}
                     </div>
                   );
                 })
