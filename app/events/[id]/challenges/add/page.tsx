@@ -5,6 +5,8 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 import Tooltip from "@/components/Tooltip";
+import OnboardingSidebar from "@/components/OnboardingSidebar";
+import LogoutButton from "@/components/LogoutButton";
 
 type Challenge = {
   id: string;
@@ -41,11 +43,38 @@ export default function AddChallengesPage() {
   const [savingChallengeId, setSavingChallengeId] = useState<string | null>(null);
   const [addingBundle, setAddingBundle] = useState<string | null>(null);
 
+  // Sidebar state
+  const [userDisplayName, setUserDisplayName] = useState<string>("");
+  const [hasTeams, setHasTeams] = useState(false);
+  const [hasPlayers, setHasPlayers] = useState(false);
+  const [hasEvent, setHasEvent] = useState(false);
+
   // Per-challenge rep target inputs (uncommitted)
   const [repTargets, setRepTargets] = useState<Record<string, string>>({});
 
   const fetchData = async () => {
     const supabase = createClient();
+
+    // Fetch user info for sidebar
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .single();
+      if (profile?.full_name) setUserDisplayName(profile.full_name);
+
+      // Counts for sidebar checklist
+      const [{ count: teamCount }, { count: playerCount }, { count: eventCount }] = await Promise.all([
+        supabase.from("teams").select("*", { count: "exact", head: true }).eq("owner_id", user.id),
+        supabase.from("players").select("*", { count: "exact", head: true }).eq("owner_id", user.id),
+        supabase.from("events").select("*", { count: "exact", head: true }).eq("owner_id", user.id),
+      ]);
+      setHasTeams((teamCount || 0) > 0);
+      setHasPlayers((playerCount || 0) > 0);
+      setHasEvent((eventCount || 0) > 0);
+    }
 
     const { data: event } = await supabase
       .from("events")
@@ -236,22 +265,33 @@ export default function AddChallengesPage() {
           <Link href="/dashboard" className="dashboard-logo">
             <span className="logo-text">earn<sup className="logo-sup">2</sup>keep</span>
           </Link>
-          <Link href={`/events/${eventId}`} className="btn-link">← Back to Event</Link>
+          <div className="dashboard-user-section">
+            <span className="dashboard-user-email">{userDisplayName}</span>
+            <LogoutButton />
+          </div>
         </div>
       </header>
 
-      <main className="dashboard-main">
-        <Link href={`/events/${eventId}`} className="btn-back">
-          ← Back to {eventName}
-        </Link>
+      <div className="dashboard-layout">
+        <OnboardingSidebar
+          hasOrganization={true}
+          hasTeams={hasTeams}
+          hasPlayers={hasPlayers}
+          hasEvent={hasEvent}
+        />
 
-        <div className="breadcrumb">
-          <Link href="/dashboard" className="breadcrumb-link">Dashboard</Link>
-          <span className="breadcrumb-sep">›</span>
-          <Link href={`/events/${eventId}`} className="breadcrumb-link">{eventName}</Link>
-          <span className="breadcrumb-sep">›</span>
-          <span className="breadcrumb-current">Add Challenges</span>
-        </div>
+        <main className="dashboard-main-with-sidebar">
+          <Link href={`/events/${eventId}`} className="btn-back">
+            ← Back to {eventName}
+          </Link>
+
+          <div className="breadcrumb">
+            <Link href="/dashboard" className="breadcrumb-link">Dashboard</Link>
+            <span className="breadcrumb-sep">›</span>
+            <Link href={`/events/${eventId}`} className="breadcrumb-link">{eventName}</Link>
+            <span className="breadcrumb-sep">›</span>
+            <span className="breadcrumb-current">Add Challenges</span>
+          </div>
 
         <h1 className="dashboard-welcome">Add Challenges</h1>
         <p className="dashboard-subtitle">
@@ -435,6 +475,7 @@ export default function AddChallengesPage() {
           </Link>
         </div>
       </main>
+    </div>
     </div>
   );
 }

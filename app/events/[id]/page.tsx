@@ -5,6 +5,7 @@ import Tooltip from "@/components/Tooltip";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import EventStatusButton from "@/components/EventStatusButton";
+import DeleteButton from "@/components/DeleteButton";
 
 const formatMoney = (n: number) =>
   n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -571,6 +572,20 @@ export default async function EventDetailPage({
               </div>
             </div>
           )}
+
+          {/* Danger zone — delete event */}
+          <DeleteButton
+            table="events"
+            recordId={event.id}
+            recordName={event.name}
+            redirectTo={org ? `/organizations/${org.id}` : "/dashboard"}
+            consequences={[
+              `${eventChallenges?.length || 0} assigned challenge${(eventChallenges?.length || 0) === 1 ? "" : "s"}`,
+              `${event.prize_count || 0} prize tier${(event.prize_count || 0) === 1 ? "" : "s"}`,
+              `${teams.length} team link${teams.length === 1 ? "" : "s"} (the teams themselves stay)`,
+            ]}
+            buttonLabel="Delete this event"
+          />
         </main>
       </div>
     </div>

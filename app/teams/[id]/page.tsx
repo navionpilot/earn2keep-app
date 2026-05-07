@@ -4,6 +4,7 @@ import OnboardingSidebar from "@/components/OnboardingSidebar";
 import Tooltip from "@/components/Tooltip";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import DeleteButton from "@/components/DeleteButton";
 
 export default async function TeamDetailPage({
   params,
@@ -240,16 +241,17 @@ export default async function TeamDetailPage({
             </>
           )}
 
-          <div className="dashboard-card" style={{ marginTop: "32px" }}>
-            <h2 className="dashboard-card-title">
-              Events
-              <span className="coming-soon-tag">Slice 4.4</span>
-            </h2>
-            <p className="dashboard-card-text">
-              Once your roster is set, you'll create Camps and Tournaments where
-              your players can compete.
-            </p>
-          </div>
+          <DeleteButton
+            table="teams"
+            recordId={team.id}
+            recordName={team.name}
+            redirectTo={org ? `/organizations/${org.id}` : "/dashboard"}
+            consequences={[
+              `${playerCount} player${playerCount === 1 ? "" : "s"} on the roster`,
+              `Any event links to this team (the events themselves stay)`,
+            ]}
+            buttonLabel="Delete this team"
+          />
         </main>
       </div>
     </div>
