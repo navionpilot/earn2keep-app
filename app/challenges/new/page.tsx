@@ -1,14 +1,15 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 import Tooltip from "@/components/Tooltip";
+import SubcategoryPicker from "@/components/SubcategoryPicker";
 
-const CATEGORIES = ["Sports", "Faith", "Scouts", "Fitness", "Academic", "Service"];
+const SUBCATEGORY_REQUIRED = new Set(["Sports"]);
 
-function NewChallengeForm() {
+export default function NewChallengePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get("returnTo");
@@ -16,11 +17,63 @@ function NewChallengeForm() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
+  const [subcategoryId, setSubcategoryId] = useState<string | null>(null);
   const [unit, setUnit] = useState("");
   const [difficulty, setDifficulty] = useState("Medium");
   const [defaultRepTarget, setDefaultRepTarget] = useState("");
+  const [organizationId, setOrganizationId] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+
+  // Fetch the org context (from the event if returnTo exists, otherwise user's first org)
+  useEffect(() => {
+    const fetchOrg = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError("You must be logged in.");
+        setFetching(false);
+        return;
+      }
+
+      // returnTo format is "<eventId>/schedule" — extract eventId
+      let foundOrgId: string | null = null;
+      if (returnTo) {
+        const eventId = returnTo.split("/")[0];
+        if (eventId) {
+          const { data: event } = await supabase
+            .from("events")
+            .select("organization_id")
+            .eq("id", eventId)
+            .single();
+          if (event?.organization_id) foundOrgId = event.organization_id;
+        }
+      }
+
+      if (!foundOrgId) {
+        // Fall back to user's first org
+        const { data: orgs } = await supabase
+          .from("organizations")
+          .select("id")
+          .eq("owner_id", user.id)
+          .order("created_at", { ascending: true })
+          .limit(1);
+        if (orgs && orgs.length > 0) foundOrgId = orgs[0].id;
+      }
+
+      if (!foundOrgId) {
+        setError("You need to create an organization before adding custom challenges.");
+        setFetching(false);
+        return;
+      }
+
+      setOrganizationId(foundOrgId);
+      setFetching(false);
+    };
+
+    fetchOrg();
+  }, [returnTo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +81,11 @@ function NewChallengeForm() {
 
     if (!name.trim() || !category || !unit.trim()) {
       setError("Name, category, and unit are required.");
+      return;
+    }
+
+    if (SUBCATEGORY_REQUIRED.has(category) && !subcategoryId) {
+      setError(`Pick a sport for this Sports challenge (or add a new one).`);
       return;
     }
 
@@ -41,6 +99,7 @@ function NewChallengeForm() {
       name: name.trim(),
       description: description.trim() || null,
       category,
+      subcategory_id: subcategoryId,
       unit: unit.trim(),
       difficulty,
       default_rep_target: defaultRepTarget ? parseInt(defaultRepTarget) : null,
@@ -55,12 +114,53 @@ function NewChallengeForm() {
     }
 
     if (returnTo) {
-      router.push(`/events/${returnTo}/challenges/add`);
+      // returnTo format is "<eventId>/schedule"
+      router.push(`/events/${returnTo}`);
     } else {
       router.push("/dashboard");
     }
     router.refresh();
   };
+
+  if (fetching) {
+    return (
+      <div className="form-page">
+        <main className="form-page-main">
+          <div className="form-card">
+            <p style={{ textAlign: "center", color: "var(--color-text-muted)" }}>Loading...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!organizationId) {
+    return (
+      <div className="form-page">
+        <header className="dashboard-header">
+          <div className="dashboard-header-inner">
+            <Link href="/dashboard" className="dashboard-logo">
+              <span className="logo-text">earn<sup className="logo-sup">2</sup>keep</span>
+            </Link>
+            <Link href="/dashboard" className="btn-link">← Back</Link>
+          </div>
+        </header>
+        <main className="form-page-main">
+          <div className="form-card">
+            <h1 className="form-title">Set Up an Organization First</h1>
+            <p className="form-subtitle">
+              Custom challenges are scoped to your organization. Create an organization first, then come back here.
+            </p>
+            <div style={{ textAlign: "center", marginTop: "20px" }}>
+              <Link href="/organizations/new" className="btn-primary-link">Create an Organization →</Link>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  const backHref = returnTo ? `/events/${returnTo}` : "/dashboard";
 
   return (
     <div className="form-page">
@@ -69,12 +169,7 @@ function NewChallengeForm() {
           <Link href="/dashboard" className="dashboard-logo">
             <span className="logo-text">earn<sup className="logo-sup">2</sup>keep</span>
           </Link>
-          <Link
-            href={returnTo ? `/events/${returnTo}/challenges/add` : "/dashboard"}
-            className="btn-link"
-          >
-            ← Back
-          </Link>
+          <Link href={backHref} className="btn-link">← Back</Link>
         </div>
       </header>
 
@@ -86,8 +181,8 @@ function NewChallengeForm() {
 
           <h1 className="form-title">Create a Custom Challenge</h1>
           <p className="form-subtitle">
-            This challenge will only be visible to you. Use it for activities
-            that don't fit the standard library.
+            This challenge will only be visible to you and your organization. Use
+            it for activities that don't fit the standard library.
           </p>
 
           <form className="auth-form" onSubmit={handleSubmit}>
@@ -106,21 +201,13 @@ function NewChallengeForm() {
               />
             </div>
 
-            <div>
-              <label htmlFor="category" className="form-label">
-                Category <span className="required">*</span>
-              </label>
-              <select
-                id="category" className="form-input"
-                value={category} onChange={(e) => setCategory(e.target.value)}
-                required
-              >
-                <option value="">Pick a category...</option>
-                {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
+            <SubcategoryPicker
+              category={category}
+              setCategory={setCategory}
+              subcategoryId={subcategoryId}
+              setSubcategoryId={setSubcategoryId}
+              organizationId={organizationId}
+            />
 
             <div>
               <label htmlFor="unit" className="form-label">
@@ -177,12 +264,7 @@ function NewChallengeForm() {
             {error && <div className="alert alert-error">{error}</div>}
 
             <div className="form-actions">
-              <Link
-                href={returnTo ? `/events/${returnTo}/challenges/add` : "/dashboard"}
-                className="btn-cancel"
-              >
-                Cancel
-              </Link>
+              <Link href={backHref} className="btn-cancel">Cancel</Link>
               <button type="submit" className="btn-primary btn-inline" disabled={loading}>
                 {loading ? "Creating..." : "Create Challenge →"}
               </button>
@@ -191,25 +273,5 @@ function NewChallengeForm() {
         </div>
       </main>
     </div>
-  );
-}
-
-export default function NewChallengePage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="form-page">
-          <main className="form-page-main">
-            <div className="form-card">
-              <p style={{ textAlign: "center", color: "var(--color-text-muted)" }}>
-                Loading...
-              </p>
-            </div>
-          </main>
-        </div>
-      }
-    >
-      <NewChallengeForm />
-    </Suspense>
   );
 }

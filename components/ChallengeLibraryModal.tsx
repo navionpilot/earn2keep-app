@@ -7,9 +7,17 @@ export type LibraryChallenge = {
   name: string;
   description: string | null;
   category: string;
+  subcategory_id: string | null;
   unit: string | null;
   difficulty: string | null;
   default_rep_target: number | null;
+  is_public: boolean;
+};
+
+export type LibrarySubcategory = {
+  id: string;
+  parent_category: string;
+  name: string;
   is_public: boolean;
 };
 
@@ -20,6 +28,8 @@ interface ChallengeLibraryModalProps {
   onClose: () => void;
   onSelectChallenge: (challenge: LibraryChallenge, repTarget: number) => void;
   challenges: LibraryChallenge[];
+  // Subcategories (so we can show "Sports → Soccer" labels and filter)
+  subcategories: LibrarySubcategory[];
   // Challenge IDs already on the current day (so we can show "Already on this day")
   alreadyOnDay: Set<string>;
   selectedDateLabel: string; // e.g., "Wed, June 3"
@@ -32,19 +42,43 @@ export default function ChallengeLibraryModal({
   onClose,
   onSelectChallenge,
   challenges,
+  subcategories,
   alreadyOnDay,
   selectedDateLabel,
   createCustomHref,
 }: ChallengeLibraryModalProps) {
   const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [activeSubcategoryId, setActiveSubcategoryId] = useState<string>("");
   const [search, setSearch] = useState("");
   const [pendingChallenge, setPendingChallenge] = useState<LibraryChallenge | null>(null);
   const [pendingTarget, setPendingTarget] = useState<string>("");
+
+  // Build subcategory lookup map
+  const subcategoryById = useMemo(() => {
+    const map: Record<string, LibrarySubcategory> = {};
+    subcategories.forEach((s) => { map[s.id] = s; });
+    return map;
+  }, [subcategories]);
+
+  // Subcategories visible for the active category
+  const subsForActiveCategory = useMemo(() => {
+    if (activeCategory === "All") return [];
+    return subcategories.filter((s) => s.parent_category === activeCategory);
+  }, [subcategories, activeCategory]);
+
+  // Reset subcategory filter when category changes
+  const handleCategoryChange = (cat: string) => {
+    setActiveCategory(cat);
+    setActiveSubcategoryId("");
+  };
 
   const filtered = useMemo(() => {
     let list = challenges;
     if (activeCategory !== "All") {
       list = list.filter((c) => c.category === activeCategory);
+    }
+    if (activeSubcategoryId) {
+      list = list.filter((c) => c.subcategory_id === activeSubcategoryId);
     }
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -149,7 +183,7 @@ export default function ChallengeLibraryModal({
               <button
                 type="button"
                 className={`filter-chip ${activeCategory === "All" ? "filter-chip-active" : ""}`}
-                onClick={() => setActiveCategory("All")}
+                onClick={() => handleCategoryChange("All")}
               >
                 All ({countByCategory("All")})
               </button>
@@ -161,7 +195,7 @@ export default function ChallengeLibraryModal({
                     key={cat}
                     type="button"
                     className={`filter-chip ${activeCategory === cat ? "filter-chip-active" : ""}`}
-                    onClick={() => setActiveCategory(cat)}
+                    onClick={() => handleCategoryChange(cat)}
                   >
                     {cat} ({cnt})
                   </button>
@@ -169,14 +203,45 @@ export default function ChallengeLibraryModal({
               })}
             </div>
 
+            {activeCategory !== "All" && subsForActiveCategory.length > 0 && (
+              <div className="filter-chips filter-chips-subcategory">
+                <span className="filter-chips-label">Filter by {activeCategory === "Sports" ? "sport" : "subcategory"}:</span>
+                <button
+                  type="button"
+                  className={`filter-chip filter-chip-sub ${activeSubcategoryId === "" ? "filter-chip-active" : ""}`}
+                  onClick={() => setActiveSubcategoryId("")}
+                >
+                  All
+                </button>
+                {subsForActiveCategory.map((sub) => {
+                  // Count matching challenges (in current category, this subcategory)
+                  const cnt = challenges.filter(
+                    (c) => c.category === activeCategory && c.subcategory_id === sub.id
+                  ).length;
+                  if (cnt === 0) return null;
+                  return (
+                    <button
+                      key={sub.id}
+                      type="button"
+                      className={`filter-chip filter-chip-sub ${activeSubcategoryId === sub.id ? "filter-chip-active" : ""}`}
+                      onClick={() => setActiveSubcategoryId(sub.id)}
+                    >
+                      {sub.name}{!sub.is_public ? " ✦" : ""} ({cnt})
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
             <div className="library-grid">
               {filtered.length === 0 ? (
                 <p className="dashboard-card-text">
-                  No challenges match. Try a different category or create a custom one.
+                  No challenges match. Try a different filter or create a custom one.
                 </p>
               ) : (
                 filtered.map((c) => {
                   const already = alreadyOnDay.has(c.id);
+                  const sub = c.subcategory_id ? subcategoryById[c.subcategory_id] : null;
                   return (
                     <div
                       key={c.id}
@@ -184,7 +249,7 @@ export default function ChallengeLibraryModal({
                     >
                       <div className="library-card-header">
                         <span className={`challenge-cat-pill cat-${c.category.toLowerCase()}`}>
-                          {c.category}
+                          {sub ? `${c.category} › ${sub.name}` : c.category}
                         </span>
                         {!c.is_public && <span className="challenge-custom-pill">Custom</span>}
                         {c.difficulty && (

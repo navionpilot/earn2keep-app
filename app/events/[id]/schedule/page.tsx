@@ -10,7 +10,7 @@ import CalendarMonthView, { DayChallenge } from "@/components/CalendarMonthView"
 import CalendarWeekView from "@/components/CalendarWeekView";
 import CalendarListView from "@/components/CalendarListView";
 import DayPlanSidebar, { AssignedChallenge } from "@/components/DayPlanSidebar";
-import ChallengeLibraryModal, { LibraryChallenge } from "@/components/ChallengeLibraryModal";
+import ChallengeLibraryModal, { LibraryChallenge, LibrarySubcategory } from "@/components/ChallengeLibraryModal";
 import ApplyToDaysModal from "@/components/ApplyToDaysModal";
 
 type EventChallengeRow = {
@@ -68,6 +68,7 @@ export default function SchedulePlannerPage() {
   const [scheduledRows, setScheduledRows] = useState<EventChallengeRow[]>([]);
   // Library
   const [libraryChallenges, setLibraryChallenges] = useState<LibraryChallenge[]>([]);
+  const [librarySubcategories, setLibrarySubcategories] = useState<LibrarySubcategory[]>([]);
 
   // Selected day state
   const [selectedDate, setSelectedDate] = useState<string>("");
@@ -158,6 +159,15 @@ export default function SchedulePlannerPage() {
       .order("name", { ascending: true });
 
     setLibraryChallenges(library || []);
+
+    // Fetch subcategories (RLS automatically filters to public + own org)
+    const { data: subs } = await supabase
+      .from("challenge_subcategories")
+      .select("id, parent_category, name, is_public")
+      .order("display_order", { ascending: true })
+      .order("name", { ascending: true });
+
+    setLibrarySubcategories((subs as any) || []);
 
     setFetching(false);
   };
@@ -612,6 +622,7 @@ export default function SchedulePlannerPage() {
         onClose={() => setShowLibraryModal(false)}
         onSelectChallenge={handleAddChallenge}
         challenges={libraryChallenges}
+        subcategories={librarySubcategories}
         alreadyOnDay={alreadyOnDay}
         selectedDateLabel={selectedDate ? formatShortDate(selectedDate) : ""}
         createCustomHref={`/challenges/new?returnTo=${eventId}/schedule`}
