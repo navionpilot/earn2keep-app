@@ -255,8 +255,8 @@ export default function AddChallengesPage() {
 
         <h1 className="dashboard-welcome">Add Challenges</h1>
         <p className="dashboard-subtitle">
-          Pick what your players or participants will do to earn sponsorships.
-          Add individual challenges or grab a category bundle.
+          Pick what your players or participants must complete to compete for
+          prizes. Add individual challenges or grab a category bundle.
         </p>
 
         <div className="add-custom-bar">

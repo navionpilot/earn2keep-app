@@ -36,13 +36,11 @@ const combineGiftCard = (selection: string, custom: string): string | null => {
   return selection;
 };
 
-// Reverse mapping for loading: figure out if existing prize text matches a known option
 const splitGiftCard = (existing: string | null): { selection: string; custom: string } => {
   if (!existing) return { selection: "", custom: "" };
   if (GIFT_CARD_OPTIONS.includes(existing)) {
     return { selection: existing, custom: "" };
   }
-  // Existing text doesn't match a known option → treat as "Other" with custom text
   return { selection: "Other", custom: existing };
 };
 
@@ -62,7 +60,6 @@ export default function EditEventPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([]);
-  const [goalType, setGoalType] = useState<"per_player" | "per_team">("per_team");
   const [goalAmount, setGoalAmount] = useState("");
   const [prizeCount, setPrizeCount] = useState<1 | 2 | 3>(1);
 
@@ -94,11 +91,9 @@ export default function EditEventPage() {
       setDescription(event.description || "");
       setStartDate(event.start_date || "");
       setEndDate(event.end_date || "");
-      setGoalType(event.goal_type || "per_team");
       setGoalAmount(event.goal_amount?.toString() || "");
       setPrizeCount((event.prize_count as 1 | 2 | 3) || 1);
 
-      // Load prize fields with reverse mapping
       const first = splitGiftCard(event.first_place_prize);
       setFirstPlaceGiftCard(first.selection);
       setFirstPlaceCustom(first.custom);
@@ -118,10 +113,8 @@ export default function EditEventPage() {
       if (org) setOrgName(org.name);
 
       const { data: teamsData } = await supabase
-        .from("teams")
-        .select("id, name, sport_or_activity, age_group")
-        .eq("organization_id", event.organization_id)
-        .order("name");
+        .from("teams").select("id, name, sport_or_activity, age_group")
+        .eq("organization_id", event.organization_id).order("name");
 
       const teamIds = (teamsData || []).map((t) => t.id);
       const playerCounts: Record<string, number> = {};
@@ -179,9 +172,8 @@ export default function EditEventPage() {
   const secondNum = prizeCount >= 2 ? parseFloat(secondPlaceAmount) || 0 : 0;
   const thirdNum = prizeCount >= 3 ? parseFloat(thirdPlaceAmount) || 0 : 0;
   const prizePool = firstNum + secondNum + thirdNum;
-  const totalGoal = goalType === "per_team" ? goalNum : goalNum * totalPlayerCount;
-  const netToTeam = totalGoal - prizePool;
-  const perPlayerNet = totalPlayerCount > 0 ? netToTeam / totalPlayerCount : 0;
+  const totalRaised = goalNum * totalPlayerCount;
+  const netToTeam = totalRaised - prizePool;
   const showBreakdown = goalNum > 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -200,7 +192,10 @@ export default function EditEventPage() {
       setError("A Tournament needs at least 2 teams."); return;
     }
     if (!goalAmount || goalNum <= 0) {
-      setError("Please enter a fundraising goal amount."); return;
+      setError(eventType === "camp"
+        ? "Please enter a per-player fundraising goal."
+        : "Please enter a per-player registration fee.");
+      return;
     }
 
     setLoading(true);
@@ -219,7 +214,7 @@ export default function EditEventPage() {
       description: description.trim() || null,
       start_date: startDate,
       end_date: endDate,
-      goal_type: goalType,
+      goal_type: "per_player",
       goal_amount: goalNum,
       prize_count: prizeCount,
       first_place_prize: firstPrize,
@@ -258,6 +253,14 @@ export default function EditEventPage() {
     );
   }
 
+  const goalFieldLabel = eventType === "camp"
+    ? "Fundraising Goal Amount per Player/Participant"
+    : "Registration Fee per Player/Participant";
+
+  const goalFieldHint = eventType === "camp"
+    ? "The minimum amount each player must raise to compete. Players can raise more — extra fundraising = extra points."
+    : "The flat entry fee each player pays to register.";
+
   return (
     <div className="form-page">
       <header className="dashboard-header">
@@ -272,9 +275,7 @@ export default function EditEventPage() {
       <main className="form-page-main-wide">
         <div className="form-card">
           <h1 className="form-title">Edit Event</h1>
-          <p className="form-subtitle">
-            Updating event for <strong>{orgName}</strong>.
-          </p>
+          <p className="form-subtitle">Updating event for <strong>{orgName}</strong>.</p>
 
           <form className="auth-form" onSubmit={handleSubmit}>
             <div className="form-section">
@@ -298,7 +299,10 @@ export default function EditEventPage() {
                     <div className="radio-card-content">
                       <div className="radio-card-icon">🏃</div>
                       <div className="radio-card-title">Camp</div>
-                      <div className="radio-card-text">One team. Players/participants compete internally.</div>
+                      <div className="radio-card-text">
+                        <strong>One team. Fundraiser model.</strong> Each
+                        player raises a minimum amount through sponsors.
+                      </div>
                     </div>
                   </label>
                   <label className={`radio-card ${eventType === "tournament" ? "radio-card-active" : ""}`}>
@@ -307,7 +311,10 @@ export default function EditEventPage() {
                     <div className="radio-card-content">
                       <div className="radio-card-icon">🏆</div>
                       <div className="radio-card-title">Tournament</div>
-                      <div className="radio-card-text">Multiple teams competing.</div>
+                      <div className="radio-card-text">
+                        <strong>Multiple teams. Registration model.</strong>{" "}
+                        Each player pays a flat entry fee.
+                      </div>
                     </div>
                   </label>
                 </div>
@@ -358,13 +365,31 @@ export default function EditEventPage() {
               </div>
             </div>
 
-            {/* SECTION 3: Fundraising Goal — Amount FIRST */}
             <div className="form-section">
-              <h3 className="form-section-title">3. Fundraising Goal</h3>
+              <h3 className="form-section-title">
+                3. {eventType === "camp" ? "Fundraising Goal" : "Registration Fee"}
+              </h3>
+
+              <div className={`info-box info-box-${eventType}`}>
+                {eventType === "camp" ? (
+                  <>
+                    <strong>How a Camp works:</strong> Each player has a
+                    minimum fundraising goal. They share QR codes with
+                    sponsors to collect funds. Raising more = more points
+                    toward winning.
+                  </>
+                ) : (
+                  <>
+                    <strong>How a Tournament works:</strong> Each player
+                    pays a flat registration fee. Sponsors can cover it
+                    via QR code. Once paid, they're registered to compete.
+                  </>
+                )}
+              </div>
 
               <div>
                 <label htmlFor="goalAmount" className="form-label">
-                  Fundraising Goal Amount <span className="required">*</span>
+                  {goalFieldLabel} <span className="required">*</span>
                 </label>
                 <div className="input-prefix-wrap">
                   <span className="input-prefix">$</span>
@@ -373,37 +398,10 @@ export default function EditEventPage() {
                     value={goalAmount} onChange={(e) => setGoalAmount(e.target.value)}
                     min="0" step="0.01" required />
                 </div>
-              </div>
-
-              <div>
-                <label className="form-label">
-                  Is this a per-team or per-player/participant goal? <span className="required">*</span>
-                </label>
-                <div className="radio-cards-compact">
-                  <label className={`radio-card-small ${goalType === "per_team" ? "radio-card-active" : ""}`}>
-                    <input type="radio" checked={goalType === "per_team"} onChange={() => setGoalType("per_team")} />
-                    <div>
-                      <div className="radio-card-title-small">Per Team</div>
-                      <div className="radio-card-text-small">e.g., $2,000 total</div>
-                    </div>
-                  </label>
-                  <label className={`radio-card-small ${goalType === "per_player" ? "radio-card-active" : ""}`}>
-                    <input type="radio" checked={goalType === "per_player"} onChange={() => setGoalType("per_player")} />
-                    <div>
-                      <div className="radio-card-title-small">Per Player / Participant</div>
-                      <div className="radio-card-text-small">e.g., $50 each</div>
-                    </div>
-                  </label>
-                </div>
-                <p className="form-hint" style={{ marginTop: "8px" }}>
-                  {goalType === "per_team"
-                    ? "The total amount your whole team will raise during this event."
-                    : "The amount each player/participant will raise individually."}
-                </p>
+                <p className="form-hint">{goalFieldHint}</p>
               </div>
             </div>
 
-            {/* SECTION 4: Prizes with Gift Card dropdowns */}
             <div className="form-section">
               <h3 className="form-section-title">4. Prizes</h3>
 
@@ -434,7 +432,6 @@ export default function EditEventPage() {
                 </div>
               </div>
 
-              {/* 1st place */}
               <div className="prize-input-group">
                 <div className="prize-input-row">
                   <div className="prize-input-amount">
@@ -462,14 +459,12 @@ export default function EditEventPage() {
                   <div className="prize-custom-row">
                     <label htmlFor="firstCustom" className="form-label">Specify gift card / prize</label>
                     <input id="firstCustom" type="text" className="form-input"
-                      placeholder="e.g., Target Gift Card, Local pizza place"
                       value={firstPlaceCustom} onChange={(e) => setFirstPlaceCustom(e.target.value)}
                       maxLength={200} />
                   </div>
                 )}
               </div>
 
-              {/* 2nd place */}
               {prizeCount >= 2 && (
                 <div className="prize-input-group">
                   <div className="prize-input-row">
@@ -498,7 +493,6 @@ export default function EditEventPage() {
                     <div className="prize-custom-row">
                       <label htmlFor="secondCustom" className="form-label">Specify gift card / prize</label>
                       <input id="secondCustom" type="text" className="form-input"
-                        placeholder="e.g., Target Gift Card"
                         value={secondPlaceCustom} onChange={(e) => setSecondPlaceCustom(e.target.value)}
                         maxLength={200} />
                     </div>
@@ -506,7 +500,6 @@ export default function EditEventPage() {
                 </div>
               )}
 
-              {/* 3rd place */}
               {prizeCount >= 3 && (
                 <div className="prize-input-group">
                   <div className="prize-input-row">
@@ -535,7 +528,6 @@ export default function EditEventPage() {
                     <div className="prize-custom-row">
                       <label htmlFor="thirdCustom" className="form-label">Specify gift card / prize</label>
                       <input id="thirdCustom" type="text" className="form-input"
-                        placeholder="e.g., Target Gift Card"
                         value={thirdPlaceCustom} onChange={(e) => setThirdPlaceCustom(e.target.value)}
                         maxLength={200} />
                     </div>
@@ -544,23 +536,20 @@ export default function EditEventPage() {
               )}
             </div>
 
-            {/* Live Breakdown */}
             <div className="breakdown-card">
               <div className="breakdown-eyebrow">★ YOUR FUNDRAISING PLAN ★</div>
               <h3 className="breakdown-title">The Math at a Glance</h3>
 
               {!showBreakdown ? (
-                <p className="breakdown-empty">Enter a goal amount above to see your fundraising breakdown.</p>
+                <p className="breakdown-empty">Enter an amount above to see the breakdown.</p>
               ) : (
                 <>
                   <div className="breakdown-rows">
                     <div className="breakdown-row">
                       <span className="breakdown-label">
-                        {goalType === "per_team"
-                          ? "Total Fundraising Goal"
-                          : `${formatMoney(goalNum)} × ${totalPlayerCount}`}
+                        ${formatMoney(goalNum)} {eventType === "camp" ? "minimum" : "fee"} × {totalPlayerCount}
                       </span>
-                      <span className="breakdown-value">${formatMoney(totalGoal)}</span>
+                      <span className="breakdown-value">${formatMoney(totalRaised)}</span>
                     </div>
                     {prizePool > 0 && (
                       <div className="breakdown-row breakdown-row-deduct">
@@ -570,26 +559,30 @@ export default function EditEventPage() {
                     )}
                     <div className="breakdown-divider"></div>
                     <div className="breakdown-row breakdown-row-final">
-                      <span className="breakdown-label">Net to Your Team</span>
+                      <span className="breakdown-label">
+                        {eventType === "camp" ? "Minimum Net to Team" : "Net to Team"}
+                      </span>
                       <span className="breakdown-value breakdown-value-final">${formatMoney(netToTeam)}</span>
                     </div>
                   </div>
 
                   {totalPlayerCount === 0 ? (
                     <div className="breakdown-per-player breakdown-per-player-empty">
-                      ★ Add players or participants to your team(s) to see per-person breakdown
+                      ★ Add players or participants to your team(s) to see breakdown
                     </div>
                   ) : netToTeam < 0 ? (
                     <div className="breakdown-per-player breakdown-per-player-warning">
-                      ⚠ Prize pool exceeds your goal. Reduce prizes or raise the goal.
+                      ⚠ Prize pool exceeds total raised. Reduce prizes or raise the {eventType === "camp" ? "goal" : "fee"}.
+                    </div>
+                  ) : eventType === "camp" ? (
+                    <div className="breakdown-per-player">
+                      <span className="breakdown-per-player-icon">★</span>
+                      <span>Each player must raise <strong>${formatMoney(goalNum)}</strong> minimum — extra raised = extra points</span>
                     </div>
                   ) : (
                     <div className="breakdown-per-player">
                       <span className="breakdown-per-player-icon">★</span>
-                      <span>
-                        {totalPlayerCount} player{totalPlayerCount === 1 ? "" : "s"}/participant{totalPlayerCount === 1 ? "" : "s"} ×{" "}
-                        <strong>${formatMoney(perPlayerNet)}</strong> each
-                      </span>
+                      <span>Each player pays <strong>${formatMoney(goalNum)}</strong> to register</span>
                     </div>
                   )}
                 </>

@@ -138,9 +138,10 @@ export default async function EventDetailPage({
   const secondNum = Number(event.second_place_amount) || 0;
   const thirdNum = Number(event.third_place_amount) || 0;
   const prizePool = firstNum + secondNum + thirdNum;
-  const totalGoal = event.goal_type === "per_team" ? goalNum : goalNum * totalPlayerCount;
-  const netToTeam = totalGoal - prizePool;
-  const perPlayerNet = totalPlayerCount > 0 ? netToTeam / totalPlayerCount : 0;
+  // Both Camp and Tournament: total = per-player amount × roster size
+  // (Camp: minimum each must raise. Tournament: flat fee each pays.)
+  const totalRaised = goalNum * totalPlayerCount;
+  const netToTeam = totalRaised - prizePool;
   const showBreakdown = goalNum > 0;
 
   return (
@@ -199,9 +200,12 @@ export default async function EventDetailPage({
                 <span className="celebration-emoji">🎉</span>
               </div>
               <div className="celebration-content">
-                <div className="celebration-eyebrow">★ FUNDRAISER CREATED ★</div>
+                <div className="celebration-eyebrow">
+                  ★ {event.event_type === "camp" ? "FUNDRAISER" : "TOURNAMENT"} CREATED ★
+                </div>
                 <h2 className="celebration-title">
-                  Congrats on creating your {ordinal(eventOrdinal)} fundraiser!
+                  Congrats on creating your {ordinal(eventOrdinal)}{" "}
+                  {event.event_type === "camp" ? "fundraiser" : "tournament"}!
                 </h2>
                 <p className="celebration-text">
                   <strong>{event.name}</strong> is set up and ready. Once you've
@@ -300,20 +304,20 @@ export default async function EventDetailPage({
               <div className="event-stat-sub">{totalPlayerCount === 1 ? "Person" : "People"}</div>
             </div>
             <div className="event-stat-cell">
-              <div className="event-stat-label">Goal</div>
+              <div className="event-stat-label">
+                {event.event_type === "camp" ? "Goal/Player" : "Reg Fee"}
+              </div>
               <div className="event-stat-value">
-                {goalNum > 0 ? `$${formatMoney(totalGoal)}` : "—"}
+                {goalNum > 0 ? `$${formatMoney(goalNum)}` : "—"}
               </div>
               <div className="event-stat-sub">
-                {goalNum > 0
-                  ? event.goal_type === "per_player"
-                    ? "Per person × roster"
-                    : "Per team total"
-                  : "Not set"}
+                {event.event_type === "camp" ? "Min to compete" : "Per player"}
               </div>
             </div>
             <div className="event-stat-cell">
-              <div className="event-stat-label">Net to Team</div>
+              <div className="event-stat-label">
+                {event.event_type === "camp" ? "Min Net to Team" : "Net to Team"}
+              </div>
               <div className="event-stat-value" style={{ color: "var(--color-gold)" }}>
                 {goalNum > 0 ? `$${formatMoney(netToTeam)}` : "—"}
               </div>
@@ -334,9 +338,10 @@ export default async function EventDetailPage({
                   <div className="next-step-content">
                     <h3 className="next-step-title">Pick your challenges</h3>
                     <p className="next-step-text">
-                      Choose what your players or participants will do to earn
-                      sponsorships — push-ups, free throws, Bible verses, mile
-                      runs, service hours, whatever fits.
+                      Choose what your players or participants must complete to
+                      compete for prizes — push-ups, free throws, Bible verses,
+                      mile runs, service hours, whatever fits. The more reps
+                      they hit (and {event.event_type === "camp" ? "the more they raise above the minimum" : "the better they perform"}), the more points they earn.
                     </p>
                     <Link href={`/events/${event.id}/challenges/add`} className="next-step-link">
                       {(eventChallenges?.length || 0) > 0
@@ -348,24 +353,51 @@ export default async function EventDetailPage({
                 <div className="next-step-item">
                   <div className="next-step-num">2</div>
                   <div className="next-step-content">
-                    <h3 className="next-step-title">Generate sponsor QR codes</h3>
+                    <h3 className="next-step-title">Activate the event to open registration</h3>
                     <p className="next-step-text">
-                      Each player/participant gets a unique QR code. They share
-                      it with family, friends, and local businesses to earn
-                      sponsorships.
+                      {event.event_type === "camp" ? (
+                        <>
+                          Hit <strong>Activate Event</strong> to open the
+                          fundraising window. Each player gets a unique QR
+                          code to share with sponsors (parents, family, local
+                          businesses) to collect their fundraising minimum.
+                          Once they hit the minimum, they're registered to
+                          compete.
+                        </>
+                      ) : (
+                        <>
+                          Hit <strong>Activate Event</strong> to open
+                          registration. Each player gets a unique QR code.
+                          Players can pay the entry fee themselves, or share
+                          the code with a sponsor (parent, family, local
+                          business) to cover it. Once paid, they're registered.
+                        </>
+                      )}
                     </p>
-                    <span className="coming-soon-tag">Coming in Slice 4.6</span>
                   </div>
                 </div>
                 <div className="next-step-item">
                   <div className="next-step-num">3</div>
                   <div className="next-step-content">
-                    <h3 className="next-step-title">Activate the event</h3>
+                    <h3 className="next-step-title">Generate entry QR codes</h3>
                     <p className="next-step-text">
-                      When you're ready to go live, hit the{" "}
-                      <strong>Activate Event</strong> button at the top.
-                      Sponsors can then start funding entries.
+                      After activation, each registered player gets a QR code
+                      to share with sponsors. Sponsors scan it to{" "}
+                      {event.event_type === "camp" ? "contribute toward the player's fundraising goal" : "pay the player's registration fee"}.
                     </p>
+                    <span className="coming-soon-tag">Coming in Slice 4.6</span>
+                  </div>
+                </div>
+                <div className="next-step-item">
+                  <div className="next-step-num">4</div>
+                  <div className="next-step-content">
+                    <h3 className="next-step-title">Run the event &amp; pick winners</h3>
+                    <p className="next-step-text">
+                      During the event, registered players complete their
+                      challenges. You verify completions. At the end, players
+                      with the highest total points win the prize gift cards.
+                    </p>
+                    <span className="coming-soon-tag">Coming in Slice 4.7</span>
                   </div>
                 </div>
               </div>
@@ -380,11 +412,9 @@ export default async function EventDetailPage({
               <div className="breakdown-rows">
                 <div className="breakdown-row">
                   <span className="breakdown-label">
-                    {event.goal_type === "per_team"
-                      ? "Total Fundraising Goal"
-                      : `${formatMoney(goalNum)} × ${totalPlayerCount}`}
+                    ${formatMoney(goalNum)} {event.event_type === "camp" ? "minimum" : "fee"} × {totalPlayerCount} player{totalPlayerCount === 1 ? "" : "s"}/participant{totalPlayerCount === 1 ? "" : "s"}
                   </span>
-                  <span className="breakdown-value">${formatMoney(totalGoal)}</span>
+                  <span className="breakdown-value">${formatMoney(totalRaised)}</span>
                 </div>
                 {prizePool > 0 && (
                   <div className="breakdown-row breakdown-row-deduct">
@@ -394,7 +424,9 @@ export default async function EventDetailPage({
                 )}
                 <div className="breakdown-divider"></div>
                 <div className="breakdown-row breakdown-row-final">
-                  <span className="breakdown-label">Net to Your Team</span>
+                  <span className="breakdown-label">
+                    {event.event_type === "camp" ? "Minimum Net to Team" : "Net to Team"}
+                  </span>
                   <span className="breakdown-value breakdown-value-final">
                     ${formatMoney(netToTeam)}
                   </span>
@@ -403,18 +435,26 @@ export default async function EventDetailPage({
 
               {totalPlayerCount === 0 ? (
                 <div className="breakdown-per-player breakdown-per-player-empty">
-                  ★ Add players or participants to your team(s) to see per-person breakdown
+                  ★ Add players or participants to your team(s) to see breakdown
                 </div>
               ) : netToTeam < 0 ? (
                 <div className="breakdown-per-player breakdown-per-player-warning">
-                  ⚠ Prize pool exceeds your goal. Reduce prizes or raise the goal.
+                  ⚠ Prize pool exceeds total raised. Reduce prizes or raise the {event.event_type === "camp" ? "goal" : "fee"}.
+                </div>
+              ) : event.event_type === "camp" ? (
+                <div className="breakdown-per-player">
+                  <span className="breakdown-per-player-icon">★</span>
+                  <span>
+                    Each player must raise <strong>${formatMoney(goalNum)}</strong>{" "}
+                    minimum to compete — extra raised = extra points
+                  </span>
                 </div>
               ) : (
                 <div className="breakdown-per-player">
                   <span className="breakdown-per-player-icon">★</span>
                   <span>
-                    {totalPlayerCount} player{totalPlayerCount === 1 ? "" : "s"}/participant{totalPlayerCount === 1 ? "" : "s"} ×{" "}
-                    <strong>${formatMoney(perPlayerNet)}</strong> each
+                    Each player pays <strong>${formatMoney(goalNum)}</strong>{" "}
+                    to register and compete
                   </span>
                 </div>
               )}
@@ -445,7 +485,7 @@ export default async function EventDetailPage({
           <div className="dashboard-card">
             <div className="section-header" style={{ marginBottom: "16px" }}>
               <h2 className="dashboard-card-title">Challenges</h2>
-              <Tooltip text="Add or modify the challenges your players/participants will complete to earn sponsorships.">
+              <Tooltip text="Add or modify the challenges your players/participants will complete to compete for prizes.">
                 <Link href={`/events/${event.id}/challenges/add`} className="btn-add">
                   {(eventChallenges?.length || 0) > 0 ? "+ Add / Manage" : "+ Add Challenges"}
                 </Link>

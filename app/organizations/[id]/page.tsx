@@ -202,15 +202,16 @@ export default async function OrganizationDetailPage({
                 </div>
                 <h2 className="empty-state-title">Create Your First Event</h2>
                 <p className="empty-state-text">
-                  An event is a Camp (one team competing internally) or Tournament
-                  (multiple teams competing). It's where your players take on
-                  challenges and earn sponsorships.
+                  Two types: a <strong>Camp</strong> is a fundraiser where one
+                  team competes — each player raises a minimum amount through
+                  sponsors. A <strong>Tournament</strong> is a registration-fee
+                  competition between multiple teams.
                 </p>
                 <Link href={`/organizations/${org.id}/events/new`} className="btn-primary-link">
                   Create Your First Event →
                 </Link>
                 <div style={{ marginTop: "16px" }}>
-                  <Tooltip text="A Camp is one team competing internally — players compete against each other for prizes. A Tournament is multiple teams competing against each other for the team-level prize.">
+                  <Tooltip text="Camp = one team, fundraiser model: each player raises a minimum amount through sponsors. Tournament = multiple teams, registration model: each player pays a flat entry fee.">
                     <a className="help-link">❓ What's the difference between a Camp and a Tournament?</a>
                   </Tooltip>
                 </div>
@@ -249,8 +250,9 @@ export default async function OrganizationDetailPage({
                       )}
                       {event.goal_amount && (
                         <p className="event-goal-text">
-                          Goal: ${Number(event.goal_amount).toLocaleString()}
-                          {event.goal_type === "per_player" ? " per player" : " per team"}
+                          {event.event_type === "camp"
+                            ? `$${Number(event.goal_amount).toLocaleString()}/player goal`
+                            : `$${Number(event.goal_amount).toLocaleString()}/player entry`}
                         </p>
                       )}
                       <div className="org-card-action">Manage →</div>

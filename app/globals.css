@@ -3182,3 +3182,33 @@ a:hover {
     text-align: center;
   }
 }
+
+/* ============================================
+   Slice 4.5 fix3 — Camp vs Tournament info boxes
+   ============================================ */
+
+.info-box {
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  line-height: 1.55;
+  border-left: 4px solid;
+}
+
+.info-box-camp {
+  background: #FEF3C7;
+  border-color: #F59E0B;
+  color: #78350F;
+}
+
+.info-box-tournament {
+  background: #DBEAFE;
+  border-color: #3B82F6;
+  color: #1E3A8A;
+}
+
+.info-box strong {
+  font-weight: 800;
+  display: inline;
+}
