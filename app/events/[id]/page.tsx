@@ -9,6 +9,13 @@ import EventStatusButton from "@/components/EventStatusButton";
 const formatMoney = (n: number) =>
   n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
+// Helper for ordinal numbers (1st, 2nd, 3rd, 4th...)
+function ordinal(n: number): string {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
 export default async function EventDetailPage({
   params,
 }: {
@@ -52,7 +59,6 @@ export default async function EventDetailPage({
     .map((p: any) => p.teams)
     .filter(Boolean);
 
-  // Compute total player count across selected teams
   const teamIds = teams.map((t: any) => t.id);
   let totalPlayerCount = 0;
   if (teamIds.length > 0) {
@@ -64,44 +70,68 @@ export default async function EventDetailPage({
     totalPlayerCount = count || 0;
   }
 
-  // For sidebar
-  const { count: totalTeamCount } = await supabase
-    .from("teams")
-    .select("*", { count: "exact", head: true })
-    .eq("owner_id", user?.id);
-
-  const { count: totalPlayerCountSidebar } = await supabase
-    .from("players")
-    .select("*", { count: "exact", head: true })
-    .eq("owner_id", user?.id);
-
-  const { count: totalEventCount } = await supabase
+  // Calculate the ordinal for this event (is it the user's 1st, 2nd, 3rd...?)
+  const { count: eventOrdinal } = await supabase
     .from("events")
     .select("*", { count: "exact", head: true })
-    .eq("owner_id", user?.id);
+    .eq("owner_id", user?.id)
+    .lte("created_at", event.created_at);
 
-  const formatDateRange = (start: string | null, end: string | null) => {
-    if (!start && !end) return null;
-    const opts: Intl.DateTimeFormatOptions = { month: "long", day: "numeric", year: "numeric" };
-    if (start && end) {
-      const sameYear = new Date(start).getFullYear() === new Date(end).getFullYear();
-      const s = sameYear
-        ? new Date(start).toLocaleDateString("en-US", { month: "long", day: "numeric" })
-        : new Date(start).toLocaleDateString("en-US", opts);
-      const e = new Date(end).toLocaleDateString("en-US", opts);
-      return `${s} – ${e}`;
+  // For sidebar
+  const { count: totalTeamCount } = await supabase
+    .from("teams").select("*", { count: "exact", head: true }).eq("owner_id", user?.id);
+  const { count: totalPlayerCountSidebar } = await supabase
+    .from("players").select("*", { count: "exact", head: true }).eq("owner_id", user?.id);
+  const { count: totalEventCount } = await supabase
+    .from("events").select("*", { count: "exact", head: true }).eq("owner_id", user?.id);
+
+  // Date calculations
+  const formatLongDate = (dateStr: string) =>
+    new Date(dateStr + "T12:00:00").toLocaleDateString("en-US", {
+      month: "long", day: "numeric", year: "numeric",
+    });
+
+  const formatMonth = (dateStr: string) =>
+    new Date(dateStr + "T12:00:00").toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+
+  const formatDay = (dateStr: string) =>
+    new Date(dateStr + "T12:00:00").toLocaleDateString("en-US", { day: "numeric" });
+
+  const formatYear = (dateStr: string) =>
+    new Date(dateStr + "T12:00:00").getFullYear();
+
+  let daysUntilStart: number | null = null;
+  let durationDays: number | null = null;
+  let isUpcoming = false;
+  let isRunning = false;
+  let hasEnded = false;
+
+  if (event.start_date) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startDate = new Date(event.start_date + "T12:00:00");
+    startDate.setHours(0, 0, 0, 0);
+    const msPerDay = 1000 * 60 * 60 * 24;
+    daysUntilStart = Math.ceil((startDate.getTime() - today.getTime()) / msPerDay);
+
+    if (event.end_date) {
+      const endDate = new Date(event.end_date + "T12:00:00");
+      endDate.setHours(0, 0, 0, 0);
+      durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / msPerDay) + 1;
+
+      if (today < startDate) isUpcoming = true;
+      else if (today >= startDate && today <= endDate) isRunning = true;
+      else hasEnded = true;
     }
-    return new Date(start || end!).toLocaleDateString("en-US", opts);
-  };
+  }
 
-  // Calculate breakdown
+  // Calculate fundraising breakdown
   const goalNum = Number(event.goal_amount) || 0;
   const firstNum = Number(event.first_place_amount) || 0;
   const secondNum = Number(event.second_place_amount) || 0;
   const thirdNum = Number(event.third_place_amount) || 0;
   const prizePool = firstNum + secondNum + thirdNum;
-  const totalGoal =
-    event.goal_type === "per_team" ? goalNum : goalNum * totalPlayerCount;
+  const totalGoal = event.goal_type === "per_team" ? goalNum : goalNum * totalPlayerCount;
   const netToTeam = totalGoal - prizePool;
   const perPlayerNet = totalPlayerCount > 0 ? netToTeam / totalPlayerCount : 0;
   const showBreakdown = goalNum > 0;
@@ -134,6 +164,13 @@ export default async function EventDetailPage({
         />
 
         <main className="dashboard-main-with-sidebar">
+          {/* Back button */}
+          {org && (
+            <Link href={`/organizations/${org.id}`} className="btn-back">
+              ← Back to {org.name}
+            </Link>
+          )}
+
           <div className="breadcrumb">
             <Link href="/dashboard" className="breadcrumb-link">Dashboard</Link>
             <span className="breadcrumb-sep">›</span>
@@ -148,27 +185,52 @@ export default async function EventDetailPage({
             <span className="breadcrumb-current">{event.name}</span>
           </div>
 
-          <div className="org-header">
-            <div>
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "12px" }}>
-                <span className="org-detail-type-pill">
-                  {event.event_type === "camp" ? "Camp" : "Tournament"}
-                </span>
-                <span className={`status-pill status-${event.status || "draft"}`}>
-                  {event.status === "active" ? "Active" : event.status === "completed" ? "Completed" : "Draft"}
-                </span>
+          {/* CELEBRATION HERO - shown when status is draft */}
+          {event.status === "draft" && eventOrdinal && (
+            <div className="celebration-banner">
+              <div className="celebration-burst">
+                <span className="celebration-emoji">🎉</span>
               </div>
-              <h1 className="dashboard-welcome">{event.name}</h1>
-              {formatDateRange(event.start_date, event.end_date) && (
-                <p className="org-detail-location">
-                  📅 {formatDateRange(event.start_date, event.end_date)}
+              <div className="celebration-content">
+                <div className="celebration-eyebrow">★ FUNDRAISER CREATED ★</div>
+                <h2 className="celebration-title">
+                  Congrats on creating your {ordinal(eventOrdinal)} fundraiser!
+                </h2>
+                <p className="celebration-text">
+                  <strong>{event.name}</strong> is set up and ready. Once you've
+                  added challenges and you're ready to go live, hit{" "}
+                  <strong>Activate Event</strong> below.
                 </p>
+              </div>
+            </div>
+          )}
+
+          {/* Event hero - title, type, status */}
+          <div className="event-hero">
+            <div className="event-hero-pills">
+              <span className="org-detail-type-pill">
+                {event.event_type === "camp" ? "🏃 Camp" : "🏆 Tournament"}
+              </span>
+              <span className={`status-pill status-${event.status || "draft"}`}>
+                {event.status === "active" ? "Active" : event.status === "completed" ? "Completed" : "Draft"}
+              </span>
+              {isUpcoming && daysUntilStart !== null && daysUntilStart > 0 && (
+                <span className="status-pill status-upcoming">
+                  Starts in {daysUntilStart} day{daysUntilStart === 1 ? "" : "s"}
+                </span>
               )}
-              {event.description && (
-                <p className="org-detail-description">{event.description}</p>
+              {isRunning && (
+                <span className="status-pill status-running">● Running now</span>
+              )}
+              {hasEnded && event.status !== "completed" && (
+                <span className="status-pill status-ended">Ended</span>
               )}
             </div>
-            <div style={{ display: "flex", gap: "8px", alignItems: "flex-start", flexWrap: "wrap" }}>
+            <h1 className="event-hero-title">{event.name}</h1>
+            {event.description && (
+              <p className="event-hero-description">{event.description}</p>
+            )}
+            <div className="event-hero-actions">
               <EventStatusButton eventId={event.id} currentStatus={event.status} />
               <Tooltip text="Update event details, participating teams, goals, or prizes.">
                 <Link href={`/events/${event.id}/edit`} className="btn-secondary-link">
@@ -178,7 +240,47 @@ export default async function EventDetailPage({
             </div>
           </div>
 
-          {/* Quick stats grid */}
+          {/* Visual date display */}
+          {event.start_date && event.end_date && (
+            <div className="date-display">
+              <div className="date-block date-block-start">
+                <div className="date-block-label">📅 Starts</div>
+                <div className="date-block-month">{formatMonth(event.start_date)}</div>
+                <div className="date-block-day">{formatDay(event.start_date)}</div>
+                <div className="date-block-year">{formatYear(event.start_date)}</div>
+                {daysUntilStart !== null && (
+                  <div className="date-block-sub">
+                    {daysUntilStart > 0
+                      ? `${daysUntilStart} day${daysUntilStart === 1 ? "" : "s"} from now`
+                      : daysUntilStart === 0
+                      ? "Today!"
+                      : `${Math.abs(daysUntilStart)} day${Math.abs(daysUntilStart) === 1 ? "" : "s"} ago`}
+                  </div>
+                )}
+              </div>
+              <div className="date-block-arrow">→</div>
+              <div className="date-block date-block-duration">
+                <div className="date-block-label">⏱ Duration</div>
+                <div className="date-block-duration-num">{durationDays}</div>
+                <div className="date-block-duration-label">
+                  {durationDays === 1 ? "DAY" : "DAYS"}
+                </div>
+                <div className="date-block-sub">
+                  {durationDays && durationDays >= 7 ? `~${Math.round(durationDays / 7)} week${Math.round(durationDays / 7) === 1 ? "" : "s"}` : "Short event"}
+                </div>
+              </div>
+              <div className="date-block-arrow">→</div>
+              <div className="date-block date-block-end">
+                <div className="date-block-label">🏁 Ends</div>
+                <div className="date-block-month">{formatMonth(event.end_date)}</div>
+                <div className="date-block-day">{formatDay(event.end_date)}</div>
+                <div className="date-block-year">{formatYear(event.end_date)}</div>
+                <div className="date-block-sub">{formatLongDate(event.end_date)}</div>
+              </div>
+            </div>
+          )}
+
+          {/* Quick stats */}
           <div className="event-stats-grid">
             <div className="event-stat-cell">
               <div className="event-stat-label">Teams</div>
@@ -186,9 +288,9 @@ export default async function EventDetailPage({
               <div className="event-stat-sub">Participating</div>
             </div>
             <div className="event-stat-cell">
-              <div className="event-stat-label">Players</div>
+              <div className="event-stat-label">Roster</div>
               <div className="event-stat-value">{totalPlayerCount}</div>
-              <div className="event-stat-sub">Total roster</div>
+              <div className="event-stat-sub">{totalPlayerCount === 1 ? "Person" : "People"}</div>
             </div>
             <div className="event-stat-cell">
               <div className="event-stat-label">Goal</div>
@@ -198,21 +300,66 @@ export default async function EventDetailPage({
               <div className="event-stat-sub">
                 {goalNum > 0
                   ? event.goal_type === "per_player"
-                    ? "Per player × players"
+                    ? "Per person × roster"
                     : "Per team total"
                   : "Not set"}
               </div>
             </div>
             <div className="event-stat-cell">
-              <div className="event-stat-label">Status</div>
-              <div className={`event-stat-value status-text-${event.status || "draft"}`}>
-                {event.status === "active" ? "Active" : event.status === "completed" ? "Done" : "Draft"}
+              <div className="event-stat-label">Net to Team</div>
+              <div className="event-stat-value" style={{ color: "var(--color-gold)" }}>
+                {goalNum > 0 ? `$${formatMoney(netToTeam)}` : "—"}
               </div>
-              <div className="event-stat-sub">
-                {event.status === "draft" ? "Setting up" : event.status === "active" ? "Running now" : "Ended"}
-              </div>
+              <div className="event-stat-sub">After prizes</div>
             </div>
           </div>
+
+          {/* What's Next - prominent action panel for draft events */}
+          {event.status === "draft" && (
+            <div className="next-steps-card">
+              <div className="next-steps-header">
+                <span className="next-steps-eyebrow">★ NEXT STEPS ★</span>
+                <h2 className="next-steps-title">Here's What to Do Next</h2>
+              </div>
+              <div className="next-step-list">
+                <div className="next-step-item">
+                  <div className="next-step-num">1</div>
+                  <div className="next-step-content">
+                    <h3 className="next-step-title">Pick your challenges</h3>
+                    <p className="next-step-text">
+                      Choose what your players or participants will do to earn
+                      sponsorships — push-ups, free throws, Bible verses, mile
+                      runs, service hours, whatever fits.
+                    </p>
+                    <span className="coming-soon-tag">Coming in Slice 4.5</span>
+                  </div>
+                </div>
+                <div className="next-step-item">
+                  <div className="next-step-num">2</div>
+                  <div className="next-step-content">
+                    <h3 className="next-step-title">Generate sponsor QR codes</h3>
+                    <p className="next-step-text">
+                      Each player/participant gets a unique QR code. They share
+                      it with family, friends, and local businesses to earn
+                      sponsorships.
+                    </p>
+                    <span className="coming-soon-tag">Coming in Slice 4.6</span>
+                  </div>
+                </div>
+                <div className="next-step-item">
+                  <div className="next-step-num">3</div>
+                  <div className="next-step-content">
+                    <h3 className="next-step-title">Activate the event</h3>
+                    <p className="next-step-text">
+                      When you're ready to go live, hit the{" "}
+                      <strong>Activate Event</strong> button at the top.
+                      Sponsors can then start funding entries.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Breakdown card */}
           {showBreakdown && (
@@ -224,7 +371,7 @@ export default async function EventDetailPage({
                   <span className="breakdown-label">
                     {event.goal_type === "per_team"
                       ? "Total Fundraising Goal"
-                      : `${formatMoney(goalNum)} × ${totalPlayerCount} players`}
+                      : `${formatMoney(goalNum)} × ${totalPlayerCount}`}
                   </span>
                   <span className="breakdown-value">${formatMoney(totalGoal)}</span>
                 </div>
@@ -245,7 +392,7 @@ export default async function EventDetailPage({
 
               {totalPlayerCount === 0 ? (
                 <div className="breakdown-per-player breakdown-per-player-empty">
-                  ★ Add players to your team(s) to see per-player breakdown
+                  ★ Add players or participants to your team(s) to see per-person breakdown
                 </div>
               ) : netToTeam < 0 ? (
                 <div className="breakdown-per-player breakdown-per-player-warning">
@@ -255,7 +402,7 @@ export default async function EventDetailPage({
                 <div className="breakdown-per-player">
                   <span className="breakdown-per-player-icon">★</span>
                   <span>
-                    {totalPlayerCount} player{totalPlayerCount === 1 ? "" : "s"} ×{" "}
+                    {totalPlayerCount} player{totalPlayerCount === 1 ? "" : "s"}/participant{totalPlayerCount === 1 ? "" : "s"} ×{" "}
                     <strong>${formatMoney(perPlayerNet)}</strong> each
                   </span>
                 </div>
@@ -269,11 +416,7 @@ export default async function EventDetailPage({
             {teams.length > 0 ? (
               <div className="event-team-list">
                 {teams.map((team: any) => (
-                  <Link
-                    href={`/teams/${team.id}`}
-                    key={team.id}
-                    className="event-team-chip"
-                  >
+                  <Link href={`/teams/${team.id}`} key={team.id} className="event-team-chip">
                     <span className="event-team-chip-name">{team.name}</span>
                     <span className="event-team-chip-meta">
                       {team.sport_or_activity}
@@ -339,28 +482,6 @@ export default async function EventDetailPage({
               </div>
             </div>
           )}
-
-          <div className="dashboard-card">
-            <h2 className="dashboard-card-title">
-              Challenges
-              <span className="coming-soon-tag">Slice 4.5</span>
-            </h2>
-            <p className="dashboard-card-text">
-              In the next slice, you'll pick from a library of 50+ challenges
-              and assign them to this event with rep targets.
-            </p>
-          </div>
-
-          <div className="dashboard-card">
-            <h2 className="dashboard-card-title">
-              Sponsor QR Codes
-              <span className="coming-soon-tag">Slice 4.6</span>
-            </h2>
-            <p className="dashboard-card-text">
-              Once challenges are set, each player gets a unique QR code that
-              family, friends, and local businesses scan to fund their entry.
-            </p>
-          </div>
         </main>
       </div>
     </div>

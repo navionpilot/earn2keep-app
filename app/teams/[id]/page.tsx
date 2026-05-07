@@ -97,6 +97,12 @@ export default async function TeamDetailPage({
         />
 
         <main className="dashboard-main-with-sidebar">
+          {org && (
+            <Link href={`/organizations/${org.id}`} className="btn-back">
+              ← Back to {org.name}
+            </Link>
+          )}
+
           <div className="breadcrumb">
             <Link href="/dashboard" className="breadcrumb-link">Dashboard</Link>
             <span className="breadcrumb-sep">›</span>

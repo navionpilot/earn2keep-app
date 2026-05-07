@@ -112,6 +112,10 @@ export default async function OrganizationDetailPage({
         />
 
         <main className="dashboard-main-with-sidebar">
+          <Link href="/dashboard" className="btn-back">
+            ← Back to Dashboard
+          </Link>
+
           <div className="breadcrumb">
             <Link href="/dashboard" className="breadcrumb-link">Dashboard</Link>
             <span className="breadcrumb-sep">›</span>
