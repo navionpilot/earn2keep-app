@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
@@ -9,7 +9,29 @@ import SubcategoryPicker from "@/components/SubcategoryPicker";
 
 const SUBCATEGORY_REQUIRED = new Set(["Sports"]);
 
+// The default export wraps everything in <Suspense> so Next.js can prerender
+// the page even though useSearchParams() is used inside.
 export default function NewChallengePage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <NewChallengeForm />
+    </Suspense>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="form-page">
+      <main className="form-page-main">
+        <div className="form-card">
+          <p style={{ textAlign: "center", color: "var(--color-text-muted)" }}>Loading...</p>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function NewChallengeForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get("returnTo");
@@ -123,15 +145,7 @@ export default function NewChallengePage() {
   };
 
   if (fetching) {
-    return (
-      <div className="form-page">
-        <main className="form-page-main">
-          <div className="form-card">
-            <p style={{ textAlign: "center", color: "var(--color-text-muted)" }}>Loading...</p>
-          </div>
-        </main>
-      </div>
-    );
+    return <LoadingFallback />;
   }
 
   if (!organizationId) {
