@@ -64,6 +64,10 @@ interface ChallengeLibraryModalProps {
   // Called with array of challenges that the user wants to delete; parent handles
   // showing the DeleteChallengeModal and refetching the library after success.
   onRequestDelete: (challenges: LibraryChallenge[]) => void;
+  // Builds the URL the modal should send the user to when they click Edit on a
+  // challenge in manage mode. Parent owns the URL (returnTo etc.) so the
+  // modal stays page-agnostic.
+  editHrefForChallenge: (challengeId: string) => string;
 }
 
 export default function ChallengeLibraryModal({
@@ -79,6 +83,7 @@ export default function ChallengeLibraryModal({
   currentUserId,
   isAdmin,
   onRequestDelete,
+  editHrefForChallenge,
 }: ChallengeLibraryModalProps) {
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [activeSubcategoryId, setActiveSubcategoryId] = useState<string>("");
@@ -91,6 +96,9 @@ export default function ChallengeLibraryModal({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   // Helper: can the current user delete this challenge?
+  // The same rules govern editing (admin can edit anything; everyone else can
+  // only edit/delete their own private challenges). Backed by RLS on the
+  // challenges table — even if someone hand-crafted the URL the DB refuses.
   const canDelete = (c: LibraryChallenge): boolean => {
     if (isAdmin) return true;
     if (c.is_public) return false;
@@ -319,7 +327,10 @@ export default function ChallengeLibraryModal({
             {manageMode && (
               <div className="library-manage-banner">
                 <div className="library-manage-banner-text">
-                  <strong>Manage mode</strong> — pick challenges to delete. Public/seeded challenges can't be deleted (only the platform admin can).
+                  <strong>Manage mode</strong>
+                  {isAdmin
+                    ? <> — edit or delete any challenge in the library. As admin, your changes apply for every coach.</>
+                    : <> — edit or delete challenges you created. Public/seeded library challenges can only be modified by the platform admin.</>}
                 </div>
                 <div className="library-manage-banner-actions">
                   {selectedIds.size > 0 && (
@@ -503,14 +514,26 @@ export default function ChallengeLibraryModal({
 
                       {manageMode ? (
                         userCanDelete ? (
-                          <button
-                            type="button"
-                            className="btn-danger library-card-delete-btn"
-                            onClick={() => onRequestDelete([c])}
-                            title="Delete this challenge permanently"
-                          >
-                            🗑 Delete
-                          </button>
+                          // Side-by-side Edit + Delete in manage mode. Both
+                          // gated by RLS server-side, so even if someone
+                          // hand-crafted the URL the database would refuse.
+                          <div className="library-card-actions-row">
+                            <a
+                              href={editHrefForChallenge(c.id)}
+                              className="library-card-edit-btn"
+                              title="Edit this challenge"
+                            >
+                              ✏ Edit
+                            </a>
+                            <button
+                              type="button"
+                              className="btn-danger library-card-delete-btn"
+                              onClick={() => onRequestDelete([c])}
+                              title="Delete this challenge permanently"
+                            >
+                              🗑 Delete
+                            </button>
+                          </div>
                         ) : (
                           <button
                             type="button"

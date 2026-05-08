@@ -18,6 +18,13 @@ const CATEGORIES = ["Sports", "Faith", "Fitness", "Academic", "Scouts", "Service
 // Categories where a Tier 2 subcategory MUST be selected
 const SUBCATEGORY_REQUIRED = new Set(["Sports"]);
 
+// Hardcoded admin email (mirrored across the codebase). When admin creates a
+// new subcategory on the fly from the create/edit challenge form, it gets
+// auto-published to the public library (is_public=true, organization_id=null)
+// so it shows up for every coach. Regular users' on-the-fly subcategories
+// stay scoped to their own org.
+const ADMIN_EMAIL = "waylon.hdd@comcast.net";
+
 interface CategoryHierarchyPickerProps {
   category: string;
   setCategory: (cat: string) => void;
@@ -140,6 +147,10 @@ export default function CategoryHierarchyPicker({
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setAddTier2Error("Not logged in."); setAddingTier2(false); return; }
 
+    // Admin's on-the-fly subcategories publish globally (matches the bulk-import
+    // and admin/subcategories conventions). Everyone else's stay private.
+    const userIsAdmin = user.email === ADMIN_EMAIL;
+
     const { data: newSub, error: insErr } = await supabase
       .from("challenge_subcategories")
       .insert({
@@ -147,8 +158,8 @@ export default function CategoryHierarchyPicker({
         parent_subcategory_id: null,
         name: trimmed,
         display_order: 500,
-        is_public: false,
-        organization_id: organizationId,
+        is_public: userIsAdmin,
+        organization_id: userIsAdmin ? null : organizationId,
         created_by: user.id,
       })
       .select()
@@ -195,6 +206,9 @@ export default function CategoryHierarchyPicker({
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setAddTier3Error("Not logged in."); setAddingTier3(false); return; }
 
+    // Same admin-aware visibility rule as Tier 2 (above).
+    const userIsAdmin = user.email === ADMIN_EMAIL;
+
     const { data: newSub, error: insErr } = await supabase
       .from("challenge_subcategories")
       .insert({
@@ -202,8 +216,8 @@ export default function CategoryHierarchyPicker({
         parent_subcategory_id: subcategoryId,
         name: trimmed,
         display_order: 500,
-        is_public: false,
-        organization_id: organizationId,
+        is_public: userIsAdmin,
+        organization_id: userIsAdmin ? null : organizationId,
         created_by: user.id,
       })
       .select()

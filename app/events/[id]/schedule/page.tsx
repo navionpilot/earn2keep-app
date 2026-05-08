@@ -653,6 +653,7 @@ export default function SchedulePlannerPage() {
         selectedDateLabel={selectedDate ? formatShortDate(selectedDate) : ""}
         createCustomHref={`/challenges/new?returnTo=${eventId}/schedule`}
         bulkImportHref={`/challenges/bulk-import?returnTo=${eventId}/schedule`}
+        editHrefForChallenge={(id) => `/challenges/${id}/edit?returnTo=${eventId}/schedule`}
         currentUserId={currentUserId}
         isAdmin={isAdmin}
         onRequestDelete={(toDelete) => {

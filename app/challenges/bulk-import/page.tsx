@@ -25,6 +25,13 @@ const VALID_SETUP_TEMPLATES = [
 ];
 const VALID_VERIFICATION_MODES = ["ai_only", "coach_only", "ai_and_coach"];
 
+// Hardcoded admin email (mirrored across the codebase). When the admin runs a
+// bulk import, every challenge is auto-published to the global library and any
+// new subcategories created during the import are also published as public
+// (organization_id=null). Regular users' bulk imports stay private to their
+// own org.
+const ADMIN_EMAIL = "waylon.hdd@comcast.net";
+
 const CSV_TEMPLATE_CONTENT = `name,description,category,subcategory,sub_subcategory,unit,default_rep_target,difficulty,setup_template,recording_instructions,verification_mode
 Push-Ups,Total push-ups completed (proper form),Fitness,Calisthenics,,push-ups,50,Medium,side_angle_floor,,ai_and_coach
 Mile Run,Run one full mile. Track time or just completion.,Fitness,Cardio,,miles,1,Hard,gps_with_endpoints,,ai_and_coach
@@ -65,6 +72,7 @@ function BulkImportInner() {
   const [organizationId, setOrganizationId] = useState<string>("");
   const [orgName, setOrgName] = useState<string>("");
   const [userDisplayName, setUserDisplayName] = useState<string>("");
+  const [isAdmin, setIsAdmin] = useState(false);
   const [hasTeams, setHasTeams] = useState(false);
   const [hasPlayers, setHasPlayers] = useState(false);
   const [hasEvent, setHasEvent] = useState(false);
@@ -84,6 +92,10 @@ function BulkImportInner() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setFetching(false); return; }
+
+      // Track admin status — bulk imports run by the admin auto-publish to
+      // the global library; everyone else's stays private to their org.
+      setIsAdmin(user.email === ADMIN_EMAIL);
 
       const { data: profile } = await supabase
         .from("profiles")
@@ -404,8 +416,11 @@ function BulkImportInner() {
       const subRows = tier2ToCreate.map((s) => ({
         parent_category: s.parent_category,
         name: s.name,
-        is_public: false,
-        organization_id: organizationId,
+        // Admin imports auto-publish: is_public=true and organization_id=null
+        // (the public-subcategory convention used elsewhere). Regular users'
+        // imports stay scoped to their org.
+        is_public: isAdmin,
+        organization_id: isAdmin ? null : organizationId,
         created_by: user.id,
         display_order: 500,
         parent_subcategory_id: null,
@@ -451,8 +466,9 @@ function BulkImportInner() {
       const subRows = tier3ToCreate.map((s) => ({
         parent_category: s.parent_category,
         name: s.name,
-        is_public: false,
-        organization_id: organizationId,
+        // Admin imports → public + org-null (global library convention).
+        is_public: isAdmin,
+        organization_id: isAdmin ? null : organizationId,
         created_by: user.id,
         display_order: 500,
         parent_subcategory_id: s.parent_subcategory_id,
@@ -518,7 +534,8 @@ function BulkImportInner() {
         recording_instructions: recordingInstructions,
         verification_mode: verificationMode || "coach_only",
         owner_id: user.id,
-        is_public: false,
+        // Admin's imports are auto-published to the global library.
+        is_public: isAdmin,
       };
     });
 
@@ -578,9 +595,46 @@ function BulkImportInner() {
 
           <h1 className="dashboard-welcome">Bulk Import Challenges</h1>
           <p className="dashboard-subtitle">
-            Upload a CSV file to add many challenges at once. Imported challenges
-            are private to <strong>{orgName}</strong>.
+            Upload a CSV file to add many challenges at once.
+            {isAdmin
+              ? " As admin, every imported challenge will be added to the global library."
+              : <> Imported challenges are private to <strong>{orgName}</strong>.</>}
           </p>
+
+          {/* Visibility callout. Admins should never accidentally publish
+              global content, and regular users should be reassured nothing
+              leaks beyond their org. */}
+          <div
+            style={{
+              marginTop: "8px",
+              marginBottom: "20px",
+              padding: "12px 14px",
+              borderRadius: "8px",
+              fontSize: "13px",
+              lineHeight: 1.5,
+              background: isAdmin
+                ? "rgba(53, 213, 223, 0.10)"
+                : "rgba(255, 255, 255, 0.04)",
+              border: `1px solid ${isAdmin
+                ? "rgba(53, 213, 223, 0.32)"
+                : "var(--e2k-border-soft, rgba(95,230,225,0.12))"}`,
+              color: "var(--e2k-text, #f7fbfb)",
+            }}
+          >
+            {isAdmin ? (
+              <>
+                <strong>🌐 Global publish.</strong>{" "}
+                Every challenge in this CSV — and any new subcategories it
+                creates — will be added to the public library and visible to
+                every coach.
+              </>
+            ) : (
+              <>
+                <strong>🔒 Private to your organization.</strong>{" "}
+                Only you and members of your org will see these challenges.
+              </>
+            )}
+          </div>
 
           {importDone ? (
             <div className="csv-import-success-card">

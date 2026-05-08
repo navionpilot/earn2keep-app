@@ -11738,3 +11738,57 @@ input.form-input-with-prefix {
    is already .btn-primary so it picks up the coral gradient retrofit
    from 4.7.6 automatically. Just keep its container tidy. */
 .sponsor-pdf-btn-wrap { display: flex; flex-direction: column; gap: 4px; }
+
+
+/* ============================================================
+   Slice 4.7.12 — Edit-in-Manage-Mode + admin visibility model
+   ============================================================
+   Adds styling for the new Edit + Delete pair shown on each card
+   in the Challenge Library modal's manage mode. Edit is a teal
+   secondary anchor (links to /challenges/[id]/edit) so it reads
+   as "navigate" rather than "destructive."
+   ============================================================ */
+
+/* Side-by-side button row inside a manage-mode card */
+.library-card-actions-row {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  margin-top: 8px !important;
+}
+
+/* Edit button — teal/cyan, anchor styled to look like a button.
+   Sits next to .library-card-delete-btn (red). The flex:1 on each
+   makes them split the card width 50/50. */
+.library-card-edit-btn {
+  flex: 1 1 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 8px 12px !important;
+  background: rgba(53, 213, 223, 0.10) !important;
+  color: var(--e2k-cyan) !important;
+  border: 1px solid var(--e2k-border-strong) !important;
+  border-radius: var(--e2k-r-pill) !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease !important;
+  white-space: nowrap !important;
+}
+.library-card-edit-btn:hover {
+  background: rgba(53, 213, 223, 0.18) !important;
+  border-color: var(--e2k-cyan) !important;
+  color: var(--e2k-cyan) !important;
+}
+
+.library-card-actions-row .library-card-delete-btn,
+.library-card-actions-row .btn-danger {
+  flex: 1 1 0 !important;
+  font-size: 13px !important;
+  padding: 8px 12px !important;
+  white-space: nowrap !important;
+}

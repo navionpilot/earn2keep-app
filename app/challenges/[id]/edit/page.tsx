@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 import Tooltip from "@/components/Tooltip";
@@ -12,18 +12,18 @@ import ReferencePhotoUpload from "@/components/ReferencePhotoUpload";
 import AppShell from "@/components/AppShell";
 const SUBCATEGORY_REQUIRED = new Set(["Sports"]);
 
-// Hardcoded admin email (mirrored in app/events/[id]/schedule/page.tsx and
-// app/admin/subcategories/page.tsx). When the admin creates a challenge,
-// it is auto-published to the global library so every other coach sees it.
-// Regular users' challenges stay private to their own org.
+// Hardcoded admin email (mirrored across the codebase). Admin can edit any
+// challenge in the library; everyone else can only edit challenges they own.
+// Backed by RLS on the challenges table — even if someone hand-crafted the
+// URL the database would refuse the UPDATE.
 const ADMIN_EMAIL = "waylon.hdd@comcast.net";
 
 // The default export wraps everything in <Suspense> so Next.js can prerender
 // the page even though useSearchParams() is used inside.
-export default function NewChallengePage() {
+export default function EditChallengePage() {
   return (
     <Suspense fallback={<LoadingFallback />}>
-      <NewChallengeForm />
+      <EditChallengeForm />
     </Suspense>
   );
 }
@@ -40,9 +40,11 @@ function LoadingFallback() {
   );
 }
 
-function NewChallengeForm() {
+function EditChallengeForm() {
   const router = useRouter();
+  const params = useParams<{ id: string }>();
   const searchParams = useSearchParams();
+  const challengeId = params?.id;
   const returnTo = searchParams.get("returnTo");
 
   const [name, setName] = useState("");
@@ -56,6 +58,7 @@ function NewChallengeForm() {
   const [defaultRepTarget, setDefaultRepTarget] = useState("");
   const [organizationId, setOrganizationId] = useState<string>("");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isPublicChallenge, setIsPublicChallenge] = useState(false);
 
   // Recording fields
   const [setupTemplateKey, setSetupTemplateKey] = useState<string>("");
@@ -67,12 +70,19 @@ function NewChallengeForm() {
   const [referencePhotoCaption, setReferencePhotoCaption] = useState<string>("");
 
   const [error, setError] = useState<string | null>(null);
+  const [permissionError, setPermissionError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
-  // Fetch the org context (from the event if returnTo exists, otherwise user's first org)
+  // Load the existing challenge + org context + subcategories.
   useEffect(() => {
-    const fetchOrg = async () => {
+    const load = async () => {
+      if (!challengeId) {
+        setError("No challenge id in URL.");
+        setFetching(false);
+        return;
+      }
+
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -81,11 +91,84 @@ function NewChallengeForm() {
         return;
       }
 
-      // Track admin status — controls whether the new challenge is published
-      // to the global library or kept private to this org.
-      setIsAdmin(user.email === ADMIN_EMAIL);
+      const userIsAdmin = user.email === ADMIN_EMAIL;
+      setIsAdmin(userIsAdmin);
 
-      // returnTo format is "<eventId>/schedule" — extract eventId
+      // Fetch the challenge itself
+      const { data: challenge, error: chErr } = await supabase
+        .from("challenges")
+        .select("*")
+        .eq("id", challengeId)
+        .single();
+
+      if (chErr || !challenge) {
+        setError(chErr?.message || "Challenge not found.");
+        setFetching(false);
+        return;
+      }
+
+      // Permission gate: admin always allowed; everyone else only if they own
+      // it (and even then, only if it's not public — non-admins shouldn't edit
+      // public seeded library entries).
+      const userOwns = challenge.owner_id === user.id;
+      const allowed = userIsAdmin || (userOwns && !challenge.is_public);
+      if (!allowed) {
+        setPermissionError(
+          challenge.is_public
+            ? "This is a public library challenge. Only the platform admin can edit it."
+            : "You can only edit challenges you created."
+        );
+        setFetching(false);
+        return;
+      }
+
+      // Prefill all form state from the existing row
+      setName(challenge.name || "");
+      setDescription(challenge.description || "");
+      setCategory(challenge.category || "");
+      setUnit(challenge.unit || "");
+      setDifficulty(challenge.difficulty || "Medium");
+      setDefaultRepTarget(
+        challenge.default_rep_target ? String(challenge.default_rep_target) : ""
+      );
+      setSetupTemplateKey(challenge.setup_template_key || "");
+      setRecordingInstructions(challenge.recording_instructions || "");
+      setVerificationMode((challenge.verification_mode as any) || "");
+      setReferencePhotoUrl(challenge.reference_photo_url || null);
+      setReferencePhotoCaption(challenge.reference_photo_caption || "");
+      setIsPublicChallenge(!!challenge.is_public);
+
+      // Fetch subcategories so we can resolve the saved subcategory_id into
+      // (Tier 2 id, Tier 3 id) for the picker. Categories can be 2-level or
+      // 3-level deep — if the saved subcategory has a parent, it's a Tier 3.
+      const { data: subs } = await supabase
+        .from("challenge_subcategories")
+        .select("id, parent_category, name, display_order, is_public, organization_id, parent_subcategory_id")
+        .order("display_order", { ascending: true })
+        .order("name", { ascending: true });
+      const allSubs = (subs as any) || [];
+      setSubcategories(allSubs);
+
+      if (challenge.subcategory_id) {
+        const savedSub = allSubs.find((s: Subcategory) => s.id === challenge.subcategory_id);
+        if (savedSub) {
+          if (savedSub.parent_subcategory_id) {
+            // Tier 3 — set both parent (Tier 2) and self (Tier 3)
+            setSubcategoryId(savedSub.parent_subcategory_id);
+            setSubSubcategoryId(savedSub.id);
+          } else {
+            // Tier 2 — set just self
+            setSubcategoryId(savedSub.id);
+            setSubSubcategoryId(null);
+          }
+        }
+      }
+
+      // Resolve org context. Admin editing a public challenge has no org of
+      // their own that matters; we use the user's first org for the
+      // CategoryHierarchyPicker context (it's required by the picker for
+      // creating new private subcategories on the fly, but admin's "create
+      // new" flow publishes globally and ignores the org id).
       let foundOrgId: string | null = null;
       if (returnTo) {
         const eventId = returnTo.split("/")[0];
@@ -98,9 +181,7 @@ function NewChallengeForm() {
           if (event?.organization_id) foundOrgId = event.organization_id;
         }
       }
-
       if (!foundOrgId) {
-        // Fall back to user's first org
         const { data: orgs } = await supabase
           .from("organizations")
           .select("id")
@@ -109,30 +190,16 @@ function NewChallengeForm() {
           .limit(1);
         if (orgs && orgs.length > 0) foundOrgId = orgs[0].id;
       }
-
-      if (!foundOrgId) {
-        setError("You need to create an organization before adding custom challenges.");
-        setFetching(false);
-        return;
-      }
-
-      setOrganizationId(foundOrgId);
-
-      // Also fetch subcategories so we can:
-      // 1. Pass them to the picker (avoids double-fetching)
-      // 2. Look up the subcategory NAME from the selected ID for the recommender
-      const { data: subs } = await supabase
-        .from("challenge_subcategories")
-        .select("id, parent_category, name, display_order, is_public, organization_id, parent_subcategory_id")
-        .order("display_order", { ascending: true })
-        .order("name", { ascending: true });
-      setSubcategories((subs as any) || []);
+      // Admin may not own any orgs but is still allowed to edit. Use empty
+      // string in that case — the picker only uses this for new subcategory
+      // creation, which admin can perform via /admin/subcategories instead.
+      setOrganizationId(foundOrgId || "");
 
       setFetching(false);
     };
 
-    fetchOrg();
-  }, [returnTo]);
+    load();
+  }, [challengeId, returnTo]);
 
   // Look up the deepest selected subcategory name for the recommender
   // (use Tier 3 name if set, else Tier 2 name)
@@ -154,11 +221,14 @@ function NewChallengeForm() {
     e.preventDefault();
     setError(null);
 
+    if (!challengeId) {
+      setError("Missing challenge id.");
+      return;
+    }
     if (!name.trim() || !category || !unit.trim()) {
       setError("Name, category, and unit are required.");
       return;
     }
-
     if (SUBCATEGORY_REQUIRED.has(category) && !subcategoryId) {
       setError(`Pick a sport for this Sports challenge (or add a new one).`);
       return;
@@ -167,40 +237,36 @@ function NewChallengeForm() {
     setLoading(true);
 
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setError("You must be logged in."); setLoading(false); return; }
-
-    // File the challenge under the DEEPEST selected level
-    // (Tier 3 if available, else Tier 2)
     const finalSubcategoryId = subSubcategoryId || subcategoryId;
 
-    const { error: insertError } = await supabase.from("challenges").insert({
-      name: name.trim(),
-      description: description.trim() || null,
-      category,
-      subcategory_id: finalSubcategoryId,
-      unit: unit.trim(),
-      difficulty,
-      default_rep_target: defaultRepTarget ? parseInt(defaultRepTarget) : null,
-      setup_template_key: setupTemplateKey || null,
-      recording_instructions: recordingInstructions.trim() || null,
-      verification_mode: verificationMode || "coach_only",
-      reference_photo_url: referencePhotoUrl || null,
-      reference_photo_caption: referencePhotoCaption.trim() || null,
-      owner_id: user.id,
-      // Admin's challenges are auto-published to the global library so every
-      // coach sees them. Everyone else's stay private to their own org.
-      is_public: isAdmin,
-    });
+    // Build the patch. Note: we deliberately do NOT touch is_public or owner_id
+    // on edit — visibility stays whatever it already was. Admin can flip
+    // visibility separately via a dedicated tool later.
+    const { error: updateError } = await supabase
+      .from("challenges")
+      .update({
+        name: name.trim(),
+        description: description.trim() || null,
+        category,
+        subcategory_id: finalSubcategoryId,
+        unit: unit.trim(),
+        difficulty,
+        default_rep_target: defaultRepTarget ? parseInt(defaultRepTarget) : null,
+        setup_template_key: setupTemplateKey || null,
+        recording_instructions: recordingInstructions.trim() || null,
+        verification_mode: verificationMode || "coach_only",
+        reference_photo_url: referencePhotoUrl || null,
+        reference_photo_caption: referencePhotoCaption.trim() || null,
+      })
+      .eq("id", challengeId);
 
-    if (insertError) {
-      setError(insertError.message);
+    if (updateError) {
+      setError(updateError.message);
       setLoading(false);
       return;
     }
 
     if (returnTo) {
-      // returnTo format is "<eventId>/schedule"
       router.push(`/events/${returnTo}`);
     } else {
       router.push("/dashboard");
@@ -212,58 +278,66 @@ function NewChallengeForm() {
     return <LoadingFallback />;
   }
 
-  if (!organizationId) {
+  // Permission rejection — distinct from generic error
+  if (permissionError) {
+    const backHref = returnTo ? `/events/${returnTo}` : "/dashboard";
     return (
-      <div className="form-page">
-        <header className="dashboard-header">
-          <div className="dashboard-header-inner">
-            <Link href="/dashboard" className="dashboard-logo">
-              <span className="logo-text">earn<sup className="logo-sup">2</sup>keep</span>
-            </Link>
-            <Link href="/dashboard" className="btn-link">← Back</Link>
-          </div>
-        </header>
+      <AppShell active="settings" userDisplayName={""}>
         <main className="form-page-main">
           <div className="form-card">
-            <h1 className="form-title">Set Up an Organization First</h1>
-            <p className="form-subtitle">
-              Custom challenges are scoped to your organization. Create an organization first, then come back here.
-            </p>
+            <h1 className="form-title">🔒 Cannot Edit</h1>
+            <p className="form-subtitle">{permissionError}</p>
             <div style={{ textAlign: "center", marginTop: "20px" }}>
-              <Link href="/organizations/new" className="btn-primary-link">Create an Organization →</Link>
+              <Link href={backHref} className="btn-primary-link">
+                ← Go back
+              </Link>
             </div>
           </div>
         </main>
-      </div>
+      </AppShell>
+    );
+  }
+
+  // Generic load error (challenge missing, not logged in, etc.)
+  if (error && !name) {
+    const backHref = returnTo ? `/events/${returnTo}` : "/dashboard";
+    return (
+      <AppShell active="settings" userDisplayName={""}>
+        <main className="form-page-main">
+          <div className="form-card">
+            <h1 className="form-title">Could not load challenge</h1>
+            <p className="form-subtitle">{error}</p>
+            <div style={{ textAlign: "center", marginTop: "20px" }}>
+              <Link href={backHref} className="btn-primary-link">
+                ← Go back
+              </Link>
+            </div>
+          </div>
+        </main>
+      </AppShell>
     );
   }
 
   const backHref = returnTo ? `/events/${returnTo}` : "/dashboard";
 
+  // The visibility callout reflects the EXISTING visibility (we don't change
+  // it on edit — see handleSubmit) so the admin always knows what surface
+  // their changes will touch.
   return (
     <AppShell active="settings" userDisplayName={""}>
       <main className="form-page-main">
         <div className="form-card">
           <div style={{ textAlign: "center" }}>
-            <span className="auth-eyebrow">
-              {isAdmin ? "★ NEW LIBRARY CHALLENGE ★" : "★ CUSTOM CHALLENGE ★"}
-            </span>
+            <span className="auth-eyebrow">★ EDIT CHALLENGE ★</span>
           </div>
 
-          <h1 className="form-title">
-            {isAdmin ? "Add to the Challenge Library" : "Create a Custom Challenge"}
-          </h1>
+          <h1 className="form-title">Edit Challenge</h1>
           <p className="form-subtitle">
-            {isAdmin
-              ? "You're signed in as the platform admin. This challenge will be added to the public library and visible to every coach."
-              : "This challenge will only be visible to you and your organization. Use it for activities that don't fit the standard library."}
+            Update the details below and save. Players will see the new version
+            the next time they open the schedule.
           </p>
 
-          {/* Visibility callout — explicit, hard to miss. Keeps the admin
-              from accidentally publishing global content while not realizing,
-              and reassures regular users their stuff stays private. */}
           <div
-            className={isAdmin ? "alert alert-info" : "alert"}
             style={{
               marginTop: "8px",
               marginBottom: "16px",
@@ -271,26 +345,25 @@ function NewChallengeForm() {
               borderRadius: "8px",
               fontSize: "13px",
               lineHeight: 1.5,
-              background: isAdmin
+              background: isPublicChallenge
                 ? "rgba(53, 213, 223, 0.10)"
                 : "rgba(255, 255, 255, 0.04)",
-              border: `1px solid ${isAdmin
+              border: `1px solid ${isPublicChallenge
                 ? "rgba(53, 213, 223, 0.32)"
                 : "var(--e2k-border-soft, rgba(95,230,225,0.12))"}`,
               color: "var(--e2k-text, #f7fbfb)",
             }}
           >
-            {isAdmin ? (
+            {isPublicChallenge ? (
               <>
-                <strong>🌐 Public to all coaches.</strong>{" "}
-                As admin, every challenge you create is auto-shared with the
-                global library. New coaches will see it the moment they sign up.
+                <strong>🌐 Public library challenge.</strong>{" "}
+                This challenge is visible to every coach. Your edits will apply
+                everywhere it's used.
               </>
             ) : (
               <>
-                <strong>🔒 Private to your organization.</strong>{" "}
-                Only you and members of your org will see this challenge.
-                It will not appear for other coaches.
+                <strong>🔒 Private challenge.</strong>{" "}
+                Only your organization sees this. Your edits stay private.
               </>
             )}
           </div>
@@ -305,7 +378,6 @@ function NewChallengeForm() {
               </label>
               <input
                 id="name" type="text" className="form-input"
-                placeholder="e.g., Vertical Jump Touches, Trash Bags Filled"
                 value={name} onChange={(e) => setName(e.target.value)}
                 required maxLength={120} autoFocus
               />
@@ -332,7 +404,6 @@ function NewChallengeForm() {
               </label>
               <input
                 id="unit" type="text" className="form-input"
-                placeholder="e.g., reps, miles, hours, books"
                 value={unit} onChange={(e) => setUnit(e.target.value)}
                 required maxLength={30}
               />
@@ -359,7 +430,6 @@ function NewChallengeForm() {
               </label>
               <input
                 id="defaultRepTarget" type="number" className="form-input"
-                placeholder="e.g., 25"
                 value={defaultRepTarget} onChange={(e) => setDefaultRepTarget(e.target.value)}
                 min="1"
               />
@@ -369,7 +439,6 @@ function NewChallengeForm() {
               <label htmlFor="description" className="form-label">Description (optional)</label>
               <textarea
                 id="description" className="form-input form-textarea"
-                placeholder="Explain how to do this challenge or how to verify it..."
                 value={description} onChange={(e) => setDescription(e.target.value)}
                 rows={3} maxLength={500}
               />
@@ -402,7 +471,7 @@ function NewChallengeForm() {
             <div className="form-actions">
               <Link href={backHref} className="btn-cancel">Cancel</Link>
               <button type="submit" className="btn-primary btn-inline" disabled={loading}>
-                {loading ? "Creating..." : "Create Challenge →"}
+                {loading ? "Saving..." : "Save Changes →"}
               </button>
             </div>
           </form>
