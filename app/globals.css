@@ -11106,3 +11106,42 @@ input.form-input-with-prefix {
   background: rgba(255, 255, 255, 0.10) !important;
   border-color: var(--e2k-cyan) !important;
 }
+
+
+/* ============================================================
+   Slice 4.7.10 — Event row thumb overlap fix + Roster removal
+   • Thumb was bumped 48px→64px in 4.7.5 but the grid column
+     stayed 48px, causing the icon to overlap text.
+   • Increase gap a touch for visual breathing room.
+   ============================================================ */
+
+.e2k-event-row {
+  grid-template-columns: 64px 1fr auto !important;
+  gap: 18px !important;
+  padding: 16px 0 !important;
+  align-items: center;
+}
+
+.e2k-event-body {
+  min-width: 0;
+}
+.e2k-event-body .e2k-event-pill {
+  margin-bottom: 6px;
+}
+
+@media (max-width: 600px) {
+  .e2k-event-row {
+    grid-template-columns: 56px 1fr !important;
+    gap: 14px !important;
+  }
+  .e2k-event-thumb {
+    width: 56px !important;
+    height: 56px !important;
+  }
+  .e2k-event-stats {
+    grid-column: 1 / -1;
+    text-align: left;
+    padding-left: 70px;
+    margin-top: -4px;
+  }
+}

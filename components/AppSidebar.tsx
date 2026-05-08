@@ -99,7 +99,6 @@ const items: NavItem[] = [
   { key: "overview", label: "Dashboard", href: "/dashboard", icon: Icon.Dashboard },
   { key: "organizations", label: "Organizations", href: "/organizations", icon: Icon.Building },
   { key: "teams", label: "Teams", href: "/teams", icon: Icon.Users },
-  { key: "participants", label: "Roster", href: "/participants", icon: Icon.User },
   { key: "events", label: "Events", href: "/events", icon: Icon.Calendar },
   { key: "qr-codes", label: "QR Codes", href: "/qr-codes", icon: Icon.QrCode },
   { key: "settings", label: "Settings", href: "/settings", icon: Icon.Settings },
