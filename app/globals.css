@@ -10866,3 +10866,131 @@ select.form-input { font-size: 15px !important; padding: 14px 16px !important; }
 [style*="#fcd34d"],
 [style*="#F59E0B"],
 [style*="#f59e0b"] { color: var(--e2k-coral-2) !important; }
+
+
+/* ============================================================
+   Slice 4.7.7 — Prize section theme cleanup
+   Missed in 4.7.6: prize winner radios + gift card amount rows
+   were still showing legacy white styling.
+   ============================================================ */
+
+/* ---- Compact prize-winner radio cards (1 / 2 / 3 Winners) ---- */
+.radio-cards-compact {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 10px !important;
+  margin-bottom: 18px !important;
+}
+@media (max-width: 600px) {
+  .radio-cards-compact { grid-template-columns: 1fr !important; }
+}
+.radio-card-small {
+  background: rgba(10, 47, 55, 0.45) !important;
+  border: 1px solid var(--e2k-border) !important;
+  border-radius: var(--e2k-r-md) !important;
+  padding: 14px 16px !important;
+  cursor: pointer;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  transition: border-color 150ms ease, background 150ms ease;
+  position: relative;
+}
+.radio-card-small:hover {
+  border-color: var(--e2k-border-strong) !important;
+}
+.radio-card-small.radio-card-active {
+  background: rgba(53, 213, 223, 0.08) !important;
+  border-color: var(--e2k-cyan) !important;
+  box-shadow: 0 0 0 1px var(--e2k-cyan), 0 4px 14px rgba(53, 213, 223, 0.10) !important;
+}
+.radio-card-small input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--e2k-border-strong);
+  background: rgba(4, 20, 24, 0.55);
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+  margin: 0;
+}
+.radio-card-small input[type="radio"]:checked {
+  border-color: var(--e2k-cyan);
+  background: rgba(4, 20, 24, 0.80);
+}
+.radio-card-small input[type="radio"]:checked::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--e2k-cyan);
+}
+.radio-card-title-small {
+  font-family: var(--font-display);
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: var(--e2k-text) !important;
+  letter-spacing: -0.2px !important;
+  line-height: 1.2;
+}
+.radio-card-text-small {
+  font-size: 12px !important;
+  color: var(--e2k-text-muted) !important;
+  margin-top: 2px;
+}
+
+/* ---- Prize input groups (1st/2nd/3rd amount + gift card dropdown) ---- */
+.prize-input-group {
+  background: rgba(10, 47, 55, 0.45) !important;
+  border: 1px solid var(--e2k-border) !important;
+  border-radius: var(--e2k-r-md) !important;
+  padding: 18px 20px !important;
+  margin-bottom: 12px !important;
+}
+.prize-input-row {
+  display: grid !important;
+  grid-template-columns: 1fr 2fr !important;
+  gap: 14px !important;
+  align-items: end;
+}
+@media (max-width: 600px) {
+  .prize-input-row { grid-template-columns: 1fr !important; }
+}
+.prize-input-amount,
+.prize-input-desc {
+  min-width: 0;
+}
+.prize-custom-row {
+  margin-top: 12px !important;
+  padding-top: 12px;
+  border-top: 1px solid var(--e2k-border-soft);
+}
+
+/* ---- $-prefixed input wrap ---- */
+.input-prefix-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-prefix {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--e2k-text-muted) !important;
+  font-size: 15px !important;
+  font-weight: 600;
+  pointer-events: none;
+  z-index: 2;
+}
+.form-input-with-prefix,
+input.form-input-with-prefix {
+  padding-left: 30px !important;
+}
