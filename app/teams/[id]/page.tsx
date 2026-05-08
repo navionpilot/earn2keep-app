@@ -4,6 +4,7 @@ import Tooltip from "@/components/Tooltip";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import DeleteButton from "@/components/DeleteButton";
+import TeamInvitesButton from "@/components/TeamInvitesButton";
 
 import AppShell from "@/components/AppShell";
 export default async function TeamDetailPage({
@@ -42,7 +43,7 @@ export default async function TeamDetailPage({
 
   const { data: players } = await supabase
     .from("players")
-    .select("id, first_name, last_name, jersey_number, date_of_birth, parent_email, imported_from, is_active, created_at")
+    .select("id, first_name, last_name, jersey_number, date_of_birth, parent_email, imported_from, is_active, created_at, linked_user_id")
     .eq("team_id", id)
     .eq("owner_id", user?.id)
     .eq("is_active", true)
@@ -148,6 +149,16 @@ export default async function TeamDetailPage({
                       📋 Import CSV
                     </Link>
                   </Tooltip>
+                  <TeamInvitesButton
+                    players={(players || []).map((p) => ({
+                      id: p.id,
+                      first_name: p.first_name,
+                      last_name: p.last_name,
+                      parent_email: p.parent_email,
+                      linked_user_id: p.linked_user_id ?? null,
+                    }))}
+                    teamName={team.name}
+                  />
                   <Tooltip text="Add another player one at a time.">
                     <Link href={`/teams/${team.id}/players/new`} className="btn-add">
                       + Add Player
