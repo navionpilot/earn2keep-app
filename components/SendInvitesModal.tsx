@@ -1,23 +1,20 @@
 "use client";
 
 // =============================================================================
-// components/SendInvitesModal.tsx — Player invite generation UI (Slice 5.1)
+// components/SendInvitesModal.tsx — Player invite generation UI
 // =============================================================================
-// Two stages in this one component:
+// Slice 5.1 added the modal in a "generate links to copy" mode (Path A).
+// Slice 5.1.1 layers an "auto-send via email" mode on top:
 //
-//   Stage 1 (CONFIGURE): coach sees a checkbox list of every active player on
-//   the team. Each row has the player's name + an editable email field
-//   prefilled from parent_email. Coach picks who to invite, edits emails if
-//   needed, clicks "Generate invite links."
+//   The configure stage now has a mode toggle near the top:
+//     ◉ 📧 Send invitation emails automatically
+//     ○ 🔗 Just generate links to copy/share
+//   Default = send, since that's the cool path now that Resend is wired up.
 //
-//   Stage 2 (RESULT): API responds with one invite URL per player. The modal
-//   shows them in a table-ish layout with a Copy button per row + a "Copy all"
-//   summary block. Coach can paste these into texts/emails/wherever.
-//
-// Slice 5.1 does NOT auto-send emails. 5.1.1 will layer Resend on top of the
-// existing API route so the same "Generate" click also dispatches branded
-// emails — but until then, this manual-share flow gets the player invitation
-// system working end-to-end without any env-var setup.
+//   The result stage shows per-row delivery status (✓ Sent / ⚠ Failed: <err>)
+//   plus a top banner counting successes. Copy links remain visible
+//   regardless of mode — useful when a send fails or the coach wants to share
+//   another way.
 // =============================================================================
 
 import { useState, useMemo } from "react";
@@ -44,12 +41,16 @@ interface Row {
   email: string;
 }
 
+type SendMode = "send" | "links_only";
+
 interface InviteResultItem {
   playerId: string;
   fullName: string;
   inviteUrl: string;
   email: string | null;
   error?: string;
+  emailStatus?: "sent" | "failed" | "not_attempted";
+  emailError?: string;
 }
 
 export default function SendInvitesModal({
@@ -58,15 +59,13 @@ export default function SendInvitesModal({
   players,
   teamName,
 }: Props) {
-  // Initialize one row per player. Players already linked to an auth user
-  // get rendered as "already joined" later — they shouldn't be re-invited.
+  // One row per player. Players already linked to an auth user are rendered
+  // as "already joined" and skipped in selection logic.
   const initialRows: Row[] = useMemo(
     () =>
       players.map((p) => ({
         player: p,
-        // Default selected = TRUE if the player has a parent_email on file.
-        // Coaches can toggle individuals off, but the common case is "send
-        // to everyone with an email already filled in."
+        // Default-select: has email AND not yet joined.
         selected: !!p.parent_email && !p.linked_user_id,
         email: p.parent_email || "",
       })),
@@ -77,8 +76,11 @@ export default function SendInvitesModal({
   const [stage, setStage] = useState<"configure" | "sending" | "result">(
     "configure"
   );
+  // 5.1.1: default = send. Coach can flip to links_only for the old behavior.
+  const [mode, setMode] = useState<SendMode>("send");
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [results, setResults] = useState<InviteResultItem[]>([]);
+  const [resultMode, setResultMode] = useState<SendMode>("send");
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [copiedAll, setCopiedAll] = useState(false);
 
@@ -112,6 +114,12 @@ export default function SendInvitesModal({
     );
   };
 
+  // When mode=send, a row missing an email can't be processed. Don't block
+  // generation — just warn so the coach knows what to expect.
+  const selectedWithoutEmail = rows.filter(
+    (r) => r.selected && !r.email.trim()
+  ).length;
+
   const handleGenerate = async () => {
     setSubmitError(null);
     const selectedRows = rows.filter((r) => r.selected);
@@ -126,6 +134,7 @@ export default function SendInvitesModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          mode,
           items: selectedRows.map((r) => ({
             playerId: r.player.id,
             email: r.email.trim() || undefined,
@@ -139,6 +148,9 @@ export default function SendInvitesModal({
         return;
       }
       setResults(json.results || []);
+      // Snapshot the mode the request was made with so the result UI doesn't
+      // flicker if the coach toggles after the fact.
+      setResultMode(mode);
       setStage("result");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Unknown error.";
@@ -147,13 +159,9 @@ export default function SendInvitesModal({
     }
   };
 
-  // Convert the relative path the server returned into a full URL using
-  // window.location.origin (we're in the browser by definition here).
+  // Convert relative path (`/join/<token>`) into full URL for display + copy.
   const fullUrlFor = (relativePath: string) => {
     if (typeof window === "undefined") return relativePath;
-    // The API returns "/join/<token>" — extract the token, run it through
-    // the helper so the URL construction is consistent with anywhere else
-    // we render an invite URL.
     const match = relativePath.match(/\/join\/(.+)$/);
     if (match) return inviteUrlFromToken(match[1]);
     return `${window.location.origin}${relativePath}`;
@@ -165,8 +173,8 @@ export default function SendInvitesModal({
       setCopiedToken(token);
       setTimeout(() => setCopiedToken(null), 1800);
     } catch {
-      // Clipboard can fail in some browsers without https. The link is
-      // still visible in the input field for manual copy.
+      // Clipboard fails in non-https contexts; the input is still visible
+      // for manual copy.
     }
   };
 
@@ -183,9 +191,14 @@ export default function SendInvitesModal({
       setCopiedAll(true);
       setTimeout(() => setCopiedAll(false), 1800);
     } catch {
-      // Same fallback as copyOne.
+      // ignore
     }
   };
+
+  // Result-stage counts (only relevant when resultMode === "send")
+  const sentCount = results.filter((r) => r.emailStatus === "sent").length;
+  const failedCount = results.filter((r) => r.emailStatus === "failed").length;
+  const linkOnlyCount = results.filter((r) => !r.error).length;
 
   return (
     <div
@@ -221,11 +234,49 @@ export default function SendInvitesModal({
         {stage === "configure" && (
           <>
             <div className="invites-modal-body">
-              <div className="invites-modal-info">
-                Pick which players to invite. Each will get a private link
-                they (or their parent) can use to set up their account on
-                earn²keep. You&apos;ll copy + share the links yourself —
-                automatic email sending is coming in a follow-up.
+              {/* Mode toggle (Slice 5.1.1) — drives whether the API
+                  fires Resend or just returns links to copy. */}
+              <div className="invites-mode-toggle" role="radiogroup" aria-label="Invite delivery">
+                <label
+                  className={`invites-mode-option ${
+                    mode === "send" ? "invites-mode-option-active" : ""
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="invite-mode"
+                    value="send"
+                    checked={mode === "send"}
+                    onChange={() => setMode("send")}
+                  />
+                  <div className="invites-mode-option-content">
+                    <strong>📧 Send invitation emails automatically</strong>
+                    <span>
+                      Each picked player gets a branded earn²keep email at the
+                      address shown.
+                    </span>
+                  </div>
+                </label>
+                <label
+                  className={`invites-mode-option ${
+                    mode === "links_only" ? "invites-mode-option-active" : ""
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="invite-mode"
+                    value="links_only"
+                    checked={mode === "links_only"}
+                    onChange={() => setMode("links_only")}
+                  />
+                  <div className="invites-mode-option-content">
+                    <strong>🔗 Just generate links to copy/share</strong>
+                    <span>
+                      You'll get one URL per player to text, post, or paste
+                      into your own emails.
+                    </span>
+                  </div>
+                </label>
               </div>
 
               {rows.length === 0 ? (
@@ -241,8 +292,7 @@ export default function SendInvitesModal({
                         checked={
                           rows
                             .filter((r) => !r.player.linked_user_id)
-                            .every((r) => r.selected) &&
-                          totalEligible > 0
+                            .every((r) => r.selected) && totalEligible > 0
                         }
                         onChange={toggleAll}
                         disabled={totalEligible === 0}
@@ -260,12 +310,14 @@ export default function SendInvitesModal({
                       const fullName = `${r.player.first_name} ${
                         r.player.last_name ?? ""
                       }`.trim();
+                      const missingEmailWarn =
+                        mode === "send" && r.selected && !r.email.trim();
                       return (
                         <div
                           key={r.player.id}
                           className={`invites-row ${
                             alreadyJoined ? "invites-row-done" : ""
-                          }`}
+                          } ${missingEmailWarn ? "invites-row-warn" : ""}`}
                         >
                           <input
                             type="checkbox"
@@ -280,11 +332,20 @@ export default function SendInvitesModal({
                                 ✓ Already joined
                               </span>
                             )}
+                            {missingEmailWarn && (
+                              <span className="invites-row-pill invites-row-pill-warn">
+                                ⚠ No email
+                              </span>
+                            )}
                           </div>
                           <input
                             type="email"
                             className="form-input invites-row-email"
-                            placeholder="email (optional)"
+                            placeholder={
+                              mode === "send"
+                                ? "email (required to send)"
+                                : "email (optional)"
+                            }
                             value={r.email}
                             onChange={(e) =>
                               setEmail(r.player.id, e.target.value)
@@ -295,6 +356,16 @@ export default function SendInvitesModal({
                       );
                     })}
                   </div>
+
+                  {mode === "send" && selectedWithoutEmail > 0 && (
+                    <div className="invites-warn-banner">
+                      {selectedWithoutEmail} selected player
+                      {selectedWithoutEmail === 1 ? "" : "s"} {selectedWithoutEmail === 1 ? "doesn't" : "don't"} have an email
+                      address yet — those will get a generated link only,
+                      not an automatic email. Add one above, or switch to
+                      "Just generate links."
+                    </div>
+                  )}
                 </>
               )}
 
@@ -309,11 +380,7 @@ export default function SendInvitesModal({
             </div>
 
             <div className="invites-modal-footer">
-              <button
-                type="button"
-                className="btn-cancel"
-                onClick={onClose}
-              >
+              <button type="button" className="btn-cancel" onClick={onClose}>
                 Cancel
               </button>
               <button
@@ -322,8 +389,9 @@ export default function SendInvitesModal({
                 onClick={handleGenerate}
                 disabled={selectedCount === 0}
               >
-                Generate {selectedCount} invite link
-                {selectedCount === 1 ? "" : "s"} →
+                {mode === "send"
+                  ? `Send ${selectedCount} invite${selectedCount === 1 ? "" : "s"} →`
+                  : `Generate ${selectedCount} link${selectedCount === 1 ? "" : "s"} →`}
               </button>
             </div>
           </>
@@ -336,7 +404,11 @@ export default function SendInvitesModal({
           <div className="invites-modal-body">
             <div className="invites-spinner-row">
               <div className="invites-spinner" />
-              <span>Generating invite links…</span>
+              <span>
+                {mode === "send"
+                  ? "Sending invitation emails…"
+                  : "Generating invite links…"}
+              </span>
             </div>
           </div>
         )}
@@ -347,12 +419,26 @@ export default function SendInvitesModal({
         {stage === "result" && (
           <>
             <div className="invites-modal-body">
-              <div className="invites-success-banner">
-                ✓ Generated {results.filter((r) => !r.error).length} invite
-                link{results.filter((r) => !r.error).length === 1 ? "" : "s"}.
-                Copy each one and share via text, email, or however your
-                players prefer.
-              </div>
+              {resultMode === "send" ? (
+                <>
+                  <div className="invites-success-banner">
+                    📧 Sent {sentCount} email{sentCount === 1 ? "" : "s"}.
+                    {failedCount > 0 && (
+                      <>
+                        {" "}
+                        {failedCount} failed — copy the link
+                        {failedCount === 1 ? "" : "s"} below to share manually.
+                      </>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="invites-success-banner">
+                  ✓ Generated {linkOnlyCount} invite link
+                  {linkOnlyCount === 1 ? "" : "s"}. Copy each one and share via
+                  text, email, or however your players prefer.
+                </div>
+              )}
 
               <button
                 type="button"
@@ -366,6 +452,7 @@ export default function SendInvitesModal({
                 {results.map((r) => {
                   const fullUrl = fullUrlFor(r.inviteUrl);
                   const tokenKey = r.inviteUrl;
+                  const showStatusPill = resultMode === "send" && !r.error;
                   return (
                     <div
                       key={r.playerId}
@@ -373,26 +460,49 @@ export default function SendInvitesModal({
                         r.error ? "invites-result-row-error" : ""
                       }`}
                     >
-                      <div className="invites-result-name">{r.fullName}</div>
+                      <div className="invites-result-name">
+                        {r.fullName}
+                        {showStatusPill && r.emailStatus === "sent" && (
+                          <span className="invites-status-pill invites-status-pill-sent">
+                            ✓ Email sent
+                          </span>
+                        )}
+                        {showStatusPill && r.emailStatus === "failed" && (
+                          <span
+                            className="invites-status-pill invites-status-pill-failed"
+                            title={r.emailError || "Failed to send"}
+                          >
+                            ⚠ Email failed
+                          </span>
+                        )}
+                      </div>
+
                       {r.error ? (
                         <div className="invites-result-error">{r.error}</div>
                       ) : (
-                        <div className="invites-result-link">
-                          <input
-                            type="text"
-                            readOnly
-                            value={fullUrl}
-                            className="form-input invites-result-input"
-                            onFocus={(e) => e.currentTarget.select()}
-                          />
-                          <button
-                            type="button"
-                            className="btn-copy-inline"
-                            onClick={() => copyOne(tokenKey, fullUrl)}
-                          >
-                            {copiedToken === tokenKey ? "✓" : "Copy"}
-                          </button>
-                        </div>
+                        <>
+                          <div className="invites-result-link">
+                            <input
+                              type="text"
+                              readOnly
+                              value={fullUrl}
+                              className="form-input invites-result-input"
+                              onFocus={(e) => e.currentTarget.select()}
+                            />
+                            <button
+                              type="button"
+                              className="btn-copy-inline"
+                              onClick={() => copyOne(tokenKey, fullUrl)}
+                            >
+                              {copiedToken === tokenKey ? "✓" : "Copy"}
+                            </button>
+                          </div>
+                          {r.emailStatus === "failed" && r.emailError && (
+                            <div className="invites-result-email-error">
+                              {r.emailError}
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   );
@@ -401,11 +511,7 @@ export default function SendInvitesModal({
             </div>
 
             <div className="invites-modal-footer">
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={onClose}
-              >
+              <button type="button" className="btn-primary" onClick={onClose}>
                 Done
               </button>
             </div>

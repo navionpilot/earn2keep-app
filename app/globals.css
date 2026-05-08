@@ -12623,3 +12623,139 @@ input.form-input-with-prefix {
   .join-page-card { padding: 28px 22px; }
   .join-page-title { font-size: 26px; }
 }
+
+
+/* ============================================================
+   Slice 5.1.1 — Resend email automation
+   ============================================================
+   - Mode toggle (Send vs Just-generate) on configure stage
+   - Per-row "no email yet" warning state
+   - "warn banner" telling coach about missing emails
+   - Per-row "Email sent / failed" status pills on result stage
+   - Per-row email error message under failed sends
+   ============================================================ */
+
+/* --- Mode toggle: two large radio cards --- */
+.invites-mode-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.invites-mode-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(4, 20, 24, 0.45);
+  border: 1px solid var(--e2k-border);
+  border-radius: var(--e2k-r-md);
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.invites-mode-option:hover {
+  background: rgba(53, 213, 223, 0.06);
+  border-color: var(--e2k-border-strong);
+}
+
+.invites-mode-option-active {
+  background: rgba(53, 213, 223, 0.10) !important;
+  border-color: var(--e2k-cyan) !important;
+  box-shadow: 0 0 0 1px var(--e2k-cyan) inset;
+}
+
+.invites-mode-option input[type="radio"] {
+  margin-top: 3px;
+  flex-shrink: 0;
+  accent-color: var(--e2k-cyan);
+}
+
+.invites-mode-option-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.invites-mode-option-content strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--e2k-text);
+  line-height: 1.3;
+}
+
+.invites-mode-option-content span {
+  font-size: 12px;
+  color: var(--e2k-text-muted);
+  line-height: 1.4;
+}
+
+@media (max-width: 600px) {
+  .invites-mode-toggle { grid-template-columns: 1fr; }
+}
+
+
+/* --- "Missing email" warn state on a configure-stage row --- */
+.invites-row-warn {
+  background: rgba(251, 191, 36, 0.05);
+  border-color: rgba(251, 191, 36, 0.30) !important;
+}
+
+.invites-row-pill-warn {
+  background: rgba(251, 191, 36, 0.18) !important;
+  color: #FCD34D !important;
+  border: 1px solid rgba(251, 191, 36, 0.42) !important;
+}
+
+/* Banner that appears under the rows when N selected don't have email --- */
+.invites-warn-banner {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.32);
+  border-left: 3px solid #FCD34D;
+  border-radius: var(--e2k-r-md);
+  font-size: 12px;
+  line-height: 1.5;
+  color: #FDE68A;
+}
+
+
+/* --- Result-stage per-row email status pills --- */
+.invites-status-pill {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.invites-status-pill-sent {
+  background: rgba(93, 202, 165, 0.16);
+  color: #6EE7B7;
+  border: 1px solid rgba(93, 202, 165, 0.40);
+}
+
+.invites-status-pill-failed {
+  background: rgba(252, 165, 165, 0.14);
+  color: #FCA5A5;
+  border: 1px solid rgba(252, 165, 165, 0.42);
+  cursor: help;
+}
+
+
+/* --- Per-row email error message (sits under the URL input) --- */
+.invites-result-email-error {
+  font-size: 11px;
+  color: #FCA5A5;
+  line-height: 1.4;
+  margin-top: 4px;
+  font-style: italic;
+}
