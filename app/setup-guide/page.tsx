@@ -520,9 +520,9 @@ export default async function SetupGuidePage() {
         <div className="help-faq">
           <h4 className="help-faq-q">Do players need accounts?</h4>
           <p className="help-faq-a">
-            Not in Phase 4. You (the coach) manage everything: roster, challenge
-            verification, QR distribution. Player-facing accounts come in Phase 5,
-            where each kid gets a magic-link login and uploads their own challenge
+            Not yet. Right now you (the coach) manage everything: roster, challenge
+            verification, QR distribution. Player-facing accounts are coming soon —
+            each kid will get a magic-link login and upload their own challenge
             videos.
           </p>
         </div>
@@ -530,10 +530,10 @@ export default async function SetupGuidePage() {
         <div className="help-faq">
           <h4 className="help-faq-q">When does payment processing go live?</h4>
           <p className="help-faq-a">
-            Payment integration is a later phase. Right now you can run the
-            entire flow — set up everything, generate QR codes, track player
-            progress, run challenges — and we&apos;ll have Stripe integration
-            live before your first real fundraiser launches.
+            Sponsor payments are coming soon. Right now you can run the entire
+            flow — set up everything, generate QR codes, track player progress,
+            run challenges — and payments will be live before your first real
+            fundraiser launches.
           </p>
         </div>
 

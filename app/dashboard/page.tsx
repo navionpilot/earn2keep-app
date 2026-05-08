@@ -119,7 +119,7 @@ export default async function DashboardPage() {
     {
       num: "$" + totalRaised.toLocaleString("en-US"),
       label: "Total Raised",
-      trend: totalRaised > 0 ? "Across all events" : "Sponsorships ship in Phase 5",
+      trend: totalRaised > 0 ? "Across all events" : "Sponsorships coming soon",
       trendTone: totalRaised > 0 ? "positive" : "neutral",
     },
     {

@@ -606,9 +606,9 @@ export default async function EventDetailPage({
             </div>
             <p className="dashboard-card-text">
               {event.event_type === "camp" ? (
-                <>Generate one-of-a-kind sponsor QR codes for each player so family, friends, and local businesses can back their fundraising goal. Payments arrive in Phase 5 — codes work now to start sharing.</>
+                <>Generate one-of-a-kind sponsor QR codes for each player so family, friends, and local businesses can back their fundraising goal. Sponsor payments are coming soon — codes work now so you can start sharing.</>
               ) : (
-                <>Generate one-of-a-kind QR codes for each player so sponsors can cover their registration fee. Payments arrive in Phase 5 — codes work now to start sharing.</>
+                <>Generate one-of-a-kind QR codes for each player so sponsors can cover their registration fee. Sponsor payments are coming soon — codes work now so you can start sharing.</>
               )}
             </p>
           </div>
@@ -625,8 +625,9 @@ export default async function EventDetailPage({
             </div>
             <p className="dashboard-card-text">
               When players submit completed challenges (with video, photo, or notes),
-              they show up here for one-tap approve, reject, or adjust. Player upload
-              ships in Phase 5; the queue and review tools are ready and waiting.
+              they show up here for one-tap approve, reject, or adjust. The player
+              upload experience is coming soon — the queue and review tools are
+              ready and waiting.
             </p>
             <p className="dashboard-card-text" style={{ marginTop: "10px", fontSize: "13px" }}>
               <Link href={`/events/${event.id}/points`} className="form-link">

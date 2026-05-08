@@ -125,7 +125,7 @@ export default function LeaderboardCard({ eventId }: LeaderboardCardProps) {
       ) : !hasAnySubmissions ? (
         <p className="dashboard-card-text">
           No submissions yet — the leaderboard will populate when players start
-          submitting completed challenges. Player upload arrives in Phase 5.
+          submitting completed challenges. Player upload coming soon.
         </p>
       ) : rows.length === 0 ? (
         <p className="dashboard-card-text">

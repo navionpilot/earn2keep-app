@@ -207,7 +207,7 @@ export default function SubmissionReviewModal({
           </div>
         ) : (
           <div className="submission-evidence-empty">
-            No video, photo, or note attached. Player upload UI ships in Phase 5.
+            No video, photo, or note attached. The player upload experience is coming soon.
           </div>
         )}
 

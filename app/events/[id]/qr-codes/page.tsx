@@ -278,7 +278,7 @@ export default function SponsorQrCodesPage() {
           {error && <div className="alert alert-error" style={{ marginBottom: "16px" }}>{error}</div>}
 
           <div className="alert alert-info" style={{ marginBottom: "20px" }}>
-            <strong>Heads up — payments aren't live yet.</strong> Sponsors who scan see a clean page with the goal/fee, but the <em>Sponsor This Player</em> button shows a "Coming soon" message for now. Stripe integration arrives in Phase 5/10 — this slice gets the funnel ready so coaches can start sharing.
+            <strong>Heads up — payments aren't live yet.</strong> Sponsors who scan see a clean page with the goal/fee, but the <em>Sponsor This Player</em> button shows a "Coming soon" message for now. Sponsor payments will be live before launch — this slice gets the funnel ready so coaches can start sharing.
           </div>
 
           {totalPlayers > 0 && eventContext && (
