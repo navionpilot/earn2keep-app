@@ -1,25 +1,24 @@
 // =============================================================================
-// lib/email.ts — Outbound email via Resend (Slice 5.1.1)
+// lib/email.ts — Outbound email via Resend (Slice 5.1.1, retemplated in 5.1.2)
 // =============================================================================
 // We hit the Resend HTTP API directly with fetch instead of installing the
-// `resend` npm package. Reasons:
-//   - No package.json churn / no `npm install` step for the user
-//   - One less version to keep in sync
-//   - The API is one endpoint with one POST shape; the SDK doesn't add much
+// `resend` npm package.
 //
-// Required env: RESEND_API_KEY — set this in Vercel project env vars (it's
-// the same key generated during the Slice 4.8 SMTP setup).
+// Required env: RESEND_API_KEY — set in Vercel project env vars.
 //
-// Sender address: noreply@earn2keep.com — matches the verified domain from
-// the SMTP setup, so deliverability inherits the DKIM/SPF/DMARC config you
-// already put in place.
+// 5.1.2 retemplate notes:
+//   The original (5.1.1) HTML used gradients, body backgrounds, and
+//   <style> blocks — all of which Outlook desktop's Word rendering engine
+//   strips or ignores, producing the washed-out light-gray email shown in
+//   the user's screenshot. This version uses the "bulletproof email"
+//   patterns: bgcolor= attributes on tables, solid hex colors instead of
+//   gradients, color-scheme meta tag to prevent dark-mode auto-inversion,
+//   and a VML/anchor combo for the CTA button so Outlook + Gmail + Apple
+//   Mail all render it as a coral pill.
 // =============================================================================
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 
-// Sender displayed in the recipient's inbox. Resend will reject sends from
-// this address unless the domain is verified — which it should already be
-// from Slice 4.8.
 const FROM_ADDRESS = "earn²keep <noreply@earn2keep.com>";
 
 export interface InviteEmailOptions {
@@ -29,9 +28,6 @@ export interface InviteEmailOptions {
   teamName: string;
   teamSport: string | null;
   orgName: string;
-  // If the team currently has an active or draft event, we frame the email
-  // around it ("competing in [Event Name]"). If not, we fall back to a
-  // friendlier roster-only line.
   eventName: string | null;
   eventType: "camp" | "tournament" | null;
   inviteUrl: string;
@@ -40,8 +36,6 @@ export interface InviteEmailOptions {
 export interface SendResult {
   ok: boolean;
   error?: string;
-  // Resend assigns each successful send an id we can use later for log
-  // correlation if needed.
   resendId?: string;
 }
 
@@ -73,15 +67,11 @@ export async function sendInviteEmail(opts: InviteEmailOptions): Promise<SendRes
         subject,
         html,
         text,
-        // reply_to lets the player's parent reply directly to the coach in a
-        // future slice; for now we just bounce replies off the noreply box.
       }),
     });
 
     if (!response.ok) {
       const errBody = await response.text().catch(() => "");
-      // Try to surface the Resend-specific error message ("Invalid email",
-      // "Domain not verified", etc.) for a better coach-facing UX.
       let parsed: { message?: string } = {};
       try {
         parsed = JSON.parse(errBody);
@@ -103,8 +93,7 @@ export async function sendInviteEmail(opts: InviteEmailOptions): Promise<SendRes
 }
 
 // -----------------------------------------------------------------------------
-// Subject line — short, recognizable, no emoji-only header (some spam filters
-// down-rank emoji-heavy subjects).
+// Subject line — short, recognizable.
 // -----------------------------------------------------------------------------
 function buildSubject(opts: InviteEmailOptions): string {
   if (opts.eventName) {
@@ -114,23 +103,34 @@ function buildSubject(opts: InviteEmailOptions): string {
 }
 
 // -----------------------------------------------------------------------------
-// HTML template — inline styles only (Gmail/Outlook strip <style>).
-// Table-based layout for Outlook compatibility. Keeps width to 600px.
+// HTML template — bulletproof email patterns.
 //
-// Visually mirrors the in-app dark-glass look but uses solid hexes (no rgba +
-// backdrop-filter, neither of which work in email clients). Coral header,
-// dark body, three feature blurbs, big CTA button, fine-print footer.
+// Color palette (matches Variation F app theme but with solid hexes only —
+// Outlook strips rgba and gradients):
+//   #041418  outer body / page background (almost-black teal)
+//   #06242b  inner card background
+//   #0a3940  feature-row separator hover-tint
+//   #ff755f  coral primary (CTA button, accent strip)
+//   #35d5df  cyan accent (eyebrow text, link color)
+//   #f7fbfb  primary body text on dark
+//   #9fc3c7  muted text
+//   #6b8788  fine-print text
+//
+// Outlook bullets:
+//   - Use bgcolor= on tables (not just CSS) — Word's renderer respects the
+//     attribute even when it ignores the CSS.
+//   - <meta name="color-scheme" content="dark"> tells Outlook this email
+//     is intentionally dark, so it doesn't auto-invert.
+//   - VML <v:roundrect> renders the button on Outlook desktop. Non-Outlook
+//     clients see the <a> fallback inside the [if !mso] block.
 // -----------------------------------------------------------------------------
 function buildHtmlTemplate(opts: InviteEmailOptions): string {
   const { playerFirstName, teamName, teamSport, orgName, eventName, eventType, inviteUrl } = opts;
 
-  // Hero copy varies based on whether we have event context.
   const heroLine = eventName
-    ? `You've been invited to compete in <strong>${escape(eventName)}</strong> with the <strong>${escape(teamName)}</strong>${teamSport ? ` ${escape(teamSport)} team` : ""} at <strong>${escape(orgName)}</strong>.`
-    : `Your coach added you to <strong>${escape(teamName)}</strong>${teamSport ? ` (${escape(teamSport)})` : ""} at <strong>${escape(orgName)}</strong>.`;
+    ? `You've been invited to compete in <strong style="color:#ffffff;">${escape(eventName)}</strong> with the <strong style="color:#ffffff;">${escape(teamName)}</strong>${teamSport ? ` ${escape(teamSport)} team` : ""} at <strong style="color:#ffffff;">${escape(orgName)}</strong>.`
+    : `Your coach added you to <strong style="color:#ffffff;">${escape(teamName)}</strong>${teamSport ? ` (${escape(teamSport)})` : ""} at <strong style="color:#ffffff;">${escape(orgName)}</strong>.`;
 
-  // Event-type label for the eyebrow ("CAMP INVITE" / "TOURNAMENT INVITE" /
-  // "ROSTER INVITE"). All-caps, letterspaced — feels official, not clickbaity.
   const eyebrow =
     eventType === "camp"
       ? "CAMP INVITE"
@@ -138,40 +138,75 @@ function buildHtmlTemplate(opts: InviteEmailOptions): string {
       ? "TOURNAMENT INVITE"
       : "YOU'RE ON THE ROSTER";
 
-  // Pre-header: the inbox-preview snippet that sits next to the subject in
-  // most clients. Keep it under ~90 chars and on-message.
   const preheader = eventName
     ? `Your coach added you to ${eventName}. Set up your account to compete and earn.`
     : `Your coach added you to ${teamName}. Set up your account on earn²keep.`;
 
+  // Bulletproof CTA button. The VML rect renders in Outlook desktop with the
+  // exact coral pill shape and centered white text. Every other client uses
+  // the <a> element wrapped in [if !mso].
+  const ctaButton = `
+    <!--[if mso]>
+    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escape(inviteUrl)}" style="height:50px;v-text-anchor:middle;width:280px;" arcsize="100%" stroke="f" fillcolor="#ff755f">
+      <w:anchorlock/>
+      <center style="color:#ffffff;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;letter-spacing:0.3px;">
+        Set up my account →
+      </center>
+    </v:roundrect>
+    <![endif]-->
+    <!--[if !mso]><!-- -->
+    <a href="${escape(inviteUrl)}"
+       style="background-color:#ff755f;color:#ffffff;display:inline-block;font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;font-weight:800;letter-spacing:0.3px;line-height:50px;text-align:center;text-decoration:none;width:280px;border-radius:999px;-webkit-text-size-adjust:none;mso-hide:all;">
+      Set up my account →
+    </a>
+    <!--<![endif]-->
+  `.trim();
+
   return `<!doctype html>
-<html lang="en">
+<html lang="en" style="margin:0;padding:0;">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
 <title>${escape(buildSubject(opts))}</title>
+<!--[if mso]>
+<style type="text/css">
+  table {border-collapse:collapse;}
+  body, table, td, p, a {font-family:Arial,sans-serif !important;}
+</style>
+<xml>
+<o:OfficeDocumentSettings xmlns:o="urn:schemas-microsoft-com:office:office">
+  <o:AllowPNG/>
+  <o:PixelsPerInch>96</o:PixelsPerInch>
+</o:OfficeDocumentSettings>
+</xml>
+<![endif]-->
 </head>
-<body style="margin:0;padding:0;background:#041418;font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#f7fbfb;-webkit-font-smoothing:antialiased;">
+<body bgcolor="#041418" style="margin:0;padding:0;background-color:#041418;color:#f7fbfb;-webkit-font-smoothing:antialiased;">
 
 <!-- pre-header (hidden in body, visible in inbox preview) -->
 <div style="display:none;font-size:1px;color:#041418;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">
 ${escape(preheader)}
 </div>
 
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#041418;padding:32px 16px;">
+<!-- Outer 100% wrapper that paints the page background dark. bgcolor +
+     inline style covers Outlook's stripped CSS. -->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#041418" style="background-color:#041418;">
   <tr>
-    <td align="center">
+    <td align="center" bgcolor="#041418" style="background-color:#041418;padding:32px 16px;">
 
-      <!-- Outer card -->
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width:600px;width:100%;background:#062b32;border:1px solid rgba(95,230,225,0.15);border-radius:16px;overflow:hidden;">
+      <!-- Inner 600px content table -->
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" bgcolor="#06242b" style="max-width:600px;width:100%;background-color:#06242b;border-radius:12px;">
 
-        <!-- Coral header bar -->
+        <!-- Coral header bar (solid color — Outlook strips gradients) -->
         <tr>
-          <td style="background:linear-gradient(135deg,#ff755f 0%,#ff9a7b 100%);padding:24px 28px;">
-            <div style="font-family:'Sora',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:26px;font-weight:800;color:#ffffff;letter-spacing:-0.6px;line-height:1;">
-              earn<sup style="font-size:14px;vertical-align:super;line-height:0;">2</sup>keep
+          <td bgcolor="#ff755f" style="background-color:#ff755f;padding:24px 28px;border-radius:12px 12px 0 0;font-family:Arial,sans-serif;">
+            <div style="font-family:'Sora','Segoe UI',Arial,sans-serif;font-size:26px;font-weight:800;color:#ffffff;letter-spacing:-0.6px;line-height:1;mso-line-height-rule:exactly;">
+              earn<sup style="font-size:14px;vertical-align:super;">2</sup>keep
             </div>
-            <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.85);letter-spacing:1.6px;text-transform:uppercase;margin-top:4px;">
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;font-weight:700;color:#ffffff;letter-spacing:1.6px;text-transform:uppercase;margin-top:6px;">
               Earn it. Keep it.
             </div>
           </td>
@@ -179,104 +214,50 @@ ${escape(preheader)}
 
         <!-- Eyebrow + hero -->
         <tr>
-          <td style="padding:32px 32px 12px 32px;">
-            <div style="font-size:11px;font-weight:800;color:#35d5df;letter-spacing:1.8px;text-transform:uppercase;">
+          <td bgcolor="#06242b" style="background-color:#06242b;padding:32px 32px 12px 32px;font-family:Arial,sans-serif;">
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;font-weight:800;color:#35d5df;letter-spacing:1.8px;text-transform:uppercase;">
               ${escape(eyebrow)}
             </div>
-            <h1 style="font-family:'Sora',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:30px;font-weight:800;color:#f7fbfb;letter-spacing:-0.5px;margin:8px 0 16px 0;line-height:1.15;">
+            <h1 style="font-family:'Sora','Segoe UI',Arial,sans-serif;font-size:30px;font-weight:800;color:#f7fbfb;letter-spacing:-0.5px;margin:8px 0 16px 0;line-height:1.15;mso-line-height-rule:exactly;">
               Welcome, ${escape(playerFirstName)}! 🎉
             </h1>
-            <p style="font-size:15px;line-height:1.6;color:#cfe7e7;margin:0 0 24px 0;">
+            <p style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:15px;line-height:1.6;color:#cfe7e7;margin:0 0 24px 0;">
               ${heroLine}
             </p>
           </td>
         </tr>
 
-        <!-- Three-feature row -->
+        <!-- Three feature rows -->
+        ${renderFeatureRow("📹", "Record your challenges.", "Push-ups, free throws, drills — film it from your phone, send it in, get scored.", true)}
+        ${renderFeatureRow("💸", "Get sponsored. Keep more.", "Your sponsors back YOUR effort, not a cookie-dough catalog. Money raised stays with the team.", false)}
+        ${renderFeatureRow("🏆", "Climb the leaderboard.", "Top performers win prize gift cards. Best fundraisers earn bonus points.", false, true)}
+
+        <!-- CTA button row -->
         <tr>
-          <td style="padding:0 32px 8px 32px;">
-            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
-
-              <tr>
-                <td style="padding:14px 0;border-top:1px solid rgba(95,230,225,0.12);">
-                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
-                    <tr>
-                      <td width="44" valign="top" style="font-size:24px;line-height:1;">📹</td>
-                      <td valign="top">
-                        <div style="font-size:14px;font-weight:700;color:#f7fbfb;margin-bottom:2px;">Record your challenges.</div>
-                        <div style="font-size:13px;color:#9fc3c7;line-height:1.5;">Push-ups, free throws, drills — film it from your phone, send it in, get scored.</div>
-                      </td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-
-              <tr>
-                <td style="padding:14px 0;border-top:1px solid rgba(95,230,225,0.12);">
-                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
-                    <tr>
-                      <td width="44" valign="top" style="font-size:24px;line-height:1;">💸</td>
-                      <td valign="top">
-                        <div style="font-size:14px;font-weight:700;color:#f7fbfb;margin-bottom:2px;">Get sponsored. Keep more.</div>
-                        <div style="font-size:13px;color:#9fc3c7;line-height:1.5;">Your sponsors back YOUR effort, not a cookie-dough catalog. Money raised stays with the team.</div>
-                      </td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-
-              <tr>
-                <td style="padding:14px 0;border-top:1px solid rgba(95,230,225,0.12);border-bottom:1px solid rgba(95,230,225,0.12);">
-                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
-                    <tr>
-                      <td width="44" valign="top" style="font-size:24px;line-height:1;">🏆</td>
-                      <td valign="top">
-                        <div style="font-size:14px;font-weight:700;color:#f7fbfb;margin-bottom:2px;">Climb the leaderboard.</div>
-                        <div style="font-size:13px;color:#9fc3c7;line-height:1.5;">Top performers win prize gift cards. Best fundraisers earn bonus points.</div>
-                      </td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-
-            </table>
-          </td>
-        </tr>
-
-        <!-- CTA button -->
-        <tr>
-          <td align="center" style="padding:28px 32px 8px 32px;">
-            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td style="background:linear-gradient(135deg,#ff755f 0%,#ff9a7b 100%);border-radius:999px;">
-                  <a href="${escape(inviteUrl)}" style="display:inline-block;padding:14px 36px;font-family:'Sora',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;font-weight:800;color:#ffffff;text-decoration:none;letter-spacing:0.3px;">
-                    Set up my account →
-                  </a>
-                </td>
-              </tr>
-            </table>
+          <td bgcolor="#06242b" align="center" style="background-color:#06242b;padding:32px 32px 12px 32px;">
+            ${ctaButton}
           </td>
         </tr>
 
         <!-- URL fallback -->
         <tr>
-          <td align="center" style="padding:0 32px 28px 32px;">
-            <div style="font-size:11px;color:#9fc3c7;margin-top:14px;">
+          <td bgcolor="#06242b" align="center" style="background-color:#06242b;padding:0 32px 28px 32px;font-family:Arial,sans-serif;">
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;color:#9fc3c7;margin-top:14px;">
               Or paste this into your browser:
             </div>
-            <div style="font-size:11px;color:#35d5df;word-break:break-all;margin-top:4px;">
-              ${escape(inviteUrl)}
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;color:#35d5df;word-break:break-all;margin-top:4px;">
+              <a href="${escape(inviteUrl)}" style="color:#35d5df;text-decoration:underline;">${escape(inviteUrl)}</a>
             </div>
           </td>
         </tr>
 
-        <!-- Footer -->
+        <!-- Footer (slightly darker so it reads as separate from body) -->
         <tr>
-          <td style="background:#041418;padding:20px 32px;border-top:1px solid rgba(95,230,225,0.10);">
-            <div style="font-size:11px;color:#6b8788;line-height:1.6;text-align:center;">
+          <td bgcolor="#041418" style="background-color:#041418;padding:20px 32px;border-radius:0 0 12px 12px;font-family:Arial,sans-serif;">
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;color:#6b8788;line-height:1.6;text-align:center;">
               You got this email because a coach at <strong style="color:#9fc3c7;">${escape(orgName)}</strong> added you to their team on earn²keep. If you weren't expecting this, it's safe to ignore — no account is created until you click the button.
             </div>
-            <div style="font-size:11px;color:#6b8788;text-align:center;margin-top:10px;">
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;color:#6b8788;text-align:center;margin-top:10px;">
               earn²keep · Earn it. Keep it.
             </div>
           </td>
@@ -292,9 +273,46 @@ ${escape(preheader)}
 </html>`;
 }
 
+// Render one feature row. Used for the three-up "Record / Sponsored /
+// Leaderboard" section. Top border on the first row, bottom on the last.
+function renderFeatureRow(
+  emoji: string,
+  title: string,
+  body: string,
+  isFirst: boolean,
+  isLast = false
+): string {
+  const borderTop = isFirst
+    ? "border-top:1px solid #0a3940;"
+    : "border-top:1px solid #0a3940;";
+  const borderBottom = isLast ? "border-bottom:1px solid #0a3940;" : "";
+  return `
+    <tr>
+      <td bgcolor="#06242b" style="background-color:#06242b;padding:0 32px;font-family:Arial,sans-serif;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="${borderTop}${borderBottom}">
+          <tr>
+            <td style="padding:14px 0;" valign="top">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td width="44" valign="top" style="font-size:24px;line-height:1;mso-line-height-rule:exactly;width:44px;">
+                    ${emoji}
+                  </td>
+                  <td valign="top" style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;">
+                    <div style="font-size:14px;font-weight:700;color:#f7fbfb;margin-bottom:4px;line-height:1.3;">${escape(title)}</div>
+                    <div style="font-size:13px;color:#9fc3c7;line-height:1.5;">${escape(body)}</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  `.trim();
+}
+
 // -----------------------------------------------------------------------------
-// Plain-text fallback for clients that prefer it (and for spam-score). Keeps
-// the same structure as HTML but with line breaks and ASCII-only characters.
+// Plain-text fallback for clients that prefer it (and for spam-score).
 // -----------------------------------------------------------------------------
 function buildPlainText(opts: InviteEmailOptions): string {
   const { playerFirstName, teamName, teamSport, orgName, eventName, eventType, inviteUrl } = opts;
@@ -333,8 +351,7 @@ earn²keep · Earn it. Keep it.
 }
 
 // -----------------------------------------------------------------------------
-// HTML escape helper — only the bare minimum needed for safety in the
-// template. We don't accept rich-text input so we don't need a full sanitizer.
+// HTML escape — bare minimum for safety in the template.
 // -----------------------------------------------------------------------------
 function escape(s: string | null | undefined): string {
   if (!s) return "";
