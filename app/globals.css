@@ -11792,3 +11792,116 @@ input.form-input-with-prefix {
   padding: 8px 12px !important;
   white-space: nowrap !important;
 }
+
+
+/* ============================================================
+   Slice 4.7.12.2 — Bulk-import CSV preview retheme
+   ============================================================
+   The bulk-import flow's preview table was the last big chunk
+   of UI still wearing Concept-A light styling — light-on-light
+   text on the dark themed page made Unit / Target / Difficulty
+   look empty. Retrofit to Variation F glass dark.
+
+   Saturated category/difficulty pills inside cells (cat-sports,
+   diff-medium, etc.) keep their existing colors — those were
+   designed to read on either bg.
+   ============================================================ */
+
+
+/* --- Top-of-page CSV template info box --- */
+.csv-template-info {
+  background: rgba(53, 213, 223, 0.08) !important;
+  border-left: 3px solid var(--e2k-cyan) !important;
+  border-radius: var(--e2k-r-md) !important;
+  margin: 8px 0 14px !important;
+}
+.csv-template-info-text {
+  color: var(--e2k-text) !important;
+  line-height: 1.7 !important;
+}
+.csv-template-info-text strong {
+  color: var(--e2k-cyan) !important;
+}
+
+
+/* --- Stats row above the preview table --- */
+.csv-preview-summary {
+  background: rgba(10, 47, 55, 0.55) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--e2k-border) !important;
+  border-radius: var(--e2k-r-lg) !important;
+  margin-bottom: 12px !important;
+}
+.csv-preview-stat-good     { color: var(--e2k-success, #5DCAA5) !important; }
+.csv-preview-stat-error    { color: #FCA5A5 !important; }
+.csv-preview-stat-warning  { color: #FBBF24 !important; }
+.csv-preview-stat-label    { color: var(--e2k-text-muted) !important; }
+.csv-preview-toggle-all    { color: var(--e2k-text) !important; }
+
+
+/* --- The preview table itself --- */
+.csv-preview-table-wrap {
+  background: rgba(10, 47, 55, 0.55) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--e2k-border) !important;
+  border-radius: var(--e2k-r-lg) !important;
+}
+
+.csv-preview-table thead {
+  background: rgba(4, 20, 24, 0.7) !important;
+}
+
+.csv-preview-table th {
+  color: var(--e2k-text-muted) !important;
+  border-bottom: 1px solid var(--e2k-border-soft) !important;
+}
+
+.csv-preview-table td {
+  /* THE main fix: was inheriting light text from <body> on a near-white
+     surface, making everything but explicitly-colored cells invisible. */
+  color: var(--e2k-text) !important;
+  border-bottom: 1px solid var(--e2k-border-soft) !important;
+}
+
+.csv-preview-row-num         { color: var(--e2k-text-muted) !important; }
+.csv-preview-cell-name       { color: var(--e2k-text) !important; font-weight: 700 !important; }
+
+/* Row state highlights */
+.csv-preview-row-error       { background: rgba(220, 38, 38, 0.12) !important; }
+.csv-preview-row-excluded    { opacity: 0.40 !important; }
+
+/* Inline status / error / warning messages inside cells */
+.csv-preview-status-good     { color: var(--e2k-success, #5DCAA5) !important; }
+.csv-preview-error-msg       { color: #FCA5A5 !important; }
+.csv-preview-warning-msg     { color: #FBBF24 !important; }
+
+
+/* --- Recording column "template" inline display --- */
+.csv-preview-template-name { color: var(--e2k-text) !important; }
+.csv-preview-template-auto .csv-preview-template-name {
+  color: var(--e2k-cyan) !important;
+}
+.csv-preview-template-auto-pill {
+  background: rgba(53, 213, 223, 0.18) !important;
+  color: var(--e2k-cyan) !important;
+}
+
+
+/* --- "NEW" subcategory pill (kept saturated yellow — readable on either bg,
+       and serves as a deliberate attention grabber) --- */
+.csv-preview-new-sub-pill {
+  /* unchanged: saturated yellow on amber, no override needed */
+}
+
+
+/* --- Post-import success card (the "✓ Import Complete" panel) --- */
+.csv-import-success-card {
+  background: rgba(93, 202, 165, 0.12) !important;
+  border: 2px solid rgba(93, 202, 165, 0.45) !important;
+  border-radius: var(--e2k-r-lg) !important;
+}
+.csv-import-success-title { color: var(--e2k-success, #5DCAA5) !important; }
+.csv-import-success-text  { color: var(--e2k-text) !important; }
+.csv-import-success-text strong { color: var(--e2k-success, #5DCAA5) !important; }
