@@ -289,7 +289,11 @@ function BulkImportInner() {
           } else {
             newTier2Keys.add(tier2Key);
             willCreateSubcategory = true;
-            warnings.push(`Will create "${subcategory}" as a new private ${category} subcategory`);
+            warnings.push(
+              isAdmin
+                ? `Will create "${subcategory}" as a new public ${category} subcategory (visible to all coaches)`
+                : `Will create "${subcategory}" as a new private ${category} subcategory`
+            );
           }
         }
 
@@ -301,7 +305,11 @@ function BulkImportInner() {
             if (!subLookup[tier3Key] && !newTier3Keys.has(tier3Key)) {
               newTier3Keys.add(tier3Key);
               willCreateSubSubcategory = true;
-              warnings.push(`Will create "${subSubcategory}" as a new private sub-subcategory under ${subcategory}`);
+              warnings.push(
+                isAdmin
+                  ? `Will create "${subSubcategory}" as a new public sub-subcategory under ${subcategory}`
+                  : `Will create "${subSubcategory}" as a new private sub-subcategory under ${subcategory}`
+              );
             }
           } else {
             // Tier 2 is also new — Tier 3 must also be new
@@ -309,7 +317,11 @@ function BulkImportInner() {
             if (!newTier3Keys.has(tier3Key)) {
               newTier3Keys.add(tier3Key);
               willCreateSubSubcategory = true;
-              warnings.push(`Will create "${subSubcategory}" as a new private sub-subcategory under new "${subcategory}"`);
+              warnings.push(
+                isAdmin
+                  ? `Will create "${subSubcategory}" as a new public sub-subcategory under new "${subcategory}"`
+                  : `Will create "${subSubcategory}" as a new private sub-subcategory under new "${subcategory}"`
+              );
             }
           }
         }
@@ -733,6 +745,7 @@ function BulkImportInner() {
                       rows={parsedRows}
                       onToggleRow={handleToggleRow}
                       onToggleAll={handleToggleAll}
+                      isAdmin={isAdmin}
                     />
                   </div>
 

@@ -35,6 +35,11 @@ interface CSVChallengePreviewTableProps {
   rows: ParsedChallengeRow[];
   onToggleRow: (rowNumber: number, include: boolean) => void;
   onToggleAll: (include: boolean) => void;
+  // Whether the current user is the platform admin. Controls the wording of
+  // the "NEW" pill tooltip on freshly-created subcategories so the admin sees
+  // "...will be created as public" instead of the misleading "private" copy
+  // (the parent bulk-import page flips is_public based on the same flag).
+  isAdmin?: boolean;
 }
 
 const verificationModeLabel = (mode: string): string => {
@@ -50,6 +55,7 @@ export default function CSVChallengePreviewTable({
   rows,
   onToggleRow,
   onToggleAll,
+  isAdmin = false,
 }: CSVChallengePreviewTableProps) {
   const validCount = rows.filter((r) => r.isValid && r.include).length;
   const errorCount = rows.filter((r) => !r.isValid).length;
@@ -156,7 +162,14 @@ export default function CSVChallengePreviewTable({
                       <>
                         {row.subcategory}
                         {row.willCreateSubcategory && (
-                          <span className="csv-preview-new-sub-pill" title="Will be created as a new private subcategory">
+                          <span
+                            className="csv-preview-new-sub-pill"
+                            title={
+                              isAdmin
+                                ? "Will be created as a new public subcategory (visible to all coaches)"
+                                : "Will be created as a new private subcategory"
+                            }
+                          >
                             NEW
                           </span>
                         )}
@@ -170,7 +183,14 @@ export default function CSVChallengePreviewTable({
                       <>
                         {row.subSubcategory}
                         {row.willCreateSubSubcategory && (
-                          <span className="csv-preview-new-sub-pill" title="Will be created as a new private sub-subcategory">
+                          <span
+                            className="csv-preview-new-sub-pill"
+                            title={
+                              isAdmin
+                                ? "Will be created as a new public sub-subcategory (visible to all coaches)"
+                                : "Will be created as a new private sub-subcategory"
+                            }
+                          >
                             NEW
                           </span>
                         )}
