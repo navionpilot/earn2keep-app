@@ -11145,3 +11145,596 @@ input.form-input-with-prefix {
     margin-top: -4px;
   }
 }
+
+
+/* ============================================================
+   Slice 4.7.11 — Schedule + Library Modal + QR cards retheme
+   ============================================================
+   Three pages still carried legacy white/blue Concept-A styling
+   after the 4.7.x redesign:
+     · Training Schedule calendar (cells, toolbar, day sidebar)
+     · Challenge Library modal (overlay, cards, filter chips)
+     · Per-event QR Codes page (team sections, qr cards, buttons)
+   This block forces them onto the Variation F dark teal/coral
+   palette using high-specificity overrides. CSS only.
+   The matching sponsor flyer PDF palette swap lives in
+   lib/sponsorFlyerPdf.ts.
+   ============================================================ */
+
+
+/* ---------- Schedule toolbar ---------- */
+.schedule-toolbar {
+  background: rgba(10, 47, 55, 0.55) !important;
+  border: 1px solid var(--e2k-border) !important;
+  border-radius: var(--e2k-r-lg) !important;
+  padding: 12px 16px !important;
+}
+
+.schedule-month-label {
+  color: var(--e2k-text) !important;
+  font-family: var(--font-display) !important;
+}
+
+.btn-icon {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: var(--e2k-text) !important;
+  border: 1px solid var(--e2k-border-strong) !important;
+  border-radius: var(--e2k-r-pill) !important;
+  padding: 6px 14px !important;
+  font-weight: 700 !important;
+  transition: background 150ms ease, border-color 150ms ease !important;
+}
+.btn-icon:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.10) !important;
+  border-color: var(--e2k-cyan) !important;
+}
+
+.schedule-view-toggle {
+  background: rgba(4, 20, 24, 0.45) !important;
+  border: 1px solid var(--e2k-border-soft) !important;
+  border-radius: var(--e2k-r-pill) !important;
+  padding: 4px !important;
+  gap: 2px !important;
+}
+.schedule-view-btn {
+  color: var(--e2k-text-muted) !important;
+  border-radius: calc(var(--e2k-r-pill) - 2px) !important;
+  padding: 6px 14px !important;
+  background: transparent !important;
+}
+.schedule-view-btn:hover:not(.schedule-view-btn-active) {
+  color: var(--e2k-text) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+.schedule-view-btn-active {
+  background: linear-gradient(135deg, var(--e2k-coral), var(--e2k-coral-2)) !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 10px rgba(255, 117, 95, 0.32) !important;
+}
+
+
+/* ---------- Schedule layout panels ---------- */
+.schedule-calendar-area {
+  background: rgba(10, 47, 55, 0.55) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--e2k-border) !important;
+  border-radius: var(--e2k-r-lg) !important;
+  padding: 18px !important;
+}
+
+
+/* ---------- Calendar grid ---------- */
+.cal-weekday {
+  color: var(--e2k-text-muted) !important;
+  font-weight: 800 !important;
+  font-size: 11px !important;
+  letter-spacing: 1px !important;
+}
+
+.cal-cell {
+  background: rgba(4, 20, 24, 0.45) !important;
+  border: 1px solid var(--e2k-border-soft) !important;
+  color: var(--e2k-text) !important;
+  border-radius: 10px !important;
+  transition: border-color 150ms ease, background 150ms ease, transform 80ms ease !important;
+}
+.cal-cell:hover:not(:disabled):not(.cal-cell-selected) {
+  background: rgba(53, 213, 223, 0.08) !important;
+  border-color: var(--e2k-cyan) !important;
+}
+.cal-cell-empty {
+  background: transparent !important;
+  border: none !important;
+  opacity: 0 !important;
+}
+.cal-cell-disabled {
+  background: rgba(4, 20, 24, 0.25) !important;
+  border-color: var(--e2k-border-soft) !important;
+  opacity: 0.32 !important;
+}
+.cal-cell-disabled:hover {
+  background: rgba(4, 20, 24, 0.25) !important;
+  border-color: var(--e2k-border-soft) !important;
+}
+.cal-cell-today {
+  border-color: var(--e2k-cyan) !important;
+  border-width: 2px !important;
+}
+.cal-cell-selected {
+  background: rgba(255, 117, 95, 0.14) !important;
+  border-color: var(--e2k-coral) !important;
+  border-width: 2px !important;
+  box-shadow: 0 0 0 1px var(--e2k-coral), 0 4px 16px rgba(255, 117, 95, 0.18) !important;
+}
+.cal-cell-selected .cal-cell-day {
+  color: var(--e2k-coral-2) !important;
+}
+.cal-cell-rest {
+  background: rgba(4, 20, 24, 0.25) !important;
+}
+.cal-cell-day {
+  color: var(--e2k-text) !important;
+  font-weight: 700 !important;
+}
+.cal-cell-count {
+  background: var(--e2k-coral) !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+}
+.cal-cell-rest-label {
+  color: var(--e2k-text-muted) !important;
+  opacity: 0.6 !important;
+}
+.cal-legend {
+  border-top: 1px solid var(--e2k-border-soft) !important;
+  color: var(--e2k-text-muted) !important;
+  margin-top: 16px !important;
+  padding-top: 14px !important;
+}
+
+
+/* ---------- Day plan sidebar ---------- */
+.day-sidebar {
+  background: rgba(10, 47, 55, 0.55) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--e2k-border) !important;
+  border-radius: var(--e2k-r-lg) !important;
+  padding: 18px !important;
+}
+.day-sidebar-header {
+  border-bottom: 1px solid var(--e2k-border-soft) !important;
+}
+.day-sidebar-eyebrow {
+  color: var(--e2k-cyan) !important;
+  font-family: var(--font-display) !important;
+  letter-spacing: 1.4px !important;
+}
+.day-sidebar-title {
+  color: var(--e2k-text) !important;
+  font-family: var(--font-display) !important;
+}
+.day-sidebar-summary {
+  color: var(--e2k-text-muted) !important;
+}
+
+.day-challenge-row {
+  background: rgba(53, 213, 223, 0.06) !important;
+  border: 1px solid var(--e2k-border) !important;
+}
+.day-challenge-name {
+  color: var(--e2k-text) !important;
+}
+.day-challenge-target-input {
+  background: rgba(4, 20, 24, 0.55) !important;
+  color: var(--e2k-text) !important;
+  border: 1px solid var(--e2k-border-strong) !important;
+  border-radius: 6px !important;
+}
+.day-challenge-target-input:focus {
+  outline: none !important;
+  border-color: var(--e2k-cyan) !important;
+  box-shadow: 0 0 0 2px rgba(53, 213, 223, 0.20) !important;
+}
+.day-challenge-unit {
+  color: var(--e2k-text-muted) !important;
+}
+.day-challenge-remove {
+  color: var(--e2k-text-muted) !important;
+}
+.day-challenge-remove:hover {
+  background: rgba(220, 38, 38, 0.18) !important;
+  color: #fca5a5 !important;
+}
+
+.day-add-challenge-btn {
+  background: rgba(255, 117, 95, 0.06) !important;
+  color: var(--e2k-coral-2) !important;
+  border: 1.5px dashed var(--e2k-coral) !important;
+  font-weight: 700 !important;
+}
+.day-add-challenge-btn:hover {
+  background: rgba(255, 117, 95, 0.14) !important;
+}
+
+.day-quick-actions {
+  border-top: 1px solid var(--e2k-border-soft) !important;
+}
+.day-quick-actions-label {
+  color: var(--e2k-text-muted) !important;
+  letter-spacing: 1px !important;
+}
+.day-quick-action {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid var(--e2k-border-strong) !important;
+  color: var(--e2k-text) !important;
+  border-radius: var(--e2k-r-md) !important;
+}
+.day-quick-action:hover {
+  background: rgba(53, 213, 223, 0.10) !important;
+  border-color: var(--e2k-cyan) !important;
+}
+.day-quick-actions-hint {
+  color: var(--e2k-text-muted) !important;
+}
+.day-confirm-inline {
+  background: rgba(220, 38, 38, 0.12) !important;
+  border: 1px solid rgba(252, 165, 165, 0.40) !important;
+  color: #fecaca !important;
+}
+
+
+/* ---------- Modal overlay + card ---------- */
+.modal-overlay {
+  background: rgba(2, 10, 12, 0.78) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.modal-card {
+  background: var(--e2k-bg-2) !important;
+  border: 1px solid var(--e2k-border-strong) !important;
+  border-radius: var(--e2k-r-lg) !important;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55) !important;
+  color: var(--e2k-text) !important;
+}
+.modal-header {
+  border-bottom: 1px solid var(--e2k-border-soft) !important;
+}
+.modal-eyebrow {
+  color: var(--e2k-coral) !important;
+  font-family: var(--font-display) !important;
+  letter-spacing: 1.6px !important;
+}
+.modal-title {
+  color: var(--e2k-text) !important;
+  font-family: var(--font-display) !important;
+}
+.modal-close {
+  color: var(--e2k-text-muted) !important;
+}
+.modal-close:hover {
+  color: var(--e2k-text) !important;
+}
+.modal-body {
+  color: var(--e2k-text) !important;
+}
+.modal-actions {
+  border-top: 1px solid var(--e2k-border-soft) !important;
+}
+
+
+/* ---------- Library inside modal ---------- */
+.library-search {
+  flex: 1;
+}
+.library-custom-btn {
+  white-space: nowrap !important;
+  padding: 10px 14px !important;
+  font-size: 13px !important;
+}
+
+.library-card {
+  background: rgba(4, 20, 24, 0.45) !important;
+  border: 1px solid var(--e2k-border) !important;
+  border-radius: var(--e2k-r-md) !important;
+  transition: border-color 150ms ease, background 150ms ease !important;
+}
+.library-card:hover {
+  border-color: var(--e2k-border-strong) !important;
+  background: rgba(4, 20, 24, 0.65) !important;
+}
+.library-card-disabled { opacity: 0.45 !important; }
+.library-card-name {
+  color: var(--e2k-text) !important;
+  font-family: var(--font-display) !important;
+}
+.library-card-desc {
+  color: var(--e2k-text-muted) !important;
+}
+.library-card-meta {
+  color: var(--e2k-text-muted) !important;
+}
+.library-card-selected {
+  border-color: var(--e2k-cyan) !important;
+  border-width: 2px !important;
+  background: rgba(53, 213, 223, 0.08) !important;
+}
+.library-card-locked { opacity: 0.55 !important; }
+.library-card-checkbox-label {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid var(--e2k-border-strong) !important;
+  color: var(--e2k-text) !important;
+}
+.library-card-checkbox-label:hover {
+  border-color: var(--e2k-cyan) !important;
+  color: var(--e2k-cyan) !important;
+}
+.library-card-locked-label {
+  background: rgba(4, 20, 24, 0.55) !important;
+  color: var(--e2k-text-muted) !important;
+  border: 1px solid var(--e2k-border-soft) !important;
+}
+.library-card-rec-icon {
+  color: var(--e2k-text-muted) !important;
+}
+.library-card-rec-icon:hover {
+  color: var(--e2k-text) !important;
+}
+
+.btn-add-challenge {
+  background: linear-gradient(135deg, var(--e2k-coral), var(--e2k-coral-2)) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: var(--e2k-r-pill) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 3px 12px rgba(255, 117, 95, 0.32) !important;
+  transition: transform 150ms ease, box-shadow 150ms ease !important;
+}
+.btn-add-challenge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(255, 117, 95, 0.42) !important;
+}
+
+.btn-already-added {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: var(--e2k-text-muted) !important;
+  border: 1px solid var(--e2k-border-soft) !important;
+  border-radius: var(--e2k-r-pill) !important;
+}
+
+
+/* ---------- Filter chips (used inside the modal) ---------- */
+.filter-chip {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid var(--e2k-border-strong) !important;
+  color: var(--e2k-text-muted) !important;
+  font-weight: 700 !important;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease !important;
+}
+.filter-chip:hover {
+  border-color: var(--e2k-cyan) !important;
+  color: var(--e2k-cyan) !important;
+}
+.filter-chip-active {
+  background: linear-gradient(135deg, var(--e2k-coral), var(--e2k-coral-2)) !important;
+  border-color: var(--e2k-coral) !important;
+  color: #fff !important;
+}
+.filter-chip-active:hover {
+  background: linear-gradient(135deg, var(--e2k-coral), var(--e2k-coral-2)) !important;
+  border-color: var(--e2k-coral) !important;
+  color: #fff !important;
+}
+.filter-chip-sub {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: var(--e2k-text-muted) !important;
+  border: 1px solid var(--e2k-border-strong) !important;
+}
+.filter-chip-sub.filter-chip-active {
+  background: var(--e2k-cyan) !important;
+  color: var(--e2k-bg) !important;
+  border-color: var(--e2k-cyan) !important;
+}
+.filter-chip-sub:hover:not(.filter-chip-active) {
+  border-color: var(--e2k-cyan) !important;
+  color: var(--e2k-cyan) !important;
+}
+.filter-chip-subsub {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: var(--e2k-text-muted) !important;
+  border: 1px solid var(--e2k-border-strong) !important;
+}
+.filter-chip-subsub.filter-chip-active {
+  background: var(--e2k-teal) !important;
+  color: #fff !important;
+  border-color: var(--e2k-teal) !important;
+}
+.filter-chip-subsub:hover:not(.filter-chip-active) {
+  border-color: var(--e2k-teal) !important;
+  color: var(--e2k-teal) !important;
+}
+
+.filter-chips-subcategory,
+.filter-chips-subsubcategory {
+  background: rgba(53, 213, 223, 0.05) !important;
+  border: 1px solid var(--e2k-border-soft) !important;
+  border-radius: var(--e2k-r-md) !important;
+}
+.filter-chips-label {
+  color: var(--e2k-text-muted) !important;
+  letter-spacing: 0.6px !important;
+}
+
+
+/* ---------- Manage-mode banner inside library modal ---------- */
+.library-manage-banner {
+  background: rgba(255, 117, 95, 0.10) !important;
+  border: 1px solid rgba(255, 117, 95, 0.32) !important;
+  border-radius: var(--e2k-r-md) !important;
+  color: var(--e2k-text) !important;
+  padding: 12px 14px !important;
+  margin-bottom: 14px !important;
+}
+.library-manage-banner-text { color: var(--e2k-text) !important; }
+.library-manage-banner-text strong { color: var(--e2k-coral-2) !important; }
+.library-manage-count {
+  color: var(--e2k-text-muted) !important;
+  font-weight: 700 !important;
+}
+
+
+/* ---------- Rep target modal section ---------- */
+.rep-target-title { color: var(--e2k-text) !important; font-family: var(--font-display) !important; }
+.rep-target-desc { color: var(--e2k-text-muted) !important; }
+.rep-target-input { color: var(--e2k-text) !important; }
+.rep-target-unit { color: var(--e2k-text-muted) !important; }
+.rep-target-photo {
+  background: rgba(4, 20, 24, 0.55) !important;
+  border: 1px solid var(--e2k-border-soft) !important;
+  border-radius: var(--e2k-r-md) !important;
+}
+.rep-target-photo-caption { color: var(--e2k-text-muted) !important; }
+
+
+/* ---------- Delete-challenge modal ---------- */
+.delete-modal-intro {
+  background: rgba(220, 38, 38, 0.16) !important;
+  border-left: 3px solid #fca5a5 !important;
+  color: #fecaca !important;
+}
+.delete-modal-impact-block {
+  background: rgba(4, 20, 24, 0.55) !important;
+  border: 1px solid var(--e2k-border) !important;
+  border-radius: var(--e2k-r-md) !important;
+}
+.delete-modal-impact-header { color: var(--e2k-text) !important; font-family: var(--font-display) !important; }
+.delete-modal-impact-summary { color: var(--e2k-text) !important; }
+.delete-modal-impact-clean {
+  background: rgba(93, 202, 165, 0.16) !important;
+  border-left: 3px solid var(--e2k-success) !important;
+  color: #d1f7e7 !important;
+}
+
+
+/* ---------- Per-event QR Codes page ---------- */
+.qr-toolbar {
+  background: rgba(10, 47, 55, 0.55) !important;
+  border: 1px solid var(--e2k-border) !important;
+  border-radius: var(--e2k-r-lg) !important;
+  padding: 14px 18px !important;
+}
+.qr-toolbar-meta {
+  color: var(--e2k-text-muted) !important;
+  font-weight: 600 !important;
+}
+
+.qr-team-section {
+  background: rgba(10, 47, 55, 0.55) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--e2k-border) !important;
+  border-radius: var(--e2k-r-lg) !important;
+  padding: 22px !important;
+}
+.qr-team-header {
+  border-bottom: 1px solid var(--e2k-border-soft) !important;
+  padding-bottom: 12px !important;
+  margin-bottom: 18px !important;
+}
+.qr-team-name {
+  color: var(--e2k-text) !important;
+  font-family: var(--font-display) !important;
+  letter-spacing: -0.3px !important;
+}
+.qr-team-meta {
+  color: var(--e2k-text-muted) !important;
+  font-weight: 600 !important;
+}
+
+.qr-card {
+  background: rgba(4, 20, 24, 0.55) !important;
+  border: 1px solid var(--e2k-border) !important;
+  border-radius: var(--e2k-r-md) !important;
+  padding: 16px !important;
+  transition: border-color 150ms ease !important;
+}
+.qr-card:hover {
+  border-color: var(--e2k-border-strong) !important;
+}
+.qr-card-public-name {
+  color: var(--e2k-text) !important;
+  font-family: var(--font-display) !important;
+}
+.qr-card-private-name {
+  color: var(--e2k-text-muted) !important;
+}
+/* The QR code itself MUST be on white so phone cameras can scan it
+   reliably. We pad the wrap so the white sits in a clean rounded
+   plate against the dark card. */
+.qr-card-img-wrap {
+  background: #fff !important;
+  border-radius: 8px !important;
+  padding: 8px !important;
+  box-sizing: content-box !important;
+}
+.qr-card-img-loading { color: #6b7280 !important; }
+
+/* Primary action (per-card flyer download) — coral gradient */
+.qr-card-flyer-btn {
+  background: linear-gradient(135deg, var(--e2k-coral), var(--e2k-coral-2)) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: var(--e2k-r-pill) !important;
+  font-weight: 700 !important;
+  padding: 10px 12px !important;
+  box-shadow: 0 3px 12px rgba(255, 117, 95, 0.30) !important;
+  transition: transform 150ms ease, box-shadow 150ms ease !important;
+}
+.qr-card-flyer-btn:hover:not(:disabled) {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 5px 16px rgba(255, 117, 95, 0.40) !important;
+}
+.qr-card-flyer-btn:disabled {
+  opacity: 0.55 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+/* Secondary actions (PNG / Copy) — themed glass pills */
+.qr-card-actions {
+  display: flex !important;
+  gap: 8px !important;
+  width: 100% !important;
+  margin-top: 6px !important;
+}
+.qr-card-btn {
+  flex: 1 !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: var(--e2k-text) !important;
+  border: 1px solid var(--e2k-border-strong) !important;
+  border-radius: var(--e2k-r-pill) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  padding: 8px 10px !important;
+  transition: background 150ms ease, border-color 150ms ease !important;
+}
+.qr-card-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: var(--e2k-cyan) !important;
+}
+.qr-card-btn:disabled {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+}
+
+.sponsor-pdf-btn-hint {
+  color: var(--e2k-text-muted) !important;
+  font-style: italic;
+}
+
+/* SponsorPdfButton wrapper — the big "Download N flyers (PDF)" button
+   is already .btn-primary so it picks up the coral gradient retrofit
+   from 4.7.6 automatically. Just keep its container tidy. */
+.sponsor-pdf-btn-wrap { display: flex; flex-direction: column; gap: 4px; }

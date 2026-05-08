@@ -16,6 +16,12 @@
 //      "earn" + small raised "2" + "keep"
 //   to avoid the superscript-2 bug. Bullets replace stars and
 //   checks; commas replace arrows.
+//
+// Slice 4.7.11 — Variation F palette (teal/coral) replaces the
+// original royal-blue + gold scheme. Page bg stays white for
+// print friendliness; the brand-mark band at the top is now a
+// dark teal slab. The big GOAL number uses coral, accents use
+// teal, success bullets stay green-leaning teal.
 // ============================================================
 
 import QRCode from "qrcode";
@@ -38,14 +44,22 @@ export type FlyerEventContext = {
   eventEndDate: string;     // YYYY-MM-DD
 };
 
-// ----- Color palette --------------------------------------------------
-const COLOR_BLUE: [number, number, number] = [37, 99, 235];      // #2563EB
-const COLOR_GOLD: [number, number, number] = [217, 119, 6];      // #D97706
-const COLOR_TEXT: [number, number, number] = [15, 23, 42];       // #0F172A
-const COLOR_MUTED: [number, number, number] = [107, 114, 128];   // #6B7280
-const COLOR_CARD_BG: [number, number, number] = [244, 246, 250]; // #F4F6FA
-const COLOR_BORDER: [number, number, number] = [226, 232, 240];  // #E2E8F0
-const COLOR_GREEN: [number, number, number] = [16, 185, 129];    // #10B981
+// ----- Color palette (Variation F — Teal & Coral) ---------------------
+// COLOR_HEADER_BG  — dark teal band at the top of the page (was #2563EB)
+// COLOR_TEAL       — accent for the QR card border, "SCAN TO SUPPORT"
+//                    label, numbered steps, footer brand mark, tagline
+// COLOR_CORAL      — eyebrow + giant goal/fee number + accent line
+//                    (replaces gold). Picks up the brand's primary CTA.
+// COLOR_TEXT       — body text (intentionally left near-black for print
+//                    legibility on white paper)
+const COLOR_HEADER_BG: [number, number, number] = [6, 36, 43];      // #06242B (e2k-bg-2)
+const COLOR_TEAL: [number, number, number] = [20, 184, 166];        // #14B8A6 (e2k-teal)
+const COLOR_CORAL: [number, number, number] = [255, 117, 95];       // #FF755F (e2k-coral)
+const COLOR_TEXT: [number, number, number] = [15, 23, 42];          // #0F172A near-black
+const COLOR_MUTED: [number, number, number] = [107, 114, 128];      // #6B7280
+const COLOR_CARD_BG: [number, number, number] = [241, 248, 248];    // #F1F8F8 cyan-tint card
+const COLOR_BORDER: [number, number, number] = [209, 231, 232];     // #D1E7E8
+const COLOR_SUCCESS: [number, number, number] = [93, 202, 165];     // #5DCAA5 (e2k-success)
 
 // ----- Public entry --------------------------------------------------
 
@@ -127,9 +141,9 @@ async function drawFlyerPage(
   const goal = Number(ctx.goalAmount || 0);
   const goalText = goal > 0 ? `$${formatMoney(goal)}` : "\u2014";
 
-  // -------- HEADER BAR (royal blue) --------
+  // -------- HEADER BAR (dark teal — matches app's --e2k-bg-2) --------
   const headerH = 0.78;
-  pdf.setFillColor(...COLOR_BLUE);
+  pdf.setFillColor(...COLOR_HEADER_BG);
   pdf.rect(0, 0, PAGE_W, headerH, "F");
 
   // earn²keep brand mark on the left
@@ -143,8 +157,8 @@ async function drawFlyerPage(
     align: "right",
   });
 
-  // Thin gold accent line right under the header
-  pdf.setFillColor(...COLOR_GOLD);
+  // Coral accent line right under the header (was gold)
+  pdf.setFillColor(...COLOR_CORAL);
   pdf.rect(0, headerH, PAGE_W, 0.04, "F");
 
   // -------- HERO --------
@@ -153,7 +167,7 @@ async function drawFlyerPage(
   // Eyebrow (bullets instead of stars — Helvetica-safe)
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(9.5);
-  pdf.setTextColor(...COLOR_GOLD);
+  pdf.setTextColor(...COLOR_CORAL);
   const eyebrow = isCamp
     ? "\u2022  FUNDRAISER  \u2022"
     : "\u2022  TOURNAMENT  \u2022";
@@ -227,7 +241,7 @@ async function drawFlyerPage(
     rowY += rowGap;
   }
 
-  // Right side: BIG GOAL/FEE amount
+  // Right side: BIG GOAL/FEE amount (coral — was gold)
   const amountX = cardX + cardW - cardPadX;
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(8);
@@ -241,7 +255,7 @@ async function drawFlyerPage(
 
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(36);
-  pdf.setTextColor(...COLOR_GOLD);
+  pdf.setTextColor(...COLOR_CORAL);
   pdf.text(goalText, amountX, cursorY + cardH / 2 + 0.05, { align: "right" });
 
   pdf.setFont("helvetica", "italic");
@@ -283,10 +297,10 @@ async function drawFlyerPage(
   pdf.text(pitchLines, MARGIN_X, cursorY + 0.12);
   cursorY += pitchLines.length * 0.18 + 0.18;
 
-  // Tagline
+  // Tagline (teal — was blue)
   pdf.setFont("helvetica", "bolditalic");
   pdf.setFontSize(12);
-  pdf.setTextColor(...COLOR_BLUE);
+  pdf.setTextColor(...COLOR_TEAL);
   pdf.text(
     `Help ${card.publicLabel} earn it. Help them keep it.`,
     PAGE_W / 2,
@@ -302,7 +316,7 @@ async function drawFlyerPage(
   const qrCardX = MARGIN_X;
 
   pdf.setFillColor(255, 255, 255);
-  pdf.setDrawColor(...COLOR_BLUE);
+  pdf.setDrawColor(...COLOR_TEAL);
   pdf.setLineWidth(0.025);
   pdf.roundedRect(qrCardX, qrCardY, qrCardW, qrCardH, 0.18, 0.18, "FD");
 
@@ -329,7 +343,7 @@ async function drawFlyerPage(
 
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(9.5);
-  pdf.setTextColor(...COLOR_BLUE);
+  pdf.setTextColor(...COLOR_TEAL);
   pdf.text("SCAN TO SUPPORT", ctaX, ctaY);
   ctaY += 0.36;
 
@@ -355,8 +369,8 @@ async function drawFlyerPage(
     `Choose any amount to back ${labelMidSentence}.`,
   ];
   for (let i = 0; i < steps.length; i++) {
-    // Numbered blue circle
-    pdf.setFillColor(...COLOR_BLUE);
+    // Numbered teal circle (was blue)
+    pdf.setFillColor(...COLOR_TEAL);
     pdf.circle(ctaX + 0.07, ctaY - 0.06, 0.09, "F");
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(8);
@@ -393,8 +407,9 @@ async function drawFlyerPage(
         "Help a kid play the sport they love",
       ];
 
-  // Two columns of benefits with green dot bullets (drawn as filled circles
-  // since the U+2713 check char doesn't render correctly in Helvetica)
+  // Two columns of benefits with success-teal dot bullets (drawn as
+  // filled circles since the U+2713 check char doesn't render
+  // correctly in Helvetica).
   const colW = (PAGE_W - MARGIN_X * 2) / 2;
   for (let i = 0; i < benefits.length; i++) {
     const col = i % 2;
@@ -402,8 +417,8 @@ async function drawFlyerPage(
     const bx = MARGIN_X + col * colW;
     const by = cursorY + row * 0.24;
 
-    // Filled green dot as bullet
-    pdf.setFillColor(...COLOR_GREEN);
+    // Filled success-teal dot as bullet
+    pdf.setFillColor(...COLOR_SUCCESS);
     pdf.circle(bx + 0.06, by - 0.05, 0.05, "F");
 
     pdf.setFont("helvetica", "normal");
@@ -419,8 +434,8 @@ async function drawFlyerPage(
   pdf.setLineWidth(0.012);
   pdf.line(MARGIN_X, footerY - 0.18, PAGE_W - MARGIN_X, footerY - 0.18);
 
-  // earn²keep brand mark in the footer
-  pdf.setTextColor(...COLOR_BLUE);
+  // earn²keep brand mark in the footer (teal — was blue)
+  pdf.setTextColor(...COLOR_TEAL);
   const brandFooterW = drawBrandMark(pdf, MARGIN_X, footerY, 9);
 
   pdf.setFont("helvetica", "italic");
