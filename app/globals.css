@@ -12759,3 +12759,168 @@ input.form-input-with-prefix {
   margin-top: 4px;
   font-style: italic;
 }
+
+
+/* ============================================================
+   Slice 5.2 — Player Signup + Claim Flow
+   ============================================================
+   - <ClaimAccountForm> on /join/[token] (form + sent states)
+   - /welcome post-claim landing page styles
+   ============================================================ */
+
+
+/* --- Claim form (lives inside join-page-card) --- */
+.claim-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 24px 0 12px 0;
+  text-align: left;
+}
+
+.claim-form-label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--e2k-text-muted);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.claim-form-input {
+  /* Already inherits .form-input — just enforce comfortable padding */
+  padding: 14px 16px !important;
+  font-size: 16px !important; /* >=16px stops iOS auto-zoom */
+}
+
+.claim-form-hint {
+  font-size: 12px;
+  color: var(--e2k-text-muted);
+  line-height: 1.5;
+  margin: -2px 0 4px 0;
+}
+
+.claim-form-submit {
+  margin-top: 10px;
+  width: 100%;
+  font-size: 15px !important;
+  padding: 14px 24px !important;
+}
+
+
+/* --- "Email sent" confirmation card --- */
+.claim-form-sent {
+  margin: 24px 0 12px 0;
+  padding: 28px 24px;
+  background: rgba(53, 213, 223, 0.08);
+  border: 1px solid rgba(53, 213, 223, 0.40);
+  border-radius: var(--e2k-r-lg);
+  text-align: center;
+}
+
+.claim-form-sent-icon {
+  font-size: 48px;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.claim-form-sent-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--e2k-cyan);
+  margin: 0 0 12px 0;
+  letter-spacing: -0.4px;
+}
+
+.claim-form-sent-text {
+  font-size: 14px;
+  color: var(--e2k-text);
+  line-height: 1.6;
+  margin: 0 0 14px 0;
+}
+
+.claim-form-sent-text strong {
+  color: var(--e2k-cyan);
+  word-break: break-all;
+}
+
+.claim-form-sent-fineprint {
+  font-size: 12px;
+  color: var(--e2k-text-muted);
+  line-height: 1.5;
+  margin: 0;
+  font-style: italic;
+}
+
+
+/* --- /welcome page --- */
+.welcome-eyebrow-success {
+  color: var(--e2k-success, #5DCAA5) !important;
+}
+
+.welcome-coming-soon {
+  margin: 28px 0 16px 0;
+  padding: 24px;
+  background: rgba(10, 47, 55, 0.55);
+  border: 1px solid var(--e2k-border);
+  border-radius: var(--e2k-r-lg);
+  text-align: left;
+}
+
+.welcome-coming-soon-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--e2k-cyan);
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  margin: 0 0 16px 0;
+}
+
+.welcome-coming-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.welcome-coming-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.welcome-coming-icon {
+  font-size: 22px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.welcome-coming-item strong {
+  display: block;
+  font-size: 14px;
+  color: var(--e2k-text);
+  margin-bottom: 2px;
+}
+
+.welcome-coming-item p {
+  font-size: 13px;
+  color: var(--e2k-text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.welcome-fineprint {
+  font-size: 12px;
+  color: var(--e2k-text-muted);
+  line-height: 1.5;
+  margin: 16px 0 0 0;
+  font-style: italic;
+  text-align: center;
+}
+
+.welcome-back-link {
+  margin-top: 16px;
+  text-align: center;
+}

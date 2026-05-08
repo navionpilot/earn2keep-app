@@ -40,8 +40,11 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protected routes — redirect to login if not authenticated
-  const protectedPaths = ["/dashboard"];
+  // Protected routes — redirect to login if not authenticated.
+  // /welcome added in 5.2: it's the post-claim landing page for a
+  // newly-signed-in player and looks up their player record server-side,
+  // so it must never render for anonymous visitors.
+  const protectedPaths = ["/dashboard", "/welcome"];
   const isProtectedPath = protectedPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)
   );

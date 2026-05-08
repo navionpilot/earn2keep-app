@@ -1,23 +1,23 @@
 // =============================================================================
-// app/join/[token]/page.tsx — Public invite landing page (Slice 5.1)
+// app/join/[token]/page.tsx — Public invite landing page (Slice 5.1, 5.2)
 // =============================================================================
-// The URL the player visits from their invite. Has to work for ANONYMOUS
-// users (no Supabase session yet), so we call the get_invite_by_token RPC
-// which is SECURITY DEFINER + granted to anon — that lets us validate the
-// token without exposing the player_invites table to anon SELECT.
+// 5.1 introduced this page with a static "Set up my account →" link that
+// went to /login?invite=<token> as a placeholder.
 //
-// This slice (5.1) only handles the welcome state. The actual claim flow —
-// magic-link signup + linking auth.users to players.linked_user_id —
-// ships in 5.2. The "Continue" button here points to /login?invite=<token>
-// as a temporary breadcrumb; the login page will pick up the param in 5.2.
+// 5.2 replaces that link with an inline ClaimAccountForm — the player can
+// confirm their email and trigger a magic-link sign-in right on the page.
+// On magic-link click, /auth/callback exchanges the OTP and calls the
+// claim_player_invite() RPC to link the new auth user to the player record.
 // =============================================================================
 
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
+import ClaimAccountForm from "@/components/ClaimAccountForm";
 
 interface InviteData {
   invite: {
     id: string;
+    email: string | null;     // ADDED in 5.2 — what the coach typed when sending
     expires_at: string;
     claimed_at: string | null;
     sent_at: string | null;
@@ -47,15 +47,11 @@ export default async function JoinPage({
   const { token } = await params;
   const supabase = await createClient();
 
-  // The RPC returns jsonb null when the token doesn't match anything.
   const { data, error } = await supabase.rpc("get_invite_by_token", {
     invite_token: token,
   });
 
-  // ----- Render shells -----
-  // We use plain HTML (no AppShell) because the visitor isn't logged in
-  // and shouldn't see the coach sidebar. Page is themed inline so it
-  // matches Variation F without pulling in the full coach layout.
+  // Plain-HTML page wrapper (no AppShell / sidebar — visitor isn't logged in).
   const Page = ({ children }: { children: React.ReactNode }) => (
     <main className="join-page-wrap">
       <div className="join-page-card">
@@ -185,12 +181,14 @@ export default async function JoinPage({
         </div>
       </div>
 
-      <Link
-        href={`/login?invite=${token}`}
-        className="btn-primary-link join-page-cta"
-      >
-        Set up my account →
-      </Link>
+      {/* Magic-link claim form — replaces the static "Set up my account" link
+          we shipped in 5.1. */}
+      <ClaimAccountForm
+        token={token}
+        prefilledEmail={invite.invite.email ?? ""}
+        playerFirstName={invite.player.first_name}
+      />
+
       <p className="join-page-fineprint">
         This invite is good until{" "}
         {expiresAt.toLocaleDateString("en-US", {
