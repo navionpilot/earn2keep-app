@@ -12048,3 +12048,174 @@ input.form-input-with-prefix {
   font-weight: 700 !important;
   text-decoration: underline !important;
 }
+
+
+/* ============================================================
+   Slice 4.7.14 — Submissions + Leaderboard pages retheme
+   ============================================================
+   Both pages still wore the original light-surface styling,
+   making them visually inconsistent with the rest of the app.
+
+   - Submissions: filter bar, pills, search input, row cards
+   - Leaderboard: 3 stat cards, table head + body, rank tinting
+   ============================================================ */
+
+
+/* ===== SUBMISSIONS PAGE ===== */
+
+/* Filter bar container — was white card with light-cream border */
+.submissions-filters {
+  background: rgba(10, 47, 55, 0.55) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--e2k-border) !important;
+  border-radius: var(--e2k-r-lg) !important;
+  padding: 16px !important;
+  margin-bottom: 18px !important;
+}
+
+/* Pending / Approved / Rejected / All pills */
+.submissions-filter-chip {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid var(--e2k-border-strong) !important;
+  color: var(--e2k-text-muted) !important;
+  border-radius: var(--e2k-r-pill) !important;
+  font-weight: 700 !important;
+  padding: 7px 16px !important;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease !important;
+}
+.submissions-filter-chip:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--e2k-text) !important;
+  border-color: var(--e2k-cyan) !important;
+}
+.submissions-filter-chip.active {
+  background: linear-gradient(135deg, var(--e2k-coral), var(--e2k-coral-2)) !important;
+  border-color: var(--e2k-coral) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 10px rgba(255, 117, 95, 0.32) !important;
+}
+.submissions-filter-chip.active .submissions-filter-count {
+  color: rgba(255, 255, 255, 0.85) !important;
+  opacity: 1 !important;
+}
+.submissions-filter-count {
+  color: var(--e2k-text-muted) !important;
+}
+
+/* The team filter <select> + search <input> already inherit themed
+   .form-input styles from 4.7.6, but we explicitly normalize their
+   container layout here so the bar reads cleanly on dark. */
+.submissions-filter-row { gap: 12px !important; }
+
+
+/* List of submission rows — was white cards with navy-blue hover */
+.submissions-row {
+  background: rgba(4, 20, 24, 0.55) !important;
+  border: 1px solid var(--e2k-border) !important;
+  border-radius: var(--e2k-r-md) !important;
+  transition: border-color 150ms ease, transform 150ms ease, background 150ms ease !important;
+}
+.submissions-row:hover {
+  border-color: var(--e2k-cyan) !important;
+  background: rgba(53, 213, 223, 0.08) !important;
+  transform: translateY(-1px);
+}
+
+.submissions-row-name {
+  color: var(--e2k-text) !important;
+}
+.submissions-row-challenge {
+  color: var(--e2k-text-muted) !important;
+}
+.submissions-row-reps {
+  color: var(--e2k-text) !important;
+}
+
+
+/* Submission status badges — keep saturated pastels, they're
+   meaningful color codes (yellow=pending, green=approved,
+   red=rejected). They read fine against dark backgrounds. */
+
+
+/* ===== LEADERBOARD PAGE ===== */
+
+/* The three stat cards (Players / Approved subs / Pending review) —
+   were white cards with old royal-blue numbers */
+.leaderboard-summary-stat {
+  background: rgba(10, 47, 55, 0.55) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--e2k-border) !important;
+  border-radius: var(--e2k-r-lg) !important;
+  padding: 18px !important;
+}
+
+.leaderboard-summary-num {
+  color: var(--e2k-cyan) !important;
+}
+.leaderboard-summary-label {
+  color: var(--e2k-text-muted) !important;
+}
+
+
+/* Leaderboard table — was white surface with light-blue header bar */
+.leaderboard-table-wrap {
+  background: rgba(10, 47, 55, 0.55) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--e2k-border) !important;
+  border-radius: var(--e2k-r-lg) !important;
+}
+
+.leaderboard-table thead th {
+  background: rgba(4, 20, 24, 0.7) !important;
+  color: var(--e2k-text-muted) !important;
+  border-bottom: 1px solid var(--e2k-border-strong) !important;
+}
+
+.leaderboard-table tbody td {
+  border-bottom: 1px solid var(--e2k-border-soft) !important;
+  color: var(--e2k-text) !important;
+}
+
+.leaderboard-table .lt-rank {
+  color: var(--e2k-text) !important;
+}
+.leaderboard-table .lt-name {
+  color: var(--e2k-text) !important;
+}
+.leaderboard-table .lt-team {
+  color: var(--e2k-text-muted) !important;
+}
+.leaderboard-table .lt-stat {
+  color: var(--e2k-text-muted) !important;
+}
+.leaderboard-table .lt-points {
+  color: var(--e2k-cyan) !important;
+}
+.lt-points-label {
+  color: var(--e2k-text-muted) !important;
+}
+
+
+/* Rank-1/2/3 row tinting — gold/silver/bronze gradients reworked to
+   read on dark glass instead of white. The medal-emoji prefix keeps
+   the visual hierarchy obvious without blasting the bg with light. */
+.leaderboard-table tr.lt-rank-1 {
+  background: linear-gradient(90deg, rgba(252, 211, 77, 0.16) 0%, transparent 60%) !important;
+}
+.leaderboard-table tr.lt-rank-2 {
+  background: linear-gradient(90deg, rgba(203, 213, 225, 0.14) 0%, transparent 60%) !important;
+}
+.leaderboard-table tr.lt-rank-3 {
+  background: linear-gradient(90deg, rgba(251, 146, 60, 0.16) 0%, transparent 60%) !important;
+}
+
+.leaderboard-table tr.lt-rank-1:hover,
+.leaderboard-table tr.lt-rank-2:hover,
+.leaderboard-table tr.lt-rank-3:hover,
+.leaderboard-table tr:hover {
+  background-color: rgba(53, 213, 223, 0.06) !important;
+}
