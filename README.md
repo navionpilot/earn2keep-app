@@ -35,4 +35,4 @@ Set these in Vercel's dashboard (NOT in this codebase):
 ## Notes
 
 - This app does NOT include `node_modules/` — Vercel installs them automatically during deployment.
-- Local development is optional and not required to ship updates.
+- Local development is optional and not required to ship updates .
