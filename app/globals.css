@@ -10994,3 +10994,115 @@ select.form-input { font-size: 15px !important; padding: 14px 16px !important; }
 input.form-input-with-prefix {
   padding-left: 30px !important;
 }
+
+
+/* ============================================================
+   Slice 4.7.8 — Event hero polish
+   • Activate Event button was bright royal blue → coral
+   • DRAFT status pill was unstyled (yellow) → muted glass
+   • Pills + actions had no breathing room → spacing fix
+   • Pills themselves were a bit tight → bump padding
+   ============================================================ */
+
+/* ---- Activate / Complete buttons (were bright blue) ---- */
+.btn-activate {
+  background: linear-gradient(135deg, var(--e2k-coral), var(--e2k-coral-2)) !important;
+  color: #fff !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  padding: 11px 22px !important;
+  border: none !important;
+  border-radius: var(--e2k-r-pill) !important;
+  cursor: pointer;
+  font-family: var(--font-body);
+  letter-spacing: 0.3px;
+  box-shadow: 0 4px 14px rgba(255, 117, 95, 0.32) !important;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-activate:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--e2k-coral), var(--e2k-coral-2)) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255, 117, 95, 0.42) !important;
+}
+.btn-activate:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: 0 2px 8px rgba(255, 117, 95, 0.18) !important;
+}
+
+.btn-complete {
+  background: linear-gradient(135deg, var(--e2k-teal), var(--e2k-cyan)) !important;
+  color: #041418 !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  padding: 11px 22px !important;
+  border: none !important;
+  border-radius: var(--e2k-r-pill) !important;
+  cursor: pointer;
+  font-family: var(--font-body);
+  letter-spacing: 0.3px;
+  box-shadow: 0 4px 14px rgba(53, 213, 223, 0.30) !important;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+.btn-complete:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(53, 213, 223, 0.40) !important;
+}
+
+/* ---- DRAFT status pill (was unstyled yellow) ---- */
+.status-pill.status-draft {
+  background: rgba(159, 195, 199, 0.14) !important;
+  color: var(--e2k-text-muted) !important;
+  border: 1px solid rgba(159, 195, 199, 0.22) !important;
+}
+
+/* ---- Event hero — better spacing between pills/title/actions ---- */
+.event-hero {
+  padding: 24px 28px !important;
+}
+.event-hero-pills {
+  display: flex !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+  margin-bottom: 14px !important;
+}
+.event-hero-pills .org-detail-type-pill,
+.event-hero-pills .status-pill {
+  padding: 6px 14px !important;
+  font-size: 11px !important;
+  letter-spacing: 1.4px !important;
+  font-weight: 800 !important;
+}
+.event-hero-title {
+  margin: 0 0 16px !important;
+}
+.event-hero-actions {
+  display: flex !important;
+  gap: 10px !important;
+  flex-wrap: wrap !important;
+  margin-top: 4px !important;
+}
+
+/* ---- btn-secondary-link (Edit Event button) ---- */
+.btn-secondary-link {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: var(--e2k-text) !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  padding: 11px 22px !important;
+  border-radius: var(--e2k-r-pill) !important;
+  border: 1px solid var(--e2k-border-strong) !important;
+  text-decoration: none !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 150ms ease, border-color 150ms ease;
+  letter-spacing: 0.2px;
+}
+.btn-secondary-link:hover {
+  background: rgba(255, 255, 255, 0.10) !important;
+  border-color: var(--e2k-cyan) !important;
+}
