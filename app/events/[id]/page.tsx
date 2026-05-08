@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import EventStatusButton from "@/components/EventStatusButton";
 import DeleteButton from "@/components/DeleteButton";
 import LeaderboardCard from "@/components/LeaderboardCard";
+import EventGuide from "@/components/EventGuide";
 
 import AppShell from "@/components/AppShell";
 const formatMoney = (n: number) =>
@@ -162,8 +163,58 @@ export default async function EventDetailPage({
   const netToTeam = totalRaised - prizePool;
   const showBreakdown = goalNum > 0;
 
+  // Slice 5.2.1: progress signals for the right-sidebar EventGuide.
+  // - hasInvitesSent: any player on any team in this event has had an
+  //   invite created? Used to drive step 3 of the guide.
+  // - totalSubmissionCount / pendingSubmissionCount: drives steps 5+6.
+  let hasInvitesSent = false;
+  let totalSubmissionCount = 0;
+  let pendingSubmissionCount = 0;
+
+  if (teamIds.length > 0) {
+    // Get the player ids on this event's teams once, then reuse for the
+    // invite + submission counts.
+    const { data: eventPlayers } = await supabase
+      .from("players")
+      .select("id")
+      .in("team_id", teamIds);
+    const playerIds = (eventPlayers || []).map((p: { id: string }) => p.id);
+
+    if (playerIds.length > 0) {
+      const { count: inviteCount } = await supabase
+        .from("player_invites")
+        .select("*", { count: "exact", head: true })
+        .in("player_id", playerIds);
+      hasInvitesSent = (inviteCount ?? 0) > 0;
+    }
+  }
+
+  // Submissions are scoped by event_id, so we can count them directly.
+  const { count: totalSubCount } = await supabase
+    .from("submissions")
+    .select("*", { count: "exact", head: true })
+    .eq("event_id", id);
+  totalSubmissionCount = totalSubCount ?? 0;
+
+  if (totalSubmissionCount > 0) {
+    const { count: pendCount } = await supabase
+      .from("submissions")
+      .select("*", { count: "exact", head: true })
+      .eq("event_id", id)
+      .eq("status", "pending");
+    pendingSubmissionCount = pendCount ?? 0;
+  }
+
+  // First team id for the "Send invites" guide action button.
+  const firstTeamId = teams.length > 0 ? teams[0].id : null;
+
   return (
     <AppShell active="events" userDisplayName={profile?.full_name?.trim() || ""}>
+      {/* Slice 5.2.1: 2-col grid puts the EventGuide walkthrough in a
+          sticky right rail, mirroring the dashboard's pattern. The full
+          existing page content lives in e2k-dash-main below. */}
+      <div className="e2k-dash-2col">
+        <div className="e2k-dash-main">
           {/* Back button */}
           {org && (
             <Link href={`/organizations/${org.id}`} className="btn-back">
@@ -705,6 +756,20 @@ export default async function EventDetailPage({
             ]}
             buttonLabel="Delete this event"
           />
+        </div>
+
+        {/* Right-rail walkthrough — Slice 5.2.1. */}
+        <EventGuide
+          eventId={event.id}
+          eventStatus={event.status}
+          eventType={event.event_type}
+          hasChallenges={(eventChallenges?.length || 0) > 0}
+          hasInvitesSent={hasInvitesSent}
+          totalSubmissionCount={totalSubmissionCount}
+          pendingSubmissionCount={pendingSubmissionCount}
+          firstTeamId={firstTeamId}
+        />
+      </div>
     </AppShell>
   );
 }

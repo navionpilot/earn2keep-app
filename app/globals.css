@@ -12924,3 +12924,30 @@ input.form-input-with-prefix {
   margin-top: 16px;
   text-align: center;
 }
+
+
+/* ============================================================
+   Slice 5.2.1 — EventGuide right-sidebar walkthrough
+   ============================================================
+   Reuses the existing e2k-walk-aside-* classes wholesale.
+   The only new style is the "look at the page header" pointer
+   that appears on steps 2 (activate) + 7 (mark complete) —
+   those actions live on the EventStatusButton in the page
+   header rather than on a guide-internal action button.
+   ============================================================ */
+
+.e2k-walk-aside-pointer {
+  margin-top: 8px !important;
+  padding: 8px 10px;
+  background: rgba(53, 213, 223, 0.08);
+  border-left: 2px solid var(--e2k-cyan);
+  border-radius: 0 var(--e2k-r-sm) var(--e2k-r-sm) 0;
+  color: var(--e2k-text) !important;
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+}
+
+.e2k-walk-aside-pointer strong {
+  color: var(--e2k-cyan);
+  font-weight: 700;
+}
