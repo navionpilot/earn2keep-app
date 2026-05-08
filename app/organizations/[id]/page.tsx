@@ -41,16 +41,7 @@ export default async function OrganizationDetailPage({
     .eq("owner_id", user?.id)
     .order("created_at", { ascending: false });
 
-  // Events in this org
-  const { data: events } = await supabase
-    .from("events")
-    .select("id, name, event_type, status, start_date, end_date, goal_amount, goal_type")
-    .eq("organization_id", id)
-    .eq("owner_id", user?.id)
-    .order("created_at", { ascending: false });
-
   const teamCount = teams?.length || 0;
-  const eventCount = events?.length || 0;
 
   // For sidebar
   const { count: totalTeamCount } = await supabase
@@ -166,76 +157,6 @@ export default async function OrganizationDetailPage({
               </div>
             </>
           )}
-
-          {/* EVENTS SECTION */}
-          <div style={{ marginTop: "40px" }}>
-            {eventCount === 0 && teamCount > 0 ? (
-              <div className="empty-state">
-                <div className="empty-state-icon">
-                  <span style={{ fontSize: "48px" }}>🏆</span>
-                </div>
-                <h2 className="empty-state-title">Create Your First Event</h2>
-                <p className="empty-state-text">
-                  Two types: a <strong>Camp</strong> is a fundraiser where one
-                  team competes — each player raises a minimum amount through
-                  sponsors. A <strong>Tournament</strong> is a registration-fee
-                  competition between multiple teams.
-                </p>
-                <Link href={`/organizations/${org.id}/events/new`} className="btn-primary-link">
-                  Create Your First Event →
-                </Link>
-                <div style={{ marginTop: "16px" }}>
-                  <Tooltip text="Camp = one team, fundraiser model: each player raises a minimum amount through sponsors. Tournament = multiple teams, registration model: each player pays a flat entry fee.">
-                    <a className="help-link">❓ What's the difference between a Camp and a Tournament?</a>
-                  </Tooltip>
-                </div>
-              </div>
-            ) : eventCount > 0 ? (
-              <>
-                <div className="section-header">
-                  <h2 className="section-heading">Events</h2>
-                  <Tooltip text="Create another Camp or Tournament for this organization.">
-                    <Link href={`/organizations/${org.id}/events/new`} className="btn-add">
-                      + Create Event
-                    </Link>
-                  </Tooltip>
-                </div>
-
-                <div className="org-grid">
-                  {events?.map((event) => (
-                    <Link
-                      href={`/events/${event.id}`}
-                      key={event.id}
-                      className="org-card"
-                    >
-                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "12px" }}>
-                        <span className="org-card-type-pill">
-                          {event.event_type === "camp" ? "Camp" : "Tournament"}
-                        </span>
-                        <span className={`status-pill status-${event.status || "draft"}`}>
-                          {event.status === "active" ? "Active" : event.status === "completed" ? "Completed" : "Draft"}
-                        </span>
-                      </div>
-                      <h3 className="org-card-name">{event.name}</h3>
-                      {formatDateRange(event.start_date, event.end_date) && (
-                        <p className="org-card-location">
-                          {formatDateRange(event.start_date, event.end_date)}
-                        </p>
-                      )}
-                      {event.goal_amount && (
-                        <p className="event-goal-text">
-                          {event.event_type === "camp"
-                            ? `$${Number(event.goal_amount).toLocaleString()}/player goal`
-                            : `$${Number(event.goal_amount).toLocaleString()}/player entry`}
-                        </p>
-                      )}
-                      <div className="org-card-action">Manage →</div>
-                    </Link>
-                  ))}
-                </div>
-              </>
-            ) : null}
-          </div>
     </AppShell>
   );
 }

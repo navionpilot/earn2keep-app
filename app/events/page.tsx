@@ -25,7 +25,7 @@ export default async function EventsIndexPage() {
   const { data: events } = await supabase
     .from("events")
     .select(
-      "id, name, event_type, status, start_date, end_date, fundraising_goal, registration_fee"
+      "id, name, event_type, status, start_date, end_date, goal_amount, goal_type"
     )
     .eq("owner_id", user.id)
     .order("start_date", { ascending: false });
@@ -58,10 +58,10 @@ export default async function EventsIndexPage() {
     });
     const today = new Date().toISOString().slice(0, 10);
     const daysLeft = ev.end_date ? daysBetween(today, ev.end_date) : null;
-    const goal =
-      ev.event_type === "camp"
-        ? Number(ev.fundraising_goal) || 0
-        : (Number(ev.registration_fee) || 0) * playersInEvent;
+    // goal_amount is per-player (goal_type is always 'per_player' from the
+    // create-event form). Total goal = per-player × number of players.
+    const perPlayer = Number(ev.goal_amount) || 0;
+    const goal = perPlayer * playersInEvent;
     rows.push({
       id: ev.id,
       name: ev.name,

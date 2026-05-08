@@ -59,7 +59,7 @@ export default async function DashboardPage() {
   const { data: activeEventsRaw } = await supabase
     .from("events")
     .select(
-      "id, name, event_type, status, start_date, end_date, fundraising_goal, registration_fee"
+      "id, name, event_type, status, start_date, end_date, goal_amount, goal_type"
     )
     .eq("owner_id", user?.id)
     .neq("status", "completed")
@@ -89,10 +89,10 @@ export default async function DashboardPage() {
     // Money raised — sponsorship payments aren't shipped yet, so this is 0
     // for every event today. The UI handles 0 gracefully.
     const raised = 0;
-    const goal =
-      ev.event_type === "camp"
-        ? Number(ev.fundraising_goal) || 0
-        : (Number(ev.registration_fee) || 0) * playersInEvent;
+    // goal_amount is per-player (goal_type is always 'per_player' from the
+    // create-event form). Total goal = per-player × number of players.
+    const perPlayer = Number(ev.goal_amount) || 0;
+    const goal = perPlayer * playersInEvent;
 
     events.push({
       id: ev.id,
