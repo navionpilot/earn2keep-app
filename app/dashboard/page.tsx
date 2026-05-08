@@ -20,6 +20,22 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Slice 5.3: if this auth user is linked to a player record, they're a
+  // player — not a coach. Send them to the player home screen instead of
+  // showing them the empty coach dashboard.
+  // We do this BEFORE the profile load so the player-home redirect fires
+  // even for a player whose profile happens to be incomplete.
+  if (user?.id) {
+    const { data: linkedPlayer } = await supabase
+      .from("players")
+      .select("id")
+      .eq("linked_user_id", user.id)
+      .maybeSingle();
+    if (linkedPlayer) {
+      redirect("/home");
+    }
+  }
+
   const { data: profile } = await supabase
     .from("profiles")
     .select("full_name, primary_role")

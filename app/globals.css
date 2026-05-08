@@ -12951,3 +12951,422 @@ input.form-input-with-prefix {
   color: var(--e2k-cyan);
   font-weight: 700;
 }
+
+
+/* ============================================================
+   Slice 5.3 — Player Home Screen
+   ============================================================
+   Player-facing pages don't use the coach AppShell (sidebar
+   has Organizations/Teams/Events which players shouldn't see).
+   Instead they get a slim PlayerTopBar + this single-column
+   layout, mobile-first.
+   ============================================================ */
+
+
+/* --- Player top bar --- */
+.player-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(4, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--e2k-border);
+}
+
+.player-topbar-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+}
+
+.player-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.player-topbar-brand-name {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--e2k-text);
+}
+
+.player-topbar-brand-sup {
+  font-size: 11px;
+  vertical-align: super;
+  font-weight: 700;
+  color: var(--e2k-coral);
+}
+
+.player-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.player-topbar-greeting {
+  font-size: 13px;
+  color: var(--e2k-text-muted);
+  font-weight: 600;
+}
+@media (max-width: 480px) {
+  .player-topbar-greeting { display: none; }
+}
+
+.player-topbar-logout {
+  background: transparent;
+  border: 1px solid var(--e2k-border);
+  color: var(--e2k-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.player-topbar-logout:hover {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.40);
+  color: #FCA5A5;
+}
+
+
+/* --- Page wrapper --- */
+.player-home-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 18px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+
+/* --- Greeting hero card --- */
+.player-home-hero {
+  background: linear-gradient(135deg, rgba(53, 213, 223, 0.06), rgba(255, 117, 95, 0.04));
+  border: 1px solid var(--e2k-border-strong);
+  border-radius: var(--e2k-r-lg);
+  padding: 24px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.player-home-hero-greeting {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--e2k-text);
+  letter-spacing: -0.5px;
+  line-height: 1.15;
+}
+
+.player-home-hero-context {
+  font-size: 14px;
+  color: var(--e2k-text-muted);
+  line-height: 1.55;
+}
+
+.player-home-hero-context strong {
+  color: var(--e2k-text);
+  font-weight: 700;
+}
+
+.player-home-hero-meta {
+  margin-top: 4px;
+}
+
+
+/* --- Status pill --- */
+.player-home-status-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.player-home-status-active {
+  background: rgba(93, 202, 165, 0.18);
+  color: #6EE7B7;
+  border: 1px solid rgba(93, 202, 165, 0.40);
+}
+
+.player-home-status-completed {
+  background: rgba(148, 163, 184, 0.18);
+  color: #CBD5E1;
+  border: 1px solid rgba(148, 163, 184, 0.40);
+}
+
+.player-home-status-upcoming {
+  background: rgba(53, 213, 223, 0.16);
+  color: var(--e2k-cyan);
+  border: 1px solid rgba(53, 213, 223, 0.40);
+}
+
+.player-home-status-paused {
+  background: rgba(251, 191, 36, 0.16);
+  color: #FCD34D;
+  border: 1px solid rgba(251, 191, 36, 0.40);
+}
+
+
+/* --- Sections (today's challenges, sponsor, etc.) --- */
+.player-home-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.player-home-section-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 4px;
+}
+
+.player-home-section-eyebrow {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--e2k-cyan);
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
+
+.player-home-section-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--e2k-text);
+  letter-spacing: -0.4px;
+  margin: 0;
+}
+
+
+/* --- Generic card style for empty/info states --- */
+.player-home-card {
+  background: rgba(10, 47, 55, 0.55);
+  border: 1px solid var(--e2k-border);
+  border-radius: var(--e2k-r-lg);
+  padding: 18px 20px;
+}
+
+.player-home-card-text {
+  font-size: 14px;
+  color: var(--e2k-text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.player-home-card-text strong {
+  color: var(--e2k-text);
+}
+
+.player-home-card-fineprint {
+  font-size: 12px;
+  color: var(--e2k-text-faint);
+  font-style: italic;
+  line-height: 1.5;
+  margin: 8px 0 0 0;
+}
+
+
+/* --- "No event" / empty state --- */
+.player-home-empty {
+  background: rgba(10, 47, 55, 0.55);
+  border: 1px solid var(--e2k-border);
+  border-radius: var(--e2k-r-lg);
+  padding: 36px 24px;
+  text-align: center;
+}
+
+.player-home-empty-icon {
+  font-size: 48px;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.player-home-empty-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--e2k-text);
+  margin: 0 0 10px 0;
+  letter-spacing: -0.4px;
+}
+
+.player-home-empty-text {
+  font-size: 14px;
+  color: var(--e2k-text-muted);
+  line-height: 1.6;
+  margin: 0 auto 12px;
+  max-width: 460px;
+}
+
+.player-home-empty-hint {
+  font-size: 12px;
+  color: var(--e2k-text-faint);
+  font-style: italic;
+  margin: 0;
+}
+
+
+/* --- Today's challenges list --- */
+.player-home-challenges {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.player-home-challenge {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(10, 47, 55, 0.55);
+  border: 1px solid var(--e2k-border);
+  border-radius: var(--e2k-r-lg);
+  padding: 16px 18px;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.player-home-challenge:hover {
+  border-color: var(--e2k-border-strong);
+}
+
+.player-home-challenge-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.player-home-challenge-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--e2k-text);
+  letter-spacing: -0.2px;
+  margin-bottom: 4px;
+}
+
+.player-home-challenge-meta {
+  font-size: 13px;
+  color: var(--e2k-text-muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.player-home-challenge-meta strong {
+  color: var(--e2k-text);
+}
+
+.player-home-challenge-notes {
+  font-size: 12px;
+  color: var(--e2k-text-faint);
+  font-style: italic;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.player-home-challenge-record {
+  flex-shrink: 0;
+  background: rgba(255, 117, 95, 0.10);
+  border: 1px solid rgba(255, 117, 95, 0.30);
+  color: #FCA5A5;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 99px;
+  cursor: not-allowed;
+  opacity: 0.7;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+
+
+/* --- Sponsor link card --- */
+.player-home-sponsor-card {
+  background: rgba(53, 213, 223, 0.06);
+  border: 1px solid rgba(53, 213, 223, 0.30);
+  border-left: 3px solid var(--e2k-cyan);
+  border-radius: var(--e2k-r-lg);
+  padding: 18px 20px;
+}
+
+.player-home-sponsor-link {
+  display: block;
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: rgba(4, 20, 24, 0.55);
+  border: 1px solid var(--e2k-border);
+  border-radius: var(--e2k-r-md);
+  font-size: 12px;
+  color: var(--e2k-cyan);
+  text-decoration: none;
+  word-break: break-all;
+  font-family: monospace;
+  user-select: all;
+  -webkit-user-select: all;
+}
+
+.player-home-sponsor-link:hover {
+  background: rgba(4, 20, 24, 0.75);
+  text-decoration: underline;
+}
+
+
+/* --- "Coming soon" footer --- */
+.player-home-coming-soon {
+  background: rgba(10, 47, 55, 0.35);
+  border: 1px dashed var(--e2k-border);
+  border-radius: var(--e2k-r-lg);
+  padding: 18px 22px;
+}
+
+.player-home-coming-soon-eyebrow {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--e2k-text-faint);
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.player-home-coming-soon-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.player-home-coming-soon-list li {
+  font-size: 13px;
+  color: var(--e2k-text-muted);
+  line-height: 1.5;
+}
+
+
+/* --- Welcome page CTA (Slice 5.3 update — now points to /home) --- */
+.welcome-go-home {
+  display: block !important;
+  margin: 24px auto 12px;
+  text-align: center;
+  width: 100%;
+  max-width: 360px;
+  font-size: 16px !important;
+  padding: 14px 24px !important;
+}

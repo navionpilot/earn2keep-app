@@ -44,7 +44,9 @@ export async function middleware(request: NextRequest) {
   // /welcome added in 5.2: it's the post-claim landing page for a
   // newly-signed-in player and looks up their player record server-side,
   // so it must never render for anonymous visitors.
-  const protectedPaths = ["/dashboard", "/welcome"];
+  // /home added in 5.3: same reasoning — it's the player home screen,
+  // server-rendered with the player's record.
+  const protectedPaths = ["/dashboard", "/welcome", "/home"];
   const isProtectedPath = protectedPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)
   );
