@@ -9798,3 +9798,68 @@ input[type="date"].form-input {
 .e2k-walk-aside-foot-link:hover {
   text-decoration: underline;
 }
+
+
+/* ============================================================
+   Slice 4.7.4 — Dashboard right-sidebar walkthrough
+   ============================================================ */
+
+.e2k-dash-2col {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 24px;
+  align-items: start;
+}
+.e2k-dash-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+@media (max-width: 1100px) {
+  .e2k-dash-2col {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 18px;
+  }
+}
+@media (max-width: 900px) {
+  .e2k-dash-2col {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+
+/* ---- Dashboard guide action button ---- */
+.e2k-dash-guide-action {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--e2k-coral), var(--e2k-coral-2));
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  padding: 9px 18px;
+  border-radius: var(--e2k-r-pill);
+  text-decoration: none;
+  margin-top: 10px;
+  box-shadow: 0 3px 10px rgba(255, 117, 95, 0.30);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+.e2k-dash-guide-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(255, 117, 95, 0.40);
+}
+
+/* On the dashboard, the guide doesn't need the same top offset as the form
+   guide — the dashboard hero is the visual anchor, so the guide sticks just
+   below the header. */
+.e2k-dash-guide {
+  top: 84px;
+}
+
+@media (max-width: 900px) {
+  .e2k-dash-guide {
+    position: static;
+    top: auto;
+  }
+}

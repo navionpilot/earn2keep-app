@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import HeroCard from "@/components/HeroCard";
+import DashboardGuide from "@/components/DashboardGuide";
 import StatRow, { type Stat } from "@/components/StatRow";
 import EventTypeCard from "@/components/EventTypeCard";
 import EventListRow, { type EventListItem } from "@/components/EventListRow";
@@ -42,6 +43,16 @@ export default async function DashboardPage() {
     supabase.from("players").select("*", { count: "exact", head: true }).eq("owner_id", user?.id),
     supabase.from("events").select("*", { count: "exact", head: true }).eq("owner_id", user?.id),
   ]);
+
+  // Grab first team ID for the guide's "add players" action button
+  const { data: firstTeamRow } = await supabase
+    .from("teams")
+    .select("id")
+    .eq("owner_id", user?.id)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  const firstTeamId = firstTeamRow?.id as string | undefined;
 
   // Active events for the at-a-glance list. Defensive: events.status may be null
   // for legacy rows, so we treat anything not 'completed' as active.
@@ -158,7 +169,9 @@ export default async function DashboardPage() {
 
   return (
     <AppShell active="overview" userDisplayName={profile.full_name}>
-      <HeroCard
+      <div className="e2k-dash-2col">
+        <div className="e2k-dash-main">
+          <HeroCard
         subtitle={heroSubtitle}
         progressPct={overallProgressPct}
         cta={{ label: "Create Event", href: newEventHref }}
@@ -277,6 +290,18 @@ export default async function DashboardPage() {
           </div>
         </section>
       )}
+        </div>
+
+        <DashboardGuide
+          hasOrganization={hasOrganization}
+          hasTeams={hasTeams}
+          hasPlayers={hasPlayers}
+          hasEvent={hasEvent}
+          firstOrgId={organizations && organizations[0] ? organizations[0].id : undefined}
+          firstTeamId={firstTeamId}
+          firstEventId={events && events[0] ? events[0].id : undefined}
+        />
+      </div>
     </AppShell>
   );
 }
