@@ -3,6 +3,22 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 
+const ROLE_LABELS: Record<string, string> = {
+  coach: "Coach",
+  parent: "Parent",
+  teacher: "Teacher / School Administrator",
+  youth_pastor: "Youth Pastor / Church Leader",
+  scout_leader: "Scout / Troop Leader",
+  gym_owner: "Gym Owner / Fitness Coach",
+  org_director: "Organization Director",
+  other: "Other",
+};
+
+function formatRole(rawRole: string | null | undefined): string | null {
+  if (!rawRole) return null;
+  return ROLE_LABELS[rawRole] || rawRole.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export default async function SettingsPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -24,6 +40,8 @@ export default async function SettingsPage() {
       .join("")
       .toUpperCase() || "?";
 
+  const roleLabel = formatRole(profile?.primary_role);
+
   return (
     <AppShell active="settings" userDisplayName={displayName}>
       <div className="e2k-page-head">
@@ -39,8 +57,8 @@ export default async function SettingsPage() {
           <div className="e2k-settings-info">
             <div className="e2k-settings-name">{displayName}</div>
             <div className="e2k-settings-email">{user.email}</div>
-            {profile?.primary_role && (
-              <div className="e2k-settings-role">{profile.primary_role}</div>
+            {roleLabel && (
+              <div className="e2k-settings-role">{roleLabel}</div>
             )}
           </div>
           <Link href="/profile/complete" className="e2k-link-cyan">
@@ -56,8 +74,8 @@ export default async function SettingsPage() {
         </div>
         <div className="e2k-settings-links">
           <Link href="/profile/complete" className="e2k-settings-link">
-            <div className="e2k-settings-link-title">Update Profile</div>
-            <div className="e2k-settings-link-desc">Change your name, role, or organization details.</div>
+            <div className="e2k-settings-link-title">Update Name &amp; Role</div>
+            <div className="e2k-settings-link-desc">Change your name or what role best describes you.</div>
           </Link>
           <Link href="/reset-password" className="e2k-settings-link">
             <div className="e2k-settings-link-title">Change Password</div>

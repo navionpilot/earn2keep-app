@@ -95,11 +95,11 @@ export default function SignupPage() {
         </Link>
 
         <div style={{ textAlign: "center" }}>
-          <span className="auth-eyebrow">★ START YOUR CAMP ★</span>
+          <span className="auth-eyebrow">★ JOIN earn²keep ★</span>
         </div>
 
         <h1 className="auth-title">Create Account</h1>
-        <p className="auth-subtitle">Set up earn²keep for your team or organization</p>
+        <p className="auth-subtitle">Set up earn²keep for your team, club, school, or organization</p>
 
         <form className="auth-form" onSubmit={handleSignup}>
           <div>

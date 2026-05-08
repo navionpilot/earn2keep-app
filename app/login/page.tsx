@@ -43,11 +43,11 @@ export default function LoginPage() {
         </Link>
 
         <div style={{ textAlign: "center" }}>
-          <span className="auth-eyebrow">★ COACH ACCESS ★</span>
+          <span className="auth-eyebrow">★ EARN IT. KEEP IT. ★</span>
         </div>
 
         <h1 className="auth-title">Welcome Back</h1>
-        <p className="auth-subtitle">Log in to manage your teams and events</p>
+        <p className="auth-subtitle">Log in to manage your teams, events, and roster</p>
 
         <form className="auth-form" onSubmit={handleLogin}>
           <div>
