@@ -10,12 +10,19 @@ interface EventStatusButtonProps {
   currentStatus: "draft" | "active" | "completed" | null;
 }
 
+// Possible inline confirm dialogs. Tracked as a single union so only one is
+// open at a time and we can branch the JSX cleanly.
+type ConfirmKind = null | "activate" | "complete" | "pause";
+
 export default function EventStatusButton({ eventId, currentStatus }: EventStatusButtonProps) {
   const [loading, setLoading] = useState(false);
-  const [confirming, setConfirming] = useState(false);
+  const [confirm, setConfirm] = useState<ConfirmKind>(null);
   const router = useRouter();
 
-  const handleStatusChange = async (newStatus: "active" | "completed") => {
+  // Generic status setter. We allow "draft" too because the Pause button
+  // reverts an active event back to draft (no separate "paused" status —
+  // simpler, and draft already handles the "not visible to sponsors" semantics).
+  const handleStatusChange = async (newStatus: "draft" | "active" | "completed") => {
     setLoading(true);
     const supabase = createClient();
     const { error } = await supabase
@@ -29,20 +36,21 @@ export default function EventStatusButton({ eventId, currentStatus }: EventStatu
       return;
     }
 
-    setConfirming(false);
+    setConfirm(null);
     router.refresh();
     setLoading(false);
   };
 
+  // ----- Draft (or unset) -> show "Activate Event" --------------------
   if (currentStatus === "draft" || !currentStatus) {
-    if (confirming) {
+    if (confirm === "activate") {
       return (
         <div className="status-confirm-inline">
           <span className="status-confirm-text">Activate this event?</span>
           <button
             type="button"
             className="btn-cancel"
-            onClick={() => setConfirming(false)}
+            onClick={() => setConfirm(null)}
           >
             Cancel
           </button>
@@ -62,7 +70,7 @@ export default function EventStatusButton({ eventId, currentStatus }: EventStatu
         <button
           type="button"
           className="btn-activate"
-          onClick={() => setConfirming(true)}
+          onClick={() => setConfirm("activate")}
         >
           ▶ Activate Event
         </button>
@@ -70,15 +78,16 @@ export default function EventStatusButton({ eventId, currentStatus }: EventStatu
     );
   }
 
+  // ----- Active -> show "Mark Complete" + "Pause" --------------------
   if (currentStatus === "active") {
-    if (confirming) {
+    if (confirm === "complete") {
       return (
         <div className="status-confirm-inline">
           <span className="status-confirm-text">Mark complete?</span>
           <button
             type="button"
             className="btn-cancel"
-            onClick={() => setConfirming(false)}
+            onClick={() => setConfirm(null)}
           >
             Cancel
           </button>
@@ -93,19 +102,60 @@ export default function EventStatusButton({ eventId, currentStatus }: EventStatu
         </div>
       );
     }
+
+    if (confirm === "pause") {
+      return (
+        <div className="status-confirm-inline">
+          <span className="status-confirm-text">
+            Pause this event? It will revert to Draft and stop being visible
+            to sponsors. You can re-activate any time.
+          </span>
+          <button
+            type="button"
+            className="btn-cancel"
+            onClick={() => setConfirm(null)}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="btn-primary btn-inline"
+            onClick={() => handleStatusChange("draft")}
+            disabled={loading}
+          >
+            {loading ? "..." : "Yes, Pause"}
+          </button>
+        </div>
+      );
+    }
+
+    // Default state: show both action buttons inline. Mark Complete is the
+    // happy-path primary; Pause is a softer secondary for "I need to stop
+    // this for now."
     return (
-      <Tooltip text="Mark this event as completed when the season ends.">
-        <button
-          type="button"
-          className="btn-complete"
-          onClick={() => setConfirming(true)}
-        >
-          ✓ Mark Complete
-        </button>
-      </Tooltip>
+      <>
+        <Tooltip text="Mark this event as completed when the season ends.">
+          <button
+            type="button"
+            className="btn-complete"
+            onClick={() => setConfirm("complete")}
+          >
+            ✓ Mark Complete
+          </button>
+        </Tooltip>
+        <Tooltip text="Pause the event and revert it to Draft. Useful if you need to stop registration temporarily — you can re-activate any time.">
+          <button
+            type="button"
+            className="btn-pause"
+            onClick={() => setConfirm("pause")}
+          >
+            ⏸ Pause Event
+          </button>
+        </Tooltip>
+      </>
     );
   }
 
-  // Completed - no action button
+  // Completed — no action button (event is final state).
   return null;
 }
