@@ -46,10 +46,10 @@ const AccountIcon = (
 
 export default function MobileBottomNav({ active }: MobileBottomNavProps) {
   const items: Array<{ key: NavKey | "account"; label: string; href: string; icon: React.ReactNode }> = [
-    { key: "overview", label: "Home", href: "/dashboard", icon: HomeIcon },
+    { key: "overview", label: "Dashboard", href: "/dashboard", icon: HomeIcon },
     { key: "events", label: "Events", href: "/events", icon: CalendarIcon },
     { key: "teams", label: "Teams", href: "/teams", icon: TeamsIcon },
-    { key: "participants", label: "Players", href: "/participants", icon: PlayersIcon },
+    { key: "participants", label: "Roster", href: "/participants", icon: PlayersIcon },
     { key: "account", label: "Account", href: "/settings", icon: AccountIcon },
   ];
   return (

@@ -87,7 +87,7 @@ export default function EditOrganizationPage() {
   }
 
   return (
-    <AppShell active="teams" userDisplayName={""}>
+    <AppShell active="organizations" userDisplayName={""}>
       <main className="form-page-main">
         <div className="form-card">
           <h1 className="form-title">Edit Organization</h1>

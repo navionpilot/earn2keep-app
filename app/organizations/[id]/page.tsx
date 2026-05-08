@@ -85,7 +85,7 @@ export default async function OrganizationDetailPage({
   };
 
   return (
-    <AppShell active="teams" userDisplayName={profile?.full_name?.trim() || ""}>
+    <AppShell active="organizations" userDisplayName={profile?.full_name?.trim() || ""}>
           <Link href="/dashboard" className="btn-back">
             ← Back to Dashboard
           </Link>

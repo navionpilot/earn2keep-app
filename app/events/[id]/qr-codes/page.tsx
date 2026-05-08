@@ -241,7 +241,7 @@ export default function SponsorQrCodesPage() {
   const totalPlayers = playersByTeam.reduce((sum, g) => sum + g.players.length, 0);
 
   return (
-    <AppShell active="events" userDisplayName={userDisplayName}>
+    <AppShell active="qr-codes" userDisplayName={userDisplayName}>
           <Link href={`/events/${eventId}`} className="btn-back">
             ← Back to {event.name}
           </Link>

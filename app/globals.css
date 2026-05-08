@@ -9863,3 +9863,265 @@ input[type="date"].form-input {
     top: auto;
   }
 }
+
+
+/* ============================================================
+   Slice 4.7.5 — Larger fonts + sidebar workflow reorder
+   User feedback: logo bigger, fonts bigger throughout. Cards
+   feel correctly-sized but text is too small relative to them.
+   ============================================================ */
+
+/* ---- Header logo (significantly bigger) ---- */
+.e2k-header { padding: 22px 36px !important; }
+.e2k-header-brand-name { font-size: 36px !important; letter-spacing: -0.8px !important; }
+.e2k-header-brand-sup { font-size: 20px !important; }
+.e2k-header-brand-tag { font-size: 11px !important; letter-spacing: 1.8px !important; }
+.e2k-header-icon-btn { width: 44px !important; height: 44px !important; }
+.e2k-header-icon-btn svg { width: 22px; height: 22px; }
+.e2k-header-avatar { width: 44px !important; height: 44px !important; font-size: 16px !important; }
+
+@media (max-width: 900px) {
+  .e2k-header { padding: 16px 18px !important; }
+  .e2k-header-brand-name { font-size: 28px !important; }
+  .e2k-header-brand-sup { font-size: 16px !important; }
+  .e2k-header-brand-tag { font-size: 10px !important; }
+  .e2k-header-icon-btn,
+  .e2k-header-avatar { width: 40px !important; height: 40px !important; }
+}
+
+/* ---- Sidebar nav items (bigger labels + icons) ---- */
+.e2k-nav-item {
+  font-size: 16px !important;
+  padding: 12px 14px !important;
+  gap: 12px;
+}
+.e2k-nav-icon { width: 22px !important; height: 22px !important; }
+.e2k-nav-icon svg { width: 22px !important; height: 22px !important; }
+.e2k-sidebar { padding-top: 20px; }
+
+/* ---- Hero card (bigger title) ---- */
+.e2k-hero { padding: 32px 34px !important; }
+.e2k-hero-title { font-size: 38px !important; line-height: 1.05 !important; }
+.e2k-hero-sub { font-size: 15px !important; margin-bottom: 18px !important; }
+.e2k-ring, .e2k-ring svg { width: 124px !important; height: 124px !important; }
+.e2k-ring-pct { font-size: 30px !important; }
+.e2k-ring-label { font-size: 10px !important; max-width: 90px; }
+
+@media (max-width: 600px) {
+  .e2k-hero { padding: 22px 18px !important; }
+  .e2k-hero-title { font-size: 26px !important; }
+  .e2k-ring, .e2k-ring svg { width: 88px !important; height: 88px !important; }
+  .e2k-ring-pct { font-size: 22px !important; }
+}
+
+/* ---- Stat row (bigger numbers + labels) ---- */
+.e2k-stat-row { padding: 22px 24px !important; }
+.e2k-stat-num { font-size: 32px !important; }
+.e2k-stat-label { font-size: 13px !important; letter-spacing: 0.5px; }
+.e2k-stat-trend { font-size: 13px !important; }
+
+/* ---- Panels (bigger titles) ---- */
+.e2k-panel { padding: 26px 28px !important; }
+.e2k-panel-title { font-size: 18px !important; letter-spacing: 0.6px !important; }
+.e2k-panel-sub { font-size: 14px !important; }
+
+/* ---- Event type cards (bigger) ---- */
+.e2k-type-illus { width: 72px !important; height: 72px !important; margin-bottom: 16px !important; }
+.e2k-type-illus svg { width: 32px !important; height: 32px !important; }
+.e2k-type-name { font-size: 19px !important; letter-spacing: 0.5px; }
+.e2k-type-desc { font-size: 14px !important; line-height: 1.55; }
+.e2k-type-btn { padding: 13px 18px !important; font-size: 13px !important; letter-spacing: 0.4px; }
+
+/* ---- Event list rows ---- */
+.e2k-event-thumb { width: 64px !important; height: 64px !important; }
+.e2k-event-thumb svg { width: 26px !important; height: 26px !important; }
+.e2k-event-name { font-size: 16px !important; margin: 8px 0 6px !important; }
+.e2k-event-dates { font-size: 13px !important; }
+.e2k-event-icons span { font-size: 11px !important; }
+.e2k-event-money { font-size: 22px !important; }
+.e2k-event-goal { font-size: 12px !important; }
+
+/* ---- Setup banner ---- */
+.e2k-setup-icon { width: 48px !important; height: 48px !important; }
+.e2k-setup-icon svg { width: 24px; height: 24px; }
+.e2k-setup-title { font-size: 18px !important; }
+.e2k-setup-text { font-size: 15px !important; line-height: 1.55; }
+
+/* ---- Page heads ---- */
+.e2k-page-title { font-size: 36px !important; letter-spacing: -0.8px !important; }
+.e2k-page-sub { font-size: 15px !important; line-height: 1.55; }
+
+/* ---- Legacy form/auth bumped ---- */
+.form-title { font-size: 28px !important; }
+.form-subtitle { font-size: 15px !important; }
+.form-input,
+.form-textarea,
+input.form-input,
+textarea.form-textarea,
+select.form-input { font-size: 15px !important; padding: 14px 16px !important; }
+.form-label { font-size: 14px !important; }
+.form-hint { font-size: 13px !important; }
+
+.btn-primary,
+.btn-primary-link { font-size: 15px !important; padding: 13px 24px !important; }
+.btn-secondary,
+.btn-secondary-link,
+.btn-cancel { font-size: 15px !important; padding: 13px 24px !important; }
+.btn-add { font-size: 13px !important; padding: 9px 16px !important; }
+
+.dashboard-welcome { font-size: 36px !important; }
+.dashboard-subtitle { font-size: 15px !important; }
+.dashboard-card-title { font-size: 20px !important; }
+.dashboard-card-text { font-size: 14px !important; line-height: 1.6 !important; }
+
+.section-heading { font-size: 22px !important; }
+
+.alert { font-size: 15px !important; padding: 16px 18px !important; }
+
+/* ---- Auth pages ---- */
+.auth-logo .logo-text { font-size: 40px !important; }
+.auth-logo .logo-sup { font-size: 22px !important; }
+.auth-title { font-size: 28px !important; }
+.auth-subtitle { font-size: 15px !important; }
+.auth-eyebrow { font-size: 12px !important; letter-spacing: 2.2px !important; }
+
+/* ---- Organization grid (used on /organizations index) ---- */
+.e2k-org-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+.e2k-org-card-link {
+  background: rgba(10, 47, 55, 0.55);
+  border: 1px solid var(--e2k-border);
+  border-radius: var(--e2k-r-md);
+  padding: 18px 20px;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 150ms ease, transform 150ms ease;
+}
+.e2k-org-card-link:hover {
+  border-color: var(--e2k-border-strong);
+  transform: translateY(-2px);
+}
+.e2k-org-pill {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--e2k-cyan);
+  background: rgba(53, 213, 223, 0.14);
+  padding: 4px 11px;
+  border-radius: var(--e2k-r-pill);
+  margin-bottom: 4px;
+}
+.e2k-org-name {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--e2k-text);
+  letter-spacing: -0.3px;
+}
+.e2k-org-loc {
+  font-size: 13px;
+  color: var(--e2k-text-muted);
+}
+.e2k-org-stats {
+  font-size: 13px;
+  color: var(--e2k-text-muted);
+  margin-top: 4px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.e2k-org-stats strong {
+  color: var(--e2k-text);
+  font-weight: 700;
+}
+.e2k-org-action {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--e2k-cyan);
+  margin-top: 6px;
+}
+
+/* ---- QR codes index grid ---- */
+.e2k-qr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+.e2k-qr-card {
+  background: rgba(10, 47, 55, 0.55);
+  border: 1px solid var(--e2k-border);
+  border-radius: var(--e2k-r-md);
+  padding: 18px 20px;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 150ms ease, transform 150ms ease;
+}
+.e2k-qr-card:hover {
+  border-color: var(--e2k-border-strong);
+  transform: translateY(-2px);
+}
+.e2k-qr-card-done { opacity: 0.75; }
+.e2k-qr-card-tag {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  padding: 4px 10px;
+  border-radius: var(--e2k-r-pill);
+  margin-bottom: 4px;
+}
+.e2k-qr-card-tag-camp {
+  color: #ff9a7b;
+  background: rgba(255, 117, 95, 0.14);
+}
+.e2k-qr-card-tag-tournament {
+  color: var(--e2k-cyan);
+  background: rgba(53, 213, 223, 0.14);
+}
+.e2k-qr-card-name {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--e2k-text);
+  letter-spacing: -0.3px;
+}
+.e2k-qr-card-meta {
+  font-size: 13px;
+  color: var(--e2k-text-muted);
+}
+.e2k-qr-card-stats {
+  font-size: 14px;
+  color: var(--e2k-text-soft);
+  margin-top: 6px;
+}
+.e2k-qr-card-stats strong {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--e2k-text);
+  font-weight: 800;
+}
+.e2k-qr-card-action {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--e2k-cyan);
+  margin-top: 8px;
+}
+
+/* ---- Walkthrough aside (DashboardGuide) - bump titles too ---- */
+.e2k-walk-aside-title { font-size: 19px !important; }
+.e2k-walk-aside-progress { font-size: 13px !important; }
+.e2k-walk-aside-step-title { font-size: 15px !important; }
+.e2k-walk-aside-text { font-size: 13px !important; }

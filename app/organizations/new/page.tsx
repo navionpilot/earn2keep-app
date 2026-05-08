@@ -53,7 +53,7 @@ export default function NewOrganizationPage() {
   };
 
   return (
-    <AppShell active="teams" userDisplayName={""}>
+    <AppShell active="organizations" userDisplayName={""}>
       <main className="form-page-main">
         <div className="form-card">
           <div style={{ textAlign: "center" }}>
