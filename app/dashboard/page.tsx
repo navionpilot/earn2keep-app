@@ -20,9 +20,17 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Slice 5.3: if this auth user is linked to a player record, they're a
-  // player — not a coach. Send them to the player home screen instead of
-  // showing them the empty coach dashboard.
+  // Slice 5.3 + 5.3.1: if this auth user is linked to a player record AND
+  // doesn't own any organizations of their own, they're a pure player —
+  // send them to the player home screen instead of showing them the empty
+  // coach dashboard.
+  //
+  // If the user owns at least one organization, they're a coach (possibly
+  // also linked to their own player record for testing). In that case we
+  // stay on /dashboard and surface the coach view; the PlayerTopBar on
+  // /home offers a "Coach Dashboard" link so they can switch back if they
+  // ever land on the player view manually.
+  //
   // We do this BEFORE the profile load so the player-home redirect fires
   // even for a player whose profile happens to be incomplete.
   if (user?.id) {
@@ -32,7 +40,15 @@ export default async function DashboardPage() {
       .eq("linked_user_id", user.id)
       .maybeSingle();
     if (linkedPlayer) {
-      redirect("/home");
+      const { count: ownedOrgCount } = await supabase
+        .from("organizations")
+        .select("*", { count: "exact", head: true })
+        .eq("owner_id", user.id);
+      // Pure player (no orgs of their own) → go to /home.
+      if (!ownedOrgCount || ownedOrgCount === 0) {
+        redirect("/home");
+      }
+      // Otherwise: dual-role user (coach + player). Stay on /dashboard.
     }
   }
 

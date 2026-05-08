@@ -13370,3 +13370,40 @@ input.form-input-with-prefix {
   font-size: 16px !important;
   padding: 14px 24px !important;
 }
+
+
+/* ============================================================
+   Slice 5.3.1 — Coach Dashboard link in PlayerTopBar
+   ============================================================
+   Visible only when isAlsoCoach=true (dual-role user).
+   Cyan accent so it doesn't compete with the logout button.
+   ============================================================ */
+
+.player-topbar-coach-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(53, 213, 223, 0.10);
+  border: 1px solid rgba(53, 213, 223, 0.40);
+  color: var(--e2k-cyan);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 99px;
+  text-decoration: none;
+  letter-spacing: 0.2px;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.player-topbar-coach-link:hover {
+  background: rgba(53, 213, 223, 0.18);
+  border-color: var(--e2k-cyan);
+}
+
+@media (max-width: 480px) {
+  /* On phones, shorten the label to keep room for greeting + logout */
+  .player-topbar-coach-link {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+}

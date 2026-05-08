@@ -133,6 +133,15 @@ export default async function PlayerHomePage() {
   const team = single(player.teams);
   const org = team ? single(team.organizations) : null;
 
+  // Slice 5.3.1: detect dual-role users (coach who's also linked to a
+  // player record). Surface a "Coach Dashboard" link in the top bar so
+  // they can switch back to the coach view.
+  const { count: ownedOrgCount } = await supabase
+    .from("organizations")
+    .select("*", { count: "exact", head: true })
+    .eq("owner_id", user.id);
+  const isAlsoCoach = (ownedOrgCount ?? 0) > 0;
+
   // 2. Find the player's team's most-relevant event.
   //    Status priority: active (2) > draft (1) > completed (0).
   let event: EventRow | null = null;
@@ -164,6 +173,7 @@ export default async function PlayerHomePage() {
   const TopBar = (
     <PlayerTopBar
       displayName={player.first_name}
+      isAlsoCoach={isAlsoCoach}
     />
   );
 
