@@ -26,6 +26,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
 import PlayerTopBar from "@/components/PlayerTopBar";
 import PlayerSponsorCard from "@/components/PlayerSponsorCard";
+import InstallAppPanel from "@/components/InstallAppPanel";
 import {
   pointsEarnedForSubmission,
   type ScoringEventChallenge,
@@ -761,6 +762,13 @@ export default async function PlayerHomePage() {
             </div>
           )}
         </section>
+
+        {/* === Install app panel (Slice 5.8.1) ===
+            Client component that auto-detects iOS/Android, shows the
+            matching 3-step install flow, hides itself when running in
+            the already-installed PWA shell, and remembers if the
+            player explicitly dismissed it. */}
+        <InstallAppPanel />
 
         {/* === Leaderboard preview (Slice 5.6) === */}
         {leaderboard.length > 0 && (isActive || isCompleted) && (

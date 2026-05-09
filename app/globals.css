@@ -16235,3 +16235,202 @@ input.form-input-with-prefix {
   color: var(--e2k-text-muted);
   line-height: 1.4;
 }
+
+
+/* ============================================================
+   Slice 5.8.1 — Install app panel (player home)
+   ============================================================
+   Client-side panel that gives platform-specific Add-to-Home-Screen
+   instructions and hides itself when running in the installed PWA.
+   ============================================================ */
+
+.player-home-install {
+  margin: 18px 0 22px;
+  padding: 18px 18px 16px;
+  background: linear-gradient(
+    135deg,
+    rgba(53, 213, 223, 0.08) 0%,
+    rgba(255, 117, 95, 0.05) 100%
+  );
+  border: 1px solid rgba(53, 213, 223, 0.30);
+  border-radius: var(--e2k-r-md);
+  position: relative;
+}
+
+.player-home-install .player-home-section-head {
+  margin-bottom: 4px;
+}
+
+.player-home-install-dismiss {
+  background: transparent;
+  border: 1px solid var(--e2k-border);
+  color: var(--e2k-text-muted);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-home-install-dismiss:hover {
+  background: rgba(252, 165, 165, 0.10);
+  color: #FCA5A5;
+  border-color: rgba(252, 165, 165, 0.40);
+}
+
+.player-home-install-intro {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--e2k-text-muted);
+  margin: 6px 0 14px;
+}
+
+
+/* --- Per-platform card --- */
+.player-home-install-card {
+  background: rgba(4, 20, 24, 0.55);
+  border: 1px solid var(--e2k-border);
+  border-radius: var(--e2k-r-sm);
+  padding: 14px 14px 12px;
+}
+
+.player-home-install-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.player-home-install-card-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.player-home-install-card-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--e2k-text);
+  letter-spacing: -0.2px;
+}
+
+
+/* --- One-tap install CTA (Android Chrome only) --- */
+.player-home-install-cta {
+  display: block;
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, var(--e2k-coral) 0%, #ff9a7b 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 99px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  transition: transform 100ms ease, box-shadow 150ms ease;
+}
+
+.player-home-install-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(255, 117, 95, 0.40);
+}
+
+
+/* --- Numbered steps --- */
+.player-home-install-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: install-step;
+}
+
+.player-home-install-steps li {
+  position: relative;
+  padding: 8px 0 8px 36px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--e2k-text);
+  border-bottom: 1px dashed var(--e2k-border);
+  counter-increment: install-step;
+}
+
+.player-home-install-steps li:last-child {
+  border-bottom: none;
+}
+
+.player-home-install-steps li::before {
+  content: counter(install-step);
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 24px;
+  height: 24px;
+  background: rgba(53, 213, 223, 0.12);
+  border: 1px solid rgba(53, 213, 223, 0.40);
+  border-radius: 50%;
+  font-family: monospace, var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--e2k-cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-home-install-steps strong {
+  color: var(--e2k-cyan);
+  font-weight: 800;
+}
+
+.player-home-install-icon-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: rgba(255, 117, 95, 0.15);
+  border: 1px solid rgba(255, 117, 95, 0.40);
+  border-radius: 4px;
+  color: var(--e2k-coral);
+  font-weight: 800;
+  font-size: 13px;
+  margin: 0 2px;
+  vertical-align: middle;
+}
+
+
+/* --- Footnote --- */
+.player-home-install-footnote {
+  margin: 12px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--e2k-text-faint);
+  font-style: italic;
+}
+
+.player-home-install-footnote strong {
+  font-style: normal;
+  color: var(--e2k-cyan);
+}
+
+
+/* --- Desktop / "other" fallback --- */
+.player-home-install-desktop-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--e2k-text);
+}
+
+.player-home-install-desktop-text strong {
+  color: var(--e2k-cyan);
+  font-weight: 800;
+}
