@@ -15762,3 +15762,251 @@ input.form-input-with-prefix {
   color: var(--e2k-coral);
   letter-spacing: 0.6px;
 }
+
+
+/* ============================================================
+   Slice 5.7.4 — Player Recording Instructions
+   ============================================================
+   Renders below the recording-challenge-header on the player's
+   /home/record/[id] page. Up to 4 sub-panels stacked: phone-
+   setup template, coach's instructions, reference photo,
+   collapsed general tips. Visual style mirrors the player
+   home cards (dark teal panels, cyan accents, monospace
+   eyebrows) so it feels like one continuous app.
+   ============================================================ */
+
+.recording-instructions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 18px 0 22px;
+}
+
+.recording-instructions-panel {
+  background: rgba(10, 47, 55, 0.55);
+  border: 1px solid var(--e2k-border);
+  border-radius: var(--e2k-r-md);
+  padding: 16px 18px 18px;
+}
+
+.recording-instructions-panel-coach {
+  background: rgba(53, 213, 223, 0.06);
+  border-color: rgba(53, 213, 223, 0.30);
+  border-left: 3px solid var(--e2k-cyan);
+}
+
+.recording-instructions-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.recording-instructions-icon {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.recording-instructions-eyebrow {
+  font-family: monospace, var(--font-display);
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--e2k-cyan);
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.recording-instructions-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--e2k-text);
+  letter-spacing: -0.2px;
+  margin: 0;
+}
+
+.recording-instructions-desc {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--e2k-text-muted);
+  margin: 0 0 10px;
+}
+
+.recording-instructions-desc-block {
+  color: var(--e2k-text);
+  white-space: pre-wrap;       /* preserve coach's line breaks */
+  margin: 0;
+}
+
+.recording-instructions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: rec-step;
+}
+
+.recording-instructions-list li {
+  position: relative;
+  padding: 8px 0 8px 36px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--e2k-text);
+  border-bottom: 1px dashed var(--e2k-border);
+  counter-increment: rec-step;
+}
+
+.recording-instructions-list li:last-child {
+  border-bottom: none;
+}
+
+.recording-instructions-list li::before {
+  content: counter(rec-step);
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 24px;
+  height: 24px;
+  background: rgba(53, 213, 223, 0.12);
+  border: 1px solid rgba(53, 213, 223, 0.40);
+  border-radius: 50%;
+  font-family: monospace, var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--e2k-cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* What counts block */
+.recording-instructions-counts {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: rgba(255, 117, 95, 0.06);
+  border: 1px solid rgba(255, 117, 95, 0.30);
+  border-radius: var(--e2k-r-sm);
+  font-size: 12.5px;
+}
+
+.recording-instructions-counts strong {
+  display: block;
+  font-family: monospace, var(--font-display);
+  color: var(--e2k-coral);
+  font-size: 11px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.recording-instructions-counts ul {
+  list-style: disc;
+  padding: 0 0 0 18px;
+  margin: 0;
+  color: var(--e2k-text);
+  line-height: 1.55;
+}
+
+.recording-instructions-counts li {
+  padding: 2px 0;
+}
+
+/* Reference photo */
+.recording-instructions-photo {
+  display: block;
+  width: 100%;
+  max-height: 360px;
+  object-fit: contain;
+  border-radius: var(--e2k-r-sm);
+  background: rgba(0, 0, 0, 0.30);
+  margin-top: 4px;
+}
+
+.recording-instructions-photo-caption {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--e2k-text-muted);
+  font-style: italic;
+}
+
+/* General tips collapsible */
+.recording-instructions-tips {
+  background: rgba(4, 20, 24, 0.40);
+  border-style: dashed;
+}
+
+.recording-instructions-tips summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.recording-instructions-tips summary::-webkit-details-marker {
+  display: none;
+}
+
+.recording-instructions-tips summary::after {
+  content: "▾";
+  margin-left: auto;
+  color: var(--e2k-text-muted);
+  font-size: 14px;
+  transition: transform 200ms ease;
+}
+
+.recording-instructions-tips[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.recording-instructions-tips-summary-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recording-instructions-tips-toggle-hint {
+  font-size: 11px;
+  color: var(--e2k-text-faint);
+  font-style: italic;
+}
+
+.recording-instructions-tips-list {
+  margin-top: 12px;
+}
+
+.recording-instructions-tips-list li {
+  padding-left: 12px;
+}
+
+.recording-instructions-tips-list li::before {
+  display: none;             /* tips don't number */
+}
+
+
+/* --- Player home challenge card additions (5.7.4) --- */
+.player-home-challenge-desc {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--e2k-text-muted);
+}
+
+.player-home-challenge-cta-hint {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: rgba(53, 213, 223, 0.06);
+  border: 1px dashed rgba(53, 213, 223, 0.30);
+  border-radius: var(--e2k-r-sm);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--e2k-text-muted);
+}
+
+.player-home-challenge-cta-hint strong {
+  color: var(--e2k-cyan);
+  font-weight: 800;
+}

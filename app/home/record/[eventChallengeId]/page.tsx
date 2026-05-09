@@ -17,6 +17,10 @@ import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase-server";
 import PlayerTopBar from "@/components/PlayerTopBar";
 import RecordingForm from "@/components/RecordingForm";
+import {
+  getRecordingTemplate,
+  GENERAL_RECORDING_TIPS,
+} from "@/lib/recordingTemplates";
 
 interface PlayerRow {
   id: string;
@@ -32,6 +36,12 @@ interface ChallengeRel {
   description: string | null;
   category: string | null;
   unit: string | null;
+  // Slice 5.7.4: extra fields surfaced on the recording page so players
+  // know exactly how to set up their phone + what counts.
+  setup_template_key: string | null;
+  recording_instructions: string | null;
+  reference_photo_url: string | null;
+  reference_photo_caption: string | null;
 }
 
 interface EventRel {
@@ -102,7 +112,7 @@ export default async function RecordPage({
     .from("event_challenges")
     .select(
       `id, event_id, day_index, rep_target, points_value, notes,
-       challenges(id, name, description, category, unit),
+       challenges(id, name, description, category, unit, setup_template_key, recording_instructions, reference_photo_url, reference_photo_caption),
        events(id, name, status, start_date, end_date)`
     )
     .eq("id", eventChallengeId)
@@ -216,6 +226,22 @@ export default async function RecordPage({
           )}
         </div>
 
+        {/* Slice 5.7.4: Instructions panel — tells the player exactly
+            what to do, how to set up their phone, what counts. Renders
+            up to 4 sub-sections, in this order:
+              1. Phone setup template (if challenge has setup_template_key)
+              2. Coach's recording_instructions (if set)
+              3. Reference photo (if set)
+              4. Always-on general tips (collapsible)
+            Even if the challenge is missing custom content, the player
+            still sees something useful via the general tips block. */}
+        <RecordingInstructions
+          templateKey={challenge.setup_template_key}
+          recordingInstructions={challenge.recording_instructions}
+          referencePhotoUrl={challenge.reference_photo_url}
+          referencePhotoCaption={challenge.reference_photo_caption}
+        />
+
         {/* If the player has a prior submission for THIS challenge, show
             its status above the form so they have context. They can
             still submit a new attempt below. */}
@@ -235,6 +261,140 @@ export default async function RecordPage({
 }
 
 // ---------- Helpers ----------
+
+// Slice 5.7.4 — Renders the full "how to do this challenge" panel.
+// Uses lib/recordingTemplates for setup-template content; falls back
+// gracefully if the challenge has no template / instructions / photo
+// set (general tips always render).
+function RecordingInstructions({
+  templateKey,
+  recordingInstructions,
+  referencePhotoUrl,
+  referencePhotoCaption,
+}: {
+  templateKey: string | null;
+  recordingInstructions: string | null;
+  referencePhotoUrl: string | null;
+  referencePhotoCaption: string | null;
+}) {
+  const template = getRecordingTemplate(templateKey);
+
+  return (
+    <div className="recording-instructions">
+      {/* Setup template — only renders if the challenge has one */}
+      {template && (
+        <section className="recording-instructions-panel">
+          <header className="recording-instructions-head">
+            <span className="recording-instructions-icon" aria-hidden="true">
+              {template.icon}
+            </span>
+            <div>
+              <div className="recording-instructions-eyebrow">
+                PHONE SETUP
+              </div>
+              <h2 className="recording-instructions-title">
+                {template.label}
+              </h2>
+            </div>
+          </header>
+          <p className="recording-instructions-desc">{template.description}</p>
+          <ol className="recording-instructions-list">
+            {template.instructions.map((step, i) => (
+              <li key={i}>{step}</li>
+            ))}
+          </ol>
+          {template.whatCounts && template.whatCounts.length > 0 && (
+            <div className="recording-instructions-counts">
+              <strong>What counts:</strong>
+              <ul>
+                {template.whatCounts.map((line, i) => (
+                  <li key={i}>{line}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Coach's specific recording_instructions text — renders below
+          the template panel so it reads as "extra detail from coach". */}
+      {recordingInstructions && (
+        <section className="recording-instructions-panel recording-instructions-panel-coach">
+          <header className="recording-instructions-head">
+            <span className="recording-instructions-icon" aria-hidden="true">
+              📋
+            </span>
+            <div>
+              <div className="recording-instructions-eyebrow">
+                COACH&apos;S INSTRUCTIONS
+              </div>
+              <h2 className="recording-instructions-title">
+                Specific to this challenge
+              </h2>
+            </div>
+          </header>
+          <p className="recording-instructions-desc recording-instructions-desc-block">
+            {recordingInstructions}
+          </p>
+        </section>
+      )}
+
+      {/* Reference photo from coach — visual example. */}
+      {referencePhotoUrl && (
+        <section className="recording-instructions-panel">
+          <header className="recording-instructions-head">
+            <span className="recording-instructions-icon" aria-hidden="true">
+              🖼
+            </span>
+            <div>
+              <div className="recording-instructions-eyebrow">
+                EXAMPLE
+              </div>
+              <h2 className="recording-instructions-title">
+                What it should look like
+              </h2>
+            </div>
+          </header>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={referencePhotoUrl}
+            alt={referencePhotoCaption ?? "Reference example"}
+            className="recording-instructions-photo"
+          />
+          {referencePhotoCaption && (
+            <p className="recording-instructions-photo-caption">
+              {referencePhotoCaption}
+            </p>
+          )}
+        </section>
+      )}
+
+      {/* General tips — always renders. Collapsed by default with
+          <details> so it doesn't dominate the page when the challenge
+          already has a template. */}
+      <details className="recording-instructions-panel recording-instructions-tips">
+        <summary>
+          <span className="recording-instructions-icon" aria-hidden="true">
+            💡
+          </span>
+          <span className="recording-instructions-tips-summary-text">
+            <span className="recording-instructions-eyebrow">
+              GENERAL TIPS
+            </span>
+            <span className="recording-instructions-tips-toggle-hint">
+              tap to expand
+            </span>
+          </span>
+        </summary>
+        <ul className="recording-instructions-list recording-instructions-tips-list">
+          {GENERAL_RECORDING_TIPS.map((tip, i) => (
+            <li key={i}>{tip}</li>
+          ))}
+        </ul>
+      </details>
+    </div>
+  );
+}
 
 // A small panel that summarizes the player's most recent submission for
 // this challenge — what the status is, what reps they claimed/got

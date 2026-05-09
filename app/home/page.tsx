@@ -686,11 +686,26 @@ export default async function PlayerHomePage() {
                           </span>
                         ) : null}
                       </div>
+                      {/* Slice 5.7.4: surface the challenge description right
+                          on the card so players have at least a one-liner of
+                          context before tapping Record. The full setup +
+                          coach instructions live on the recording page. */}
+                      {challenge?.description && (
+                        <div className="player-home-challenge-desc">
+                          {challenge.description}
+                        </div>
+                      )}
                       {ec.notes ? (
                         <div className="player-home-challenge-notes">
                           {ec.notes}
                         </div>
                       ) : null}
+                      {!sub && (
+                        <div className="player-home-challenge-cta-hint">
+                          Tap <strong>Record →</strong> for setup
+                          instructions and tips before you film.
+                        </div>
+                      )}
                       {statusPill && (
                         <div className="player-home-challenge-status">
                           {statusPill}
