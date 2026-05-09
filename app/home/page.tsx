@@ -70,6 +70,14 @@ interface EventRow {
   start_date: string | null;
   end_date: string | null;
   goal_amount: number | null;
+  // Slice 5.9.3 — prize fields shown in the dashboard's prize panel
+  prize_count: number | null;
+  first_place_prize: string | null;
+  first_place_amount: number | null;
+  second_place_prize: string | null;
+  second_place_amount: number | null;
+  third_place_prize: string | null;
+  third_place_amount: number | null;
 }
 
 interface ChallengeShape {
@@ -166,7 +174,7 @@ export default async function PlayerHomePage() {
   if (team) {
     const { data: parts } = await supabase
       .from("event_participants")
-      .select("event_id, events(id, name, event_type, status, start_date, end_date, goal_amount)")
+      .select("event_id, events(id, name, event_type, status, start_date, end_date, goal_amount, prize_count, first_place_prize, first_place_amount, second_place_prize, second_place_amount, third_place_prize, third_place_amount)")
       .eq("team_id", team.id);
 
     type PartRow = {
@@ -918,6 +926,77 @@ export default async function PlayerHomePage() {
           </section>
         )}
 
+        {/* === Slice 5.9.3: Prizes — what the player can actually win ===
+            Renders only when at least one place has a prize set. Shows
+            the medal + place + dollar amount + prize description so the
+            player has something concrete to chase. */}
+        {(() => {
+          const hasFirst = !!(event.first_place_prize || event.first_place_amount);
+          const hasSecond = !!(event.second_place_prize || event.second_place_amount);
+          const hasThird = !!(event.third_place_prize || event.third_place_amount);
+          if (!hasFirst && !hasSecond && !hasThird) return null;
+          const fmt = (n: number) =>
+            n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+          return (
+            <section className="player-home-section">
+              <div className="player-home-section-head">
+                <span className="player-home-section-eyebrow">
+                  <span className="player-home-hero-prompt">&gt;</span> WHAT YOU CAN WIN
+                </span>
+                <h2 className="player-home-section-title">Prizes 🏆</h2>
+              </div>
+              <div className="player-home-prizes-list">
+                {hasFirst && (
+                  <div className="player-home-prize-row player-home-prize-row-first">
+                    <span className="player-home-prize-medal" aria-hidden="true">🥇</span>
+                    <div className="player-home-prize-body">
+                      <div className="player-home-prize-place">1st Place</div>
+                      <div className="player-home-prize-text">
+                        {event.first_place_amount && (
+                          <strong>${fmt(Number(event.first_place_amount))} </strong>
+                        )}
+                        {event.first_place_prize}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {hasSecond && (
+                  <div className="player-home-prize-row">
+                    <span className="player-home-prize-medal" aria-hidden="true">🥈</span>
+                    <div className="player-home-prize-body">
+                      <div className="player-home-prize-place">2nd Place</div>
+                      <div className="player-home-prize-text">
+                        {event.second_place_amount && (
+                          <strong>${fmt(Number(event.second_place_amount))} </strong>
+                        )}
+                        {event.second_place_prize}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {hasThird && (
+                  <div className="player-home-prize-row">
+                    <span className="player-home-prize-medal" aria-hidden="true">🥉</span>
+                    <div className="player-home-prize-body">
+                      <div className="player-home-prize-place">3rd Place</div>
+                      <div className="player-home-prize-text">
+                        {event.third_place_amount && (
+                          <strong>${fmt(Number(event.third_place_amount))} </strong>
+                        )}
+                        {event.third_place_prize}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <p className="player-home-prizes-foot">
+                Top performers — measured by completed challenges and
+                fundraising — take home these prizes when the event ends.
+              </p>
+            </section>
+          );
+        })()}
+
         {/* Sponsor link */}
         <section className="player-home-section" id="sponsor">
           <div className="player-home-section-head">
@@ -941,6 +1020,12 @@ export default async function PlayerHomePage() {
               goalAmount={Number(event.goal_amount) || 0}
               eventStartDate={event.start_date ?? ""}
               eventEndDate={event.end_date ?? event.start_date ?? ""}
+              firstPlacePrize={event.first_place_prize}
+              firstPlaceAmount={event.first_place_amount}
+              secondPlacePrize={event.second_place_prize}
+              secondPlaceAmount={event.second_place_amount}
+              thirdPlacePrize={event.third_place_prize}
+              thirdPlaceAmount={event.third_place_amount}
             />
           ) : (
             <div className="player-home-card">

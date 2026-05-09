@@ -109,6 +109,27 @@ export default async function SponsorPage({
     pronouns?: string | null;
   };
 
+  // Slice 5.9.3: pull event prize fields from the new sibling RPC. If
+  // the RPC isn't deployed yet, prizesData will be null and the page
+  // gracefully omits the prizes section.
+  const { data: prizesData } = await supabase.rpc(
+    "get_public_sponsor_event_prizes",
+    { token_input: token }
+  );
+  const prizes = (prizesData || {}) as {
+    prize_count?: number | null;
+    first_place_prize?: string | null;
+    first_place_amount?: number | null;
+    second_place_prize?: string | null;
+    second_place_amount?: number | null;
+    third_place_prize?: string | null;
+    third_place_amount?: number | null;
+  };
+  const hasFirst = !!(prizes.first_place_prize || prizes.first_place_amount);
+  const hasSecond = !!(prizes.second_place_prize || prizes.second_place_amount);
+  const hasThird = !!(prizes.third_place_prize || prizes.third_place_amount);
+  const hasAnyPrize = hasFirst || hasSecond || hasThird;
+
   const isCamp = row.event_type === "camp";
   const playerName = row.player_last_initial
     ? `${row.player_first_name} ${row.player_last_initial}`
@@ -253,6 +274,66 @@ export default async function SponsorPage({
               </div>
             </div>
           </div>
+
+          {/* Slice 5.9.3: Prizes — what's actually on the line. Only
+              renders when at least one place has a prize set. Each row
+              shows the medal + place + dollar amount (if set) + prize
+              description (gift card name or custom text). */}
+          {hasAnyPrize && (
+            <div className="sponsor-prizes">
+              <div className="sponsor-prizes-title">
+                What {row.player_first_name} can win
+              </div>
+              <div className="sponsor-prizes-list">
+                {hasFirst && (
+                  <div className="sponsor-prize-row">
+                    <span className="sponsor-prize-medal" aria-hidden="true">🥇</span>
+                    <div className="sponsor-prize-body">
+                      <div className="sponsor-prize-place">1st Place</div>
+                      <div className="sponsor-prize-text">
+                        {prizes.first_place_amount && (
+                          <strong>${formatMoney(Number(prizes.first_place_amount))} </strong>
+                        )}
+                        {prizes.first_place_prize}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {hasSecond && (
+                  <div className="sponsor-prize-row">
+                    <span className="sponsor-prize-medal" aria-hidden="true">🥈</span>
+                    <div className="sponsor-prize-body">
+                      <div className="sponsor-prize-place">2nd Place</div>
+                      <div className="sponsor-prize-text">
+                        {prizes.second_place_amount && (
+                          <strong>${formatMoney(Number(prizes.second_place_amount))} </strong>
+                        )}
+                        {prizes.second_place_prize}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {hasThird && (
+                  <div className="sponsor-prize-row">
+                    <span className="sponsor-prize-medal" aria-hidden="true">🥉</span>
+                    <div className="sponsor-prize-body">
+                      <div className="sponsor-prize-place">3rd Place</div>
+                      <div className="sponsor-prize-text">
+                        {prizes.third_place_amount && (
+                          <strong>${formatMoney(Number(prizes.third_place_amount))} </strong>
+                        )}
+                        {prizes.third_place_prize}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="sponsor-prizes-foot">
+                Top performers — measured by completed challenges and
+                fundraising — take home these prizes when the event ends.
+              </div>
+            </div>
+          )}
 
           {/* CTA — "launching soon" until Stripe ships in 5.10 */}
           <SponsorComingSoonButton playerName={playerName} />

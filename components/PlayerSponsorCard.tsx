@@ -35,6 +35,13 @@ interface Props {
   goalAmount: number;
   eventStartDate: string;
   eventEndDate: string;
+  // Slice 5.9.3 — prize fields shown on the generated PDF flyer
+  firstPlacePrize?: string | null;
+  firstPlaceAmount?: number | null;
+  secondPlacePrize?: string | null;
+  secondPlaceAmount?: number | null;
+  thirdPlacePrize?: string | null;
+  thirdPlaceAmount?: number | null;
 }
 
 export default function PlayerSponsorCard(props: Props) {
@@ -129,6 +136,12 @@ export default function PlayerSponsorCard(props: Props) {
           goalAmount: props.goalAmount,
           eventStartDate: props.eventStartDate,
           eventEndDate: props.eventEndDate,
+          firstPlacePrize: props.firstPlacePrize ?? null,
+          firstPlaceAmount: props.firstPlaceAmount ?? null,
+          secondPlacePrize: props.secondPlacePrize ?? null,
+          secondPlaceAmount: props.secondPlaceAmount ?? null,
+          thirdPlacePrize: props.thirdPlacePrize ?? null,
+          thirdPlaceAmount: props.thirdPlaceAmount ?? null,
         }
       );
       // jsPDF triggers the download itself — nothing else to do.

@@ -16788,3 +16788,163 @@ input.form-input-with-prefix {
 .sponsor-trust-row {
   display: none !important;
 }
+
+
+/* ============================================================
+   Slice 5.9.3 — Prizes display
+   ============================================================
+   Two themes — light (sponsor public page) and dark
+   (player /home dashboard). The coach event detail page already
+   has its own .prize-list/.prize-row rendering and is untouched.
+   ============================================================ */
+
+
+/* --- Sponsor page (light theme) --- */
+.sponsor-prizes {
+  margin-top: 22px;
+  padding: 18px 18px 14px;
+  background: linear-gradient(
+    135deg,
+    rgba(217, 119, 6, 0.06) 0%,
+    rgba(53, 213, 223, 0.04) 100%
+  );
+  border: 1px solid rgba(217, 119, 6, 0.22);
+  border-radius: 10px;
+}
+
+.sponsor-prizes-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.sponsor-prizes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sponsor-prize-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.sponsor-prize-medal {
+  font-size: 26px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.sponsor-prize-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.sponsor-prize-place {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.0px;
+  color: var(--color-text-soft);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.sponsor-prize-text {
+  font-size: 14px;
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+.sponsor-prize-text strong {
+  font-weight: 800;
+  color: #d97706;
+}
+
+.sponsor-prizes-foot {
+  margin-top: 12px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--color-text-soft);
+  text-align: center;
+  font-style: italic;
+}
+
+
+/* --- Player /home dashboard (dark theme) --- */
+.player-home-prizes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.player-home-prize-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: rgba(10, 47, 55, 0.55);
+  border: 1px solid var(--e2k-border);
+  border-radius: var(--e2k-r-md);
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.player-home-prize-row-first {
+  background: linear-gradient(
+    135deg,
+    rgba(217, 119, 6, 0.12) 0%,
+    rgba(53, 213, 223, 0.06) 100%
+  );
+  border-color: rgba(217, 119, 6, 0.35);
+}
+
+.player-home-prize-medal {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.player-home-prize-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.player-home-prize-place {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  color: var(--e2k-cyan);
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+.player-home-prize-text {
+  font-size: 14px;
+  color: var(--e2k-text);
+  line-height: 1.45;
+}
+
+.player-home-prize-text strong {
+  font-weight: 800;
+  color: #ffb24d;
+}
+
+.player-home-prizes-foot {
+  margin: 12px 4px 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--e2k-text-muted);
+  font-style: italic;
+}
