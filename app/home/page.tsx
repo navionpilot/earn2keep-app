@@ -941,18 +941,11 @@ export default async function PlayerHomePage() {
           )}
         </section>
 
-        {/* Footer / coming soon */}
-        <section className="player-home-section">
-          <div className="player-home-coming-soon">
-            <div className="player-home-coming-soon-eyebrow">COMING SOON</div>
-            <ul className="player-home-coming-soon-list">
-              <li>🏆 Achievement badges as you hit milestones</li>
-              <li>📊 Live leaderboard view</li>
-              <li>💰 Real-time fundraising progress</li>
-              <li>📲 Push notifications when your coach reviews</li>
-            </ul>
-          </div>
-        </section>
+        {/* Slice 5.7.5: removed the "Coming Soon" footer panel — three of
+            its four items shipped (badges 5.3.2, leaderboard 5.6,
+            fundraising bar 5.7.3). The remaining item, push notifications,
+            doesn't justify a standalone panel. The page already has
+            plenty of content; an empty footer teaser was just noise. */}
       </main>
     </>
   );
