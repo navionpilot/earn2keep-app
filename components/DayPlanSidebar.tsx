@@ -227,6 +227,16 @@ export default function DayPlanSidebar({
                         {verificationLabel(c.verificationMode)}
                       </span>
                     </div>
+                    {/* Slice 5.7: explicit Minimize button at the bottom of
+                        the expanded details so the user can clearly
+                        collapse without hunting for the small ▾ arrow. */}
+                    <button
+                      type="button"
+                      className="day-challenge-minimize-btn"
+                      onClick={() => toggleExpanded(c.id)}
+                    >
+                      ▴ Minimize details
+                    </button>
                   </div>
                 )}
               </div>

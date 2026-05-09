@@ -14770,3 +14770,296 @@ input.form-input-with-prefix {
   background: rgba(53, 213, 223, 0.22);
   border-color: var(--e2k-cyan);
 }
+
+
+/* ============================================================
+   Slice 5.7 — Coach Wayfinding & Journey Map
+   ============================================================
+   Three coordinated wayfinding upgrades plus a polish pass on
+   challenge detail expansions:
+     - Sidebar items now show numbered/✓ badges
+     - DashboardGuide grouped into 3 phases with phase headers
+     - EventGuide reordered, adds a "look up" hint
+     - ChallengeLibraryModal cards expand on click
+     - DayPlanSidebar expanded details get teal/coral palette
+       (replaces the previous washed-out look) + minimize button
+   ============================================================ */
+
+
+/* --- Sidebar status badges --- */
+.e2k-nav-item {
+  position: relative;
+}
+
+.e2k-nav-badge {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  flex-shrink: 0;
+}
+
+.e2k-nav-badge-todo {
+  background: rgba(252, 211, 77, 0.18);
+  color: #FCD34D;
+  border: 1px solid rgba(252, 211, 77, 0.45);
+}
+
+.e2k-nav-badge-done {
+  background: rgba(110, 231, 183, 0.18);
+  color: #6EE7B7;
+  border: 1px solid rgba(110, 231, 183, 0.45);
+}
+
+/* When mobile sidebar is collapsed (icon-only on small screens), the
+   badge can overlap the icon. Position it as a small corner pip. */
+@media (max-width: 768px) {
+  .e2k-sidebar:not(.e2k-sidebar-open) .e2k-nav-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    min-width: 16px;
+    height: 16px;
+    font-size: 9px;
+    padding: 0 4px;
+  }
+}
+
+
+/* --- DashboardGuide phase headers --- */
+.e2k-walk-aside-phase {
+  margin-top: 14px;
+}
+
+.e2k-walk-aside-phase:first-child {
+  margin-top: 0;
+}
+
+.e2k-walk-aside-phase-label {
+  font-family: monospace, var(--font-display);
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--e2k-coral);
+  letter-spacing: 1.6px;
+  padding: 8px 0 6px;
+  border-top: 1px dashed var(--e2k-border);
+  margin-bottom: 4px;
+}
+
+.e2k-walk-aside-phase:first-child .e2k-walk-aside-phase-label {
+  border-top: none;
+  padding-top: 0;
+}
+
+
+/* --- EventGuide "look up" hint (steps 4 + 7 don't have CTAs) --- */
+.e2k-walk-aside-uplook {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 117, 95, 0.08);
+  border: 1px solid rgba(255, 117, 95, 0.30);
+  border-radius: var(--e2k-r-sm);
+  font-size: 12px;
+  color: var(--e2k-text);
+  line-height: 1.5;
+}
+
+.e2k-walk-aside-uplook strong {
+  color: var(--e2k-coral);
+  font-weight: 700;
+}
+
+
+/* --- ChallengeLibraryModal: expand/collapse for cards --- */
+.library-card-expand-toggle {
+  margin-top: 8px;
+  padding: 6px 10px;
+  background: transparent;
+  border: 1px dashed var(--e2k-border-strong);
+  border-radius: var(--e2k-r-sm);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--e2k-cyan);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  letter-spacing: 0.4px;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.library-card-expand-toggle:hover {
+  background: rgba(53, 213, 223, 0.08);
+  border-color: var(--e2k-cyan);
+  border-style: solid;
+}
+
+.library-card-expanded {
+  margin-top: 10px;
+  padding: 12px 14px;
+  background: rgba(10, 47, 55, 0.55);
+  border: 1px solid var(--e2k-border-strong);
+  border-left: 3px solid var(--e2k-cyan);
+  border-radius: var(--e2k-r-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.library-card-expanded-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.library-card-expanded-label {
+  font-family: monospace, var(--font-display);
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--e2k-cyan);
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.library-card-expanded-value {
+  font-size: 12px;
+  color: var(--e2k-text);
+  font-weight: 600;
+}
+
+.library-card-expanded-text {
+  font-size: 12px;
+  color: var(--e2k-text);
+  line-height: 1.55;
+}
+
+.library-card-expanded-text p {
+  margin: 0 0 6px;
+}
+
+.library-card-expanded-text p:last-child {
+  margin-bottom: 0;
+}
+
+.library-card-expanded-close {
+  margin-top: 4px;
+  padding: 6px 10px;
+  background: rgba(255, 117, 95, 0.10);
+  border: 1px solid rgba(255, 117, 95, 0.40);
+  border-radius: var(--e2k-r-sm);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--e2k-coral);
+  cursor: pointer;
+  align-self: flex-start;
+  letter-spacing: 0.4px;
+}
+
+.library-card-expanded-close:hover {
+  background: rgba(255, 117, 95, 0.20);
+}
+
+
+/* --- DayPlanSidebar: re-skin expanded details with teal/coral palette ---
+   (Replaces the washed-out gray look.) */
+.day-challenge-row.day-challenge-row-expanded {
+  background: linear-gradient(180deg,
+    rgba(53, 213, 223, 0.08) 0%,
+    rgba(53, 213, 223, 0.03) 100%);
+  border-color: rgba(53, 213, 223, 0.40) !important;
+  border-left: 3px solid var(--e2k-cyan) !important;
+}
+
+.day-challenge-details {
+  background: rgba(4, 20, 24, 0.55) !important;
+  border: 1px solid var(--e2k-border-strong) !important;
+  padding: 14px !important;
+  border-radius: var(--e2k-r-sm) !important;
+  margin-top: 10px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.day-challenge-detail-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.day-challenge-detail-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.day-challenge-detail-label {
+  font-family: monospace, var(--font-display) !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  color: var(--e2k-cyan) !important;
+  letter-spacing: 1.4px !important;
+  text-transform: uppercase !important;
+}
+
+.day-challenge-detail-value {
+  font-size: 12px !important;
+  color: var(--e2k-text) !important;
+  font-weight: 600 !important;
+}
+
+.day-challenge-detail-text {
+  font-size: 12px !important;
+  color: var(--e2k-text) !important;
+  line-height: 1.55 !important;
+}
+
+.day-challenge-detail-text p {
+  margin: 0 0 6px;
+}
+
+.day-challenge-detail-text p:last-child {
+  margin-bottom: 0;
+}
+
+/* The expand arrow on the title — make it more visible. */
+.day-challenge-expand-arrow {
+  margin-left: auto;
+  font-size: 14px;
+  color: var(--e2k-cyan);
+  font-weight: 800;
+}
+
+/* Slice 5.7: explicit Minimize button at the bottom of the expanded
+   details. Coral so it's obvious it ends the expansion (matches the
+   "close" semantic from ChallengeLibraryModal). */
+.day-challenge-minimize-btn {
+  margin-top: 6px;
+  padding: 7px 12px;
+  background: rgba(255, 117, 95, 0.10);
+  border: 1px solid rgba(255, 117, 95, 0.40);
+  border-radius: var(--e2k-r-sm);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--e2k-coral);
+  cursor: pointer;
+  align-self: flex-start;
+  letter-spacing: 0.4px;
+  transition: background 150ms ease;
+}
+
+.day-challenge-minimize-btn:hover {
+  background: rgba(255, 117, 95, 0.20);
+}

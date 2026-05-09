@@ -20,38 +20,6 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Slice 5.3 + 5.3.1: if this auth user is linked to a player record AND
-  // doesn't own any organizations of their own, they're a pure player —
-  // send them to the player home screen instead of showing them the empty
-  // coach dashboard.
-  //
-  // If the user owns at least one organization, they're a coach (possibly
-  // also linked to their own player record for testing). In that case we
-  // stay on /dashboard and surface the coach view; the PlayerTopBar on
-  // /home offers a "Coach Dashboard" link so they can switch back if they
-  // ever land on the player view manually.
-  //
-  // We do this BEFORE the profile load so the player-home redirect fires
-  // even for a player whose profile happens to be incomplete.
-  if (user?.id) {
-    const { data: linkedPlayer } = await supabase
-      .from("players")
-      .select("id")
-      .eq("linked_user_id", user.id)
-      .maybeSingle();
-    if (linkedPlayer) {
-      const { count: ownedOrgCount } = await supabase
-        .from("organizations")
-        .select("*", { count: "exact", head: true })
-        .eq("owner_id", user.id);
-      // Pure player (no orgs of their own) → go to /home.
-      if (!ownedOrgCount || ownedOrgCount === 0) {
-        redirect("/home");
-      }
-      // Otherwise: dual-role user (coach + player). Stay on /dashboard.
-    }
-  }
-
   const { data: profile } = await supabase
     .from("profiles")
     .select("full_name, primary_role")
@@ -151,7 +119,7 @@ export default async function DashboardPage() {
     {
       num: "$" + totalRaised.toLocaleString("en-US"),
       label: "Total Raised",
-      trend: totalRaised > 0 ? "Across all events" : "Sponsorships coming soon",
+      trend: totalRaised > 0 ? "Across all events" : "Sponsorships ship in Phase 5",
       trendTone: totalRaised > 0 ? "positive" : "neutral",
     },
     {
@@ -180,6 +148,40 @@ export default async function DashboardPage() {
   const hasTeams = (teamCount || 0) > 0;
   const hasPlayers = (playerCount || 0) > 0;
   const hasEvent = (eventCount || 0) > 0;
+
+  // Slice 5.7: pull additional flags so the new DashboardGuide can light up
+  // the Send Invites / QR / Activate / Review / Complete steps. Each is a
+  // tiny count() query (head: true returns no rows, just the count).
+  const [
+    inviteCountRes,
+    qrCountRes,
+    activeOrCompletedRes,
+    submissionCountRes,
+    completedEventRes,
+  ] = await Promise.all([
+    supabase
+      .from("player_invites")
+      .select("id", { count: "exact", head: true }),
+    supabase
+      .from("sponsor_tokens")
+      .select("id", { count: "exact", head: true }),
+    supabase
+      .from("events")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["active", "completed"]),
+    supabase
+      .from("submissions")
+      .select("id", { count: "exact", head: true }),
+    supabase
+      .from("events")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "completed"),
+  ]);
+  const hasInvited = (inviteCountRes.count || 0) > 0;
+  const hasQR = (qrCountRes.count || 0) > 0;
+  const hasActiveOrCompletedEvent = (activeOrCompletedRes.count || 0) > 0;
+  const hasSubmissions = (submissionCountRes.count || 0) > 0;
+  const hasCompletedEvent = (completedEventRes.count || 0) > 0;
 
   // Where does "+ Create Event" go? Most-recent org, or org-creation if none.
   const newEventHref = hasOrganization
@@ -329,6 +331,11 @@ export default async function DashboardPage() {
           hasTeams={hasTeams}
           hasPlayers={hasPlayers}
           hasEvent={hasEvent}
+          hasInvited={hasInvited}
+          hasQR={hasQR}
+          hasActiveOrCompletedEvent={hasActiveOrCompletedEvent}
+          hasSubmissions={hasSubmissions}
+          hasCompletedEvent={hasCompletedEvent}
           firstOrgId={organizations && organizations[0] ? organizations[0].id : undefined}
           firstTeamId={firstTeamId}
           firstEventId={events && events[0] ? events[0].id : undefined}

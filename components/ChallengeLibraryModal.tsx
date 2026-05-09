@@ -91,6 +91,20 @@ export default function ChallengeLibraryModal({
   const [search, setSearch] = useState("");
   const [pendingChallenge, setPendingChallenge] = useState<LibraryChallenge | null>(null);
   const [pendingTarget, setPendingTarget] = useState<string>("");
+  // Slice 5.7: track which library cards are expanded to show full details.
+  // Click "▾ More details" to expand, "▴ Minimize" or the toggle again to
+  // collapse. Set of challenge IDs.
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const toggleExpanded = (id: string) =>
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   // Manage-mode state
   const [manageMode, setManageMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -511,6 +525,93 @@ export default function ChallengeLibraryModal({
                       <div className="library-card-meta">
                         Default: {c.default_rep_target || "—"} {c.unit}
                       </div>
+
+                      {/* Slice 5.7: click "More details" to expand the card.
+                          Reveals recording setup, verification rules, etc.
+                          Hidden in manage mode (Edit/Delete row already
+                          consumes the bottom of the card). */}
+                      {(c.recording_instructions || c.verification_mode || c.setup_template_key) &&
+                        !manageMode && (
+                          <>
+                            <button
+                              type="button"
+                              className="library-card-expand-toggle"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleExpanded(c.id);
+                              }}
+                              aria-expanded={expandedIds.has(c.id)}
+                            >
+                              {expandedIds.has(c.id) ? "▴ Less details" : "▾ More details"}
+                            </button>
+                            {expandedIds.has(c.id) && (
+                              <div className="library-card-expanded">
+                                {c.setup_template_key && (
+                                  <div className="library-card-expanded-block">
+                                    <div className="library-card-expanded-label">
+                                      📱 Recording setup
+                                    </div>
+                                    <div className="library-card-expanded-value">
+                                      {c.setup_template_key
+                                        .replace(/_/g, " ")
+                                        .replace(/\b\w/g, (l) => l.toUpperCase())}
+                                    </div>
+                                  </div>
+                                )}
+                                {c.recording_instructions && (
+                                  <div className="library-card-expanded-block">
+                                    <div className="library-card-expanded-label">
+                                      Setup instructions
+                                    </div>
+                                    <div className="library-card-expanded-text">
+                                      {c.recording_instructions
+                                        .split("\n\n")
+                                        .map((para, i) => (
+                                          <p key={i}>{para}</p>
+                                        ))}
+                                    </div>
+                                  </div>
+                                )}
+                                {c.verification_mode && (
+                                  <div className="library-card-expanded-block">
+                                    <div className="library-card-expanded-label">
+                                      Verification
+                                    </div>
+                                    <div className="library-card-expanded-value">
+                                      {c.verification_mode === "ai_only"
+                                        ? "AI verification only — instant scoring"
+                                        : c.verification_mode === "coach_only"
+                                        ? "Coach review required"
+                                        : c.verification_mode === "ai_then_coach"
+                                        ? "AI pre-screen, coach confirms"
+                                        : c.verification_mode}
+                                    </div>
+                                  </div>
+                                )}
+                                {c.reference_photo_caption && (
+                                  <div className="library-card-expanded-block">
+                                    <div className="library-card-expanded-label">
+                                      🖼 Reference photo
+                                    </div>
+                                    <div className="library-card-expanded-text">
+                                      {c.reference_photo_caption}
+                                    </div>
+                                  </div>
+                                )}
+                                <button
+                                  type="button"
+                                  className="library-card-expanded-close"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleExpanded(c.id);
+                                  }}
+                                >
+                                  ▴ Minimize
+                                </button>
+                              </div>
+                            )}
+                          </>
+                        )}
 
                       {manageMode ? (
                         userCanDelete ? (

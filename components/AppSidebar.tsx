@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase-browser";
 import ImpactCard from "@/components/ImpactCard";
 
 export type NavKey =
@@ -18,6 +20,19 @@ interface NavItem {
   label: string;
   href: string;
   icon: React.ReactNode;
+  // Slice 5.7: items that participate in the numbered "coach journey"
+  // wayfinding system. Settings/Help/Dashboard get no badge (always-available).
+  journeyStep?: number;
+  statusKey?: keyof JourneyStatus;
+}
+
+// Slice 5.7: shape of the data the sidebar needs to decide which numbered
+// items have been completed. Fetched once on mount.
+interface JourneyStatus {
+  hasOrg: boolean;
+  hasTeam: boolean;
+  hasEvent: boolean;
+  hasQR: boolean;
 }
 
 interface AppSidebarProps {
@@ -97,15 +112,66 @@ const Icon = {
 
 const items: NavItem[] = [
   { key: "overview", label: "Dashboard", href: "/dashboard", icon: Icon.Dashboard },
-  { key: "organizations", label: "Organizations", href: "/organizations", icon: Icon.Building },
-  { key: "teams", label: "Teams", href: "/teams", icon: Icon.Users },
-  { key: "events", label: "Events", href: "/events", icon: Icon.Calendar },
-  { key: "qr-codes", label: "QR Codes", href: "/qr-codes", icon: Icon.QrCode },
+  { key: "organizations", label: "Organizations", href: "/organizations", icon: Icon.Building, journeyStep: 1, statusKey: "hasOrg" },
+  { key: "teams", label: "Teams", href: "/teams", icon: Icon.Users, journeyStep: 2, statusKey: "hasTeam" },
+  { key: "events", label: "Events", href: "/events", icon: Icon.Calendar, journeyStep: 3, statusKey: "hasEvent" },
+  { key: "qr-codes", label: "QR Codes", href: "/qr-codes", icon: Icon.QrCode, journeyStep: 4, statusKey: "hasQR" },
   { key: "settings", label: "Settings", href: "/settings", icon: Icon.Settings },
   { key: "help", label: "Help", href: "/help", icon: Icon.Help },
 ];
 
 export default function AppSidebar({ active, open, onClose }: AppSidebarProps) {
+  // Slice 5.7: fetch the coach's journey status once on mount. Used to
+  // decorate numbered nav items with either the step number ([1]/[2]/...)
+  // or a green checkmark (✓) when complete. Single round-trip across 4
+  // count() queries — cheap. We tolerate the brief "no badge" flash
+  // before status loads so we don't block the render.
+  const [status, setStatus] = useState<JourneyStatus | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchStatus = async () => {
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const [orgsRes, teamsRes, eventsRes, tokensRes] = await Promise.all([
+          supabase
+            .from("organizations")
+            .select("id", { count: "exact", head: true })
+            .eq("owner_id", user.id),
+          // RLS scopes teams/events/tokens to user-owned orgs automatically
+          supabase
+            .from("teams")
+            .select("id", { count: "exact", head: true }),
+          supabase
+            .from("events")
+            .select("id", { count: "exact", head: true }),
+          supabase
+            .from("sponsor_tokens")
+            .select("id", { count: "exact", head: true }),
+        ]);
+
+        if (cancelled) return;
+        setStatus({
+          hasOrg: (orgsRes.count || 0) > 0,
+          hasTeam: (teamsRes.count || 0) > 0,
+          hasEvent: (eventsRes.count || 0) > 0,
+          hasQR: (tokensRes.count || 0) > 0,
+        });
+      } catch {
+        // Failure is non-fatal — sidebar just renders without badges.
+      }
+    };
+    void fetchStatus();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <>
       {open && (
@@ -120,17 +186,38 @@ export default function AppSidebar({ active, open, onClose }: AppSidebarProps) {
         aria-label="Main navigation"
       >
         <nav className="e2k-sidebar-nav">
-          {items.map((item) => (
-            <Link
-              key={item.key}
-              href={item.href}
-              className={`e2k-nav-item ${active === item.key ? "active" : ""}`}
-              onClick={onClose}
-            >
-              <span className="e2k-nav-icon">{item.icon}</span>
-              <span className="e2k-nav-label">{item.label}</span>
-            </Link>
-          ))}
+          {items.map((item) => {
+            // Slice 5.7: build the small status badge (number, ✓, or none)
+            // for journeyed items only. Non-numbered items (Dashboard,
+            // Settings, Help) never get a badge.
+            let badge: React.ReactNode = null;
+            if (item.journeyStep && item.statusKey && status) {
+              const done = status[item.statusKey];
+              badge = (
+                <span
+                  className={`e2k-nav-badge ${
+                    done ? "e2k-nav-badge-done" : "e2k-nav-badge-todo"
+                  }`}
+                  aria-hidden="true"
+                  title={done ? "Complete" : `Step ${item.journeyStep} of your setup`}
+                >
+                  {done ? "✓" : item.journeyStep}
+                </span>
+              );
+            }
+            return (
+              <Link
+                key={item.key}
+                href={item.href}
+                className={`e2k-nav-item ${active === item.key ? "active" : ""}`}
+                onClick={onClose}
+              >
+                <span className="e2k-nav-icon">{item.icon}</span>
+                <span className="e2k-nav-label">{item.label}</span>
+                {badge}
+              </Link>
+            );
+          })}
         </nav>
         <div className="e2k-sidebar-footer">
           <ImpactCard />

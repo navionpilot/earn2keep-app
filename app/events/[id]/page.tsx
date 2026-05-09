@@ -205,6 +205,16 @@ export default async function EventDetailPage({
     pendingSubmissionCount = pendCount ?? 0;
   }
 
+  // Slice 5.7: at-least-one-sponsor-token check for this event. Sponsor
+  // tokens get auto-created when the coach opens the QR Codes page, so
+  // any token presence is a fair "has visited QR codes" signal that drives
+  // step 3 of the new EventGuide.
+  const { count: qrCount } = await supabase
+    .from("sponsor_tokens")
+    .select("id", { count: "exact", head: true })
+    .eq("event_id", id);
+  const hasQRCodes = (qrCount || 0) > 0;
+
   // First team id for the "Send invites" guide action button.
   const firstTeamId = teams.length > 0 ? teams[0].id : null;
 
@@ -758,13 +768,14 @@ export default async function EventDetailPage({
           />
         </div>
 
-        {/* Right-rail walkthrough — Slice 5.2.1. */}
+        {/* Right-rail walkthrough — Slice 5.2.1; reordered + QR step in 5.7. */}
         <EventGuide
           eventId={event.id}
           eventStatus={event.status}
           eventType={event.event_type}
           hasChallenges={(eventChallenges?.length || 0) > 0}
           hasInvitesSent={hasInvitesSent}
+          hasQRCodes={hasQRCodes}
           totalSubmissionCount={totalSubmissionCount}
           pendingSubmissionCount={pendingSubmissionCount}
           firstTeamId={firstTeamId}

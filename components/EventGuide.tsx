@@ -3,25 +3,24 @@
 // =============================================================================
 // components/EventGuide.tsx — Right-sidebar walkthrough for event detail page
 // =============================================================================
-// Slice 5.2.1 ships this in response to user feedback: the dashboard's
-// step-by-step guide was helpful for getting from zero to having an event,
-// but once a coach lands on /events/[id] they didn't know what to do next.
+// Slice 5.7 reorders the steps and adds CTA buttons. The OLD order had
+// "Activate" as step 2 and "Send invites" as step 3 — but that's backwards.
+// Players need to claim their accounts BEFORE the event flips live, so
+// invites should come before activation. New order:
 //
-// Mirrors the architecture of DashboardGuide:
-//   - Client component, takes flat boolean/id props from server parent
-//   - Computes a "currentStep" from the event's progress signals
-//   - Renders 7 steps with past/current/future styling
-//   - Reuses the same e2k-walk-aside-* CSS classes as DashboardGuide so the
-//     visual is identical, just with event-specific copy
+//   1. Build training schedule
+//   2. Send invites to your players      ← MOVED UP from step 3
+//   3. Generate sponsor QR codes         ← MOVED UP from step 4
+//   4. Activate the event                ← MOVED DOWN from step 2
+//   5. Review submissions
+//   6. Track leaderboard
+//   7. Mark event complete
 //
-// 7 steps, in the order a coach actually does them after creating an event:
-//   1. Build training schedule  (drag challenges into days)
-//   2. Activate the event       (Draft -> Active)
-//   3. Send invites to players  (so they can sign up)
-//   4. Distribute sponsor QRs   (print flyers, share links)
-//   5. Review submissions       (one-tap approve/reject as videos roll in)
-//   6. Track the leaderboard    (auto-updates; explains scoring)
-//   7. Mark the event complete  (when the season ends)
+// Step 2 ("Send invites") now has a deep-link CTA button:
+//   /teams/<id>?send=true → auto-opens the SendInvitesModal
+//
+// Steps 4 and 7 don't have CTAs — both are header buttons (▶ Activate Event,
+// ✓ Mark Complete) — so the step copy just says "look up there."
 // =============================================================================
 
 import { useState } from "react";
@@ -33,8 +32,10 @@ interface EventGuideProps {
   eventType: "camp" | "tournament" | string | null;
   // Schedule progress
   hasChallenges: boolean;
-  // Player + invite progress (used to detect step 3 done-ness)
+  // Player + invite progress
   hasInvitesSent: boolean;
+  // Slice 5.7: QR-codes-page-visited indicator (sponsor_tokens exist)
+  hasQRCodes: boolean;
   // Submission progress
   totalSubmissionCount: number;
   pendingSubmissionCount: number;
@@ -48,8 +49,6 @@ interface StepCopy {
   intro: string;
   detail?: string;
   tip?: string;
-  // Optional Camp/Tournament-specific notes (used on step 6 = leaderboard,
-  // since scoring rules differ between event types).
   campNote?: string;
   tournamentNote?: string;
 }
@@ -66,30 +65,30 @@ const STEPS: StepCopy[] = [
   },
   {
     num: 2,
+    title: "Send invites to your players",
+    intro:
+      "Players need their own accounts to record challenges and track fundraising. Send invites BEFORE activating the event so they're ready to go on day one.",
+    detail:
+      "Each player gets a branded email with a one-click sign-up link. They don't need a password — just click the link in their inbox. The button below jumps straight to your team page with the invite modal open.",
+    tip: "If a parent's email is on the player record, that's where the invite goes. Otherwise paste in the right address right in the modal.",
+  },
+  {
+    num: 3,
+    title: "Generate sponsor QR codes",
+    intro:
+      "Each player has a unique sponsor page with their own QR code. Print flyers, text the link to family, post on socials — these are how money gets raised.",
+    detail:
+      "Sponsors scan the QR or click the link, see the player's name and event, and pledge support. Camps: sponsors back a fundraising minimum. Tournaments: registration fees are paid up front.",
+    tip: "Open the QR Codes tab to download a printable flyer per player, or copy individual sponsor links to share digitally.",
+  },
+  {
+    num: 4,
     title: "Activate the event",
     intro:
       "While your event is in Draft, players can't submit anything and sponsors can't pledge. Click ▶ Activate Event in the header to flip it live.",
     detail:
       "You can pause an active event later if you need to (rain delay, schedule shift) — that just freezes new submissions without ending the event.",
     tip: "Don't worry about activating too early. Sponsor pages and player tracking only \"go live\" once you flip the switch.",
-  },
-  {
-    num: 3,
-    title: "Send invites to your players",
-    intro:
-      "Players need their own accounts to record challenges and track fundraising. Click into your team and use the ✉ Send Invites button.",
-    detail:
-      "Each player gets a branded email with a one-click sign-up link. They don't need a password — just click the link in their inbox.",
-    tip: "If a parent's email is on the player record, that's where the invite goes. Otherwise you can paste in the right address right in the modal.",
-  },
-  {
-    num: 4,
-    title: "Distribute sponsor QR codes",
-    intro:
-      "Each player has a unique sponsor page with their own QR code. Print flyers, text the link to family, post on socials — these are how money gets raised.",
-    detail:
-      "Sponsors scan the QR or click the link, see the player's name and event, and pledge support. Camps: sponsors back a fundraising minimum. Tournaments: registration fees are paid up front.",
-    tip: "Open the QR Codes tab to download a printable flyer per player, or copy individual sponsor links to share digitally.",
   },
   {
     num: 5,
@@ -121,33 +120,34 @@ const STEPS: StepCopy[] = [
   },
 ];
 
-// Compute which step the coach should focus on right now. This drives the
-// "Step X of 7" header line and which step gets the full detailed copy +
-// action button. Past steps get ✓, future steps get a teaser.
+// Slice 5.7: new step numbers — see header comment for old/new mapping.
 function getCurrentStep(props: EventGuideProps): number {
   // Step 1: schedule must have at least one challenge.
   if (!props.hasChallenges) return 1;
 
-  // Step 2: event must be live.
-  if (props.eventStatus === "draft") return 2;
+  // Step 2: at least one player invite must have been sent.
+  if (!props.hasInvitesSent) return 2;
 
-  // Once event is completed, everything's done.
+  // Step 3: at least one sponsor QR token must exist (proxy for "coach
+  // has opened the QR codes page at least once").
+  if (!props.hasQRCodes) return 3;
+
+  // Step 4: event must be activated.
+  if (props.eventStatus === "draft") return 4;
+
+  // Once event is completed, the journey is done.
   if (props.eventStatus === "completed") return 7;
-
-  // Step 3: at least one player must have an invite sent.
-  if (!props.hasInvitesSent) return 3;
 
   // Step 5: pending submissions waiting for review.
   if (props.pendingSubmissionCount > 0) return 5;
 
-  // If submissions exist but none are pending, the leaderboard is the
+  // Step 6: submissions exist but none pending — leaderboard is the
   // most useful active surface to point at.
   if (props.totalSubmissionCount > 0) return 6;
 
-  // Default once active + invites are out: distribute QR codes (step 4).
-  // This is the longest "in progress" state; coaches sit here while waiting
-  // for first submissions to arrive.
-  return 4;
+  // Default once active + everything's been done: hang out on the
+  // leaderboard while waiting for first submissions to roll in.
+  return 6;
 }
 
 function getActionFor(
@@ -156,23 +156,40 @@ function getActionFor(
 ): { label: string; href: string } | null {
   switch (stepNum) {
     case 1:
-      return { label: "Open schedule planner →", href: `/events/${props.eventId}/schedule` };
+      return {
+        label: "Open schedule planner →",
+        href: `/events/${props.eventId}/schedule`,
+      };
     case 2:
+      // Slice 5.7: deep-link to team page with ?send=true to auto-open
+      // the SendInvitesModal. The team page reads this and pre-opens
+      // the modal in TeamInvitesButton.
+      return props.firstTeamId
+        ? {
+            label: "✉ Open team to send invites →",
+            href: `/teams/${props.firstTeamId}?send=true`,
+          }
+        : null;
+    case 3:
+      return {
+        label: "Open QR codes →",
+        href: `/events/${props.eventId}/qr-codes`,
+      };
+    case 4:
       // No href — activation is via the EventStatusButton in the page header.
       return null;
-    case 3:
-      return props.firstTeamId
-        ? { label: "Open team to invite players →", href: `/teams/${props.firstTeamId}` }
-        : null;
-    case 4:
-      return { label: "Open QR codes →", href: `/events/${props.eventId}/qr-codes` };
     case 5:
       return {
-        label: `Review submissions${props.pendingSubmissionCount > 0 ? ` (${props.pendingSubmissionCount})` : ""} →`,
+        label: `Review submissions${
+          props.pendingSubmissionCount > 0 ? ` (${props.pendingSubmissionCount})` : ""
+        } →`,
         href: `/events/${props.eventId}/submissions`,
       };
     case 6:
-      return { label: "Open leaderboard →", href: `/events/${props.eventId}/leaderboard` };
+      return {
+        label: "Open leaderboard →",
+        href: `/events/${props.eventId}/leaderboard`,
+      };
     case 7:
       // No href — completion is via the EventStatusButton in the page header.
       return null;
@@ -188,7 +205,11 @@ export default function EventGuide(props: EventGuideProps) {
   const isCamp = props.eventType === "camp";
 
   return (
-    <aside className={`e2k-walk-aside e2k-dash-guide ${collapsed ? "e2k-walk-aside-collapsed" : ""}`}>
+    <aside
+      className={`e2k-walk-aside e2k-dash-guide ${
+        collapsed ? "e2k-walk-aside-collapsed" : ""
+      }`}
+    >
       <div className="e2k-walk-aside-head">
         <div className="e2k-walk-aside-eyebrow-row">
           <span className="e2k-walk-aside-eyebrow">★ EVENT WALKTHROUGH ★</span>
@@ -231,7 +252,7 @@ export default function EventGuide(props: EventGuideProps) {
                 className={`e2k-walk-aside-step e2k-walk-aside-step-${status}`}
               >
                 <div className="e2k-walk-aside-num">
-                  {status === "past" || (allDone && step.num <= 7) ? "✓" : step.num}
+                  {status === "past" ? "✓" : step.num}
                 </div>
                 <div className="e2k-walk-aside-body">
                   <div className="e2k-walk-aside-step-title">{step.title}</div>
@@ -243,13 +264,16 @@ export default function EventGuide(props: EventGuideProps) {
                         <p className="e2k-walk-aside-text">{step.detail}</p>
                       )}
 
-                      {/* Step 6: scoring rules differ between Camp and Tournament,
-                          so show whichever applies to this event. */}
-                      {step.num === 6 && (
-                        <div className="e2k-walk-aside-typetip e2k-walk-aside-camp">
-                          <strong>{isCamp ? "Camp scoring:" : "Tournament scoring:"}</strong>{" "}
-                          {isCamp ? step.campNote : step.tournamentNote}
-                        </div>
+                      {/* Camp vs Tournament tip on the leaderboard step */}
+                      {step.num === 6 && (step.campNote || step.tournamentNote) && (
+                        <>
+                          <div className="e2k-walk-aside-typetip e2k-walk-aside-camp">
+                            <strong>Camp:</strong> {step.campNote}
+                          </div>
+                          <div className="e2k-walk-aside-typetip e2k-walk-aside-tournament">
+                            <strong>Tournament:</strong> {step.tournamentNote}
+                          </div>
+                        </>
                       )}
 
                       {step.tip && (
@@ -258,27 +282,22 @@ export default function EventGuide(props: EventGuideProps) {
                         </div>
                       )}
 
-                      {action && (
-                        <Link href={action.href} className="e2k-dash-guide-action">
+                      {action ? (
+                        <Link
+                          href={action.href}
+                          className="e2k-dash-guide-action"
+                        >
                           {action.label}
                         </Link>
-                      )}
-
-                      {/* Steps 2 + 7 don't have action hrefs because the
-                          control lives in the page header (EventStatusButton).
-                          Show a small inline pointer instead. */}
-                      {step.num === 2 && !action && (
-                        <p className="e2k-walk-aside-text e2k-walk-aside-pointer">
-                          ↑ Look for the <strong>▶ Activate Event</strong> button at the
-                          top of this page.
+                      ) : step.num === 4 ? (
+                        <p className="e2k-walk-aside-uplook">
+                          ↑ Look for the <strong>▶ Activate Event</strong> button at the top of this page.
                         </p>
-                      )}
-                      {step.num === 7 && !action && (
-                        <p className="e2k-walk-aside-text e2k-walk-aside-pointer">
-                          ↑ The <strong>✓ Mark Complete</strong> button is at the top of
-                          this page.
+                      ) : step.num === 7 ? (
+                        <p className="e2k-walk-aside-uplook">
+                          ↑ Look for the <strong>✓ Mark Complete</strong> button at the top of this page.
                         </p>
-                      )}
+                      ) : null}
                     </>
                   )}
 
@@ -290,8 +309,8 @@ export default function EventGuide(props: EventGuideProps) {
 
                   {status === "future" && (
                     <p className="e2k-walk-aside-text e2k-walk-aside-future-text">
-                      {step.intro.length > 75
-                        ? step.intro.substring(0, 75) + "…"
+                      {step.intro.length > 70
+                        ? step.intro.substring(0, 70) + "…"
                         : step.intro}
                     </p>
                   )}
@@ -301,7 +320,9 @@ export default function EventGuide(props: EventGuideProps) {
           })}
 
           <div className="e2k-walk-aside-foot">
-            <p className="e2k-walk-aside-foot-text">Need more detail?</p>
+            <p className="e2k-walk-aside-foot-text">
+              {isCamp ? "Camp event tips:" : "Tournament event tips:"}
+            </p>
             <Link href="/help" className="e2k-walk-aside-foot-link">
               Open Help page →
             </Link>

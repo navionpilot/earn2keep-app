@@ -9,10 +9,16 @@ import TeamInvitesButton from "@/components/TeamInvitesButton";
 import AppShell from "@/components/AppShell";
 export default async function TeamDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  // Slice 5.7: read ?send=true from URL to auto-open the SendInvitesModal.
+  // Used by deep-links from the dashboard/event-guide CTA buttons.
+  searchParams: Promise<{ send?: string }>;
 }) {
   const { id } = await params;
+  const sp = await searchParams;
+  const autoOpenInvites = sp?.send === "true";
   const supabase = await createClient();
   const {
     data: { user },
@@ -158,6 +164,7 @@ export default async function TeamDetailPage({
                       linked_user_id: p.linked_user_id ?? null,
                     }))}
                     teamName={team.name}
+                    defaultOpen={autoOpenInvites}
                   />
                   <Tooltip text="Add another player one at a time.">
                     <Link href={`/teams/${team.id}/players/new`} className="btn-add">
