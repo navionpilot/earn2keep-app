@@ -83,11 +83,12 @@ export default function PlayerTopBar({
           </Link>
         )}
 
-        {/* Notification bell — decorative for now. Wires up when
-            push/in-app notifications ship in 5.9. */}
-        <button
-          type="button"
-          className="e2k-header-icon-btn"
+        {/* Slice 5.9: Bell is a real Link to /home/notifications. Shows
+            an unread count badge when > 0; just the dot when 1-9; full
+            number capped at 9+ to keep layout stable. */}
+        <Link
+          href="/home/notifications"
+          className="e2k-header-icon-btn player-topbar-bell"
           aria-label={
             unreadCount > 0
               ? `${unreadCount} unread notifications`
@@ -108,8 +109,12 @@ export default function PlayerTopBar({
             <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3H4a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6" />
             <path d="M9 17v1a3 3 0 0 0 6 0v-1" />
           </svg>
-          {unreadCount > 0 && <span className="e2k-header-icon-dot" />}
-        </button>
+          {unreadCount > 0 && (
+            <span className="player-topbar-bell-badge" aria-hidden="true">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
+        </Link>
 
         <div className="e2k-header-avatar" title={fullName || displayName}>
           {/* Slice 5.5: clickable Link wrapping the avatar — tap to edit

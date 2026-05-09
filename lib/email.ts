@@ -370,3 +370,190 @@ function escape(s: string | null | undefined): string {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
+
+
+// =============================================================================
+// Slice 5.9 — Submission-reviewed email
+// =============================================================================
+// Sent to the player when a coach approves or rejects one of their
+// submissions. Respects players.notification_prefs.submission_reviewed
+// (caller checks this before invoking; this function just sends).
+// =============================================================================
+
+export interface SubmissionReviewedEmailOptions {
+  to: string;
+  playerFirstName: string;
+  challengeName: string;
+  eventName: string | null;
+  status: "approved" | "rejected";
+  // Approved-only fields
+  repsApproved: number | null;
+  coachNote: string | null;
+  // Rejected-only field
+  rejectionReason: string | null;
+  // Deep link back into the app's recording page
+  appUrl: string;
+}
+
+export async function sendSubmissionReviewedEmail(
+  opts: SubmissionReviewedEmailOptions
+): Promise<SendResult> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    return { ok: false, error: "RESEND_API_KEY is not set on the server." };
+  }
+
+  const subject =
+    opts.status === "approved"
+      ? `✓ ${opts.challengeName} approved!`
+      : `Try again — ${opts.challengeName}`;
+
+  const html = buildSubmissionReviewedHtml(opts, subject);
+  const text = buildSubmissionReviewedText(opts);
+
+  try {
+    const response = await fetch(RESEND_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        from: FROM_ADDRESS,
+        to: [opts.to],
+        subject,
+        html,
+        text,
+      }),
+    });
+
+    if (!response.ok) {
+      const errBody = await response.text().catch(() => "");
+      let parsed: { message?: string } = {};
+      try { parsed = JSON.parse(errBody); } catch { /* not json */ }
+      return {
+        ok: false,
+        error: parsed.message || `Resend ${response.status}`,
+      };
+    }
+
+    const json: { id?: string } = await response.json().catch(() => ({}));
+    return { ok: true, resendId: json.id };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Network error reaching Resend.";
+    return { ok: false, error: msg };
+  }
+}
+
+
+function buildSubmissionReviewedHtml(
+  opts: SubmissionReviewedEmailOptions,
+  subj: string
+): string {
+  const safeName = escape(opts.playerFirstName);
+  const safeChallenge = escape(opts.challengeName);
+  const safeEvent = opts.eventName ? escape(opts.eventName) : "";
+  const safeUrl = escape(opts.appUrl);
+
+  // Outlook-bulletproof layout: tables, inline styles, no Flex/Grid.
+  const isApproved = opts.status === "approved";
+  const accent = isApproved ? "#35d5df" : "#ff755f";
+  const headerEmoji = isApproved ? "✓" : "🔁";
+  const headlineText = isApproved
+    ? `Nice work, ${safeName}!`
+    : `Hey ${safeName} — give it another shot.`;
+
+  const bodyHtml = isApproved
+    ? `<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#0a2f37;">
+         Your <strong>${safeChallenge}</strong>${safeEvent ? ` submission for <strong>${safeEvent}</strong>` : ""} just got approved by your coach.
+       </p>`
+       + (opts.repsApproved != null
+         ? `<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#0a2f37;">
+              You got credit for <strong>${opts.repsApproved}</strong> reps. Every rep counts toward your total.
+            </p>`
+         : "")
+       + (opts.coachNote
+         ? `<table cellpadding="14" cellspacing="0" style="background:#f0fafb;border-left:3px solid ${accent};border-radius:6px;margin:0 0 18px;">
+              <tr><td>
+                <div style="font-size:11px;font-weight:700;color:${accent};letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px;">Note from coach</div>
+                <div style="font-size:14px;color:#0a2f37;line-height:1.5;font-style:italic;">"${escape(opts.coachNote)}"</div>
+              </td></tr>
+            </table>`
+         : "")
+    : `<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#0a2f37;">
+         Your <strong>${safeChallenge}</strong>${safeEvent ? ` submission for <strong>${safeEvent}</strong>` : ""} needs another go.
+       </p>`
+       + (opts.rejectionReason
+         ? `<table cellpadding="14" cellspacing="0" style="background:#fef0ec;border-left:3px solid ${accent};border-radius:6px;margin:0 0 18px;">
+              <tr><td>
+                <div style="font-size:11px;font-weight:700;color:${accent};letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px;">Coach feedback</div>
+                <div style="font-size:14px;color:#0a2f37;line-height:1.5;">${escape(opts.rejectionReason)}</div>
+              </td></tr>
+            </table>`
+         : "");
+
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>${escape(subj)}</title></head>
+<body style="margin:0;padding:0;background:#f4f7f8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0a2f37;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7f8;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:14px;overflow:hidden;max-width:560px;width:100%;">
+        <tr><td style="background:#041418;padding:28px 32px 24px;color:#ffffff;text-align:center;">
+          <div style="font-size:26px;font-weight:800;letter-spacing:-0.5px;">earn<sup style="font-size:14px;color:#ff755f;">2</sup>keep</div>
+          <div style="margin-top:4px;font-size:10px;font-weight:700;letter-spacing:1.6px;color:#35d5df;">EARN IT. KEEP IT.</div>
+        </td></tr>
+        <tr><td style="padding:28px 32px 8px;text-align:center;">
+          <div style="font-size:36px;line-height:1;margin-bottom:8px;">${headerEmoji}</div>
+          <h1 style="margin:0 0 8px;font-size:22px;font-weight:800;color:#0a2f37;">${headlineText}</h1>
+        </td></tr>
+        <tr><td style="padding:8px 32px 24px;">
+          ${bodyHtml}
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 0;">
+            <tr><td align="center">
+              <a href="${safeUrl}" style="display:inline-block;background:${accent};color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:99px;font-weight:800;font-size:15px;letter-spacing:0.4px;">
+                ${isApproved ? "View on earn²keep →" : "Try again →"}
+              </a>
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="background:#fafafa;padding:16px 32px;text-align:center;font-size:11px;color:#6b7280;border-top:1px solid #eaecef;">
+          You're getting this because your earn²keep notification preferences are on.<br>
+          Want fewer emails? Update them in your <a href="${escape(opts.appUrl).replace(/\/home.*$/, "/home/profile")}" style="color:#35d5df;">profile settings</a>.
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+function buildSubmissionReviewedText(opts: SubmissionReviewedEmailOptions): string {
+  const lines: string[] = [];
+  if (opts.status === "approved") {
+    lines.push(`Nice work, ${opts.playerFirstName}!`);
+    lines.push("");
+    lines.push(
+      `Your ${opts.challengeName}${opts.eventName ? ` submission for ${opts.eventName}` : ""} just got approved by your coach.`
+    );
+    if (opts.repsApproved != null) {
+      lines.push(`You got credit for ${opts.repsApproved} reps.`);
+    }
+    if (opts.coachNote) {
+      lines.push("");
+      lines.push(`Coach's note: "${opts.coachNote}"`);
+    }
+  } else {
+    lines.push(`Hey ${opts.playerFirstName} — your ${opts.challengeName} submission needs another go.`);
+    if (opts.rejectionReason) {
+      lines.push("");
+      lines.push(`Coach feedback: ${opts.rejectionReason}`);
+    }
+  }
+  lines.push("");
+  lines.push(`View on earn²keep: ${opts.appUrl}`);
+  lines.push("");
+  lines.push("--");
+  lines.push("earn²keep — Earn it. Keep it.");
+  return lines.join("\n");
+}

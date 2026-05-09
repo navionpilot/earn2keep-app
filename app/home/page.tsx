@@ -25,6 +25,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
 import PlayerTopBar from "@/components/PlayerTopBar";
+import { getUnreadNotificationCount } from "@/lib/notifications";
 import PlayerSponsorCard from "@/components/PlayerSponsorCard";
 import InstallAppPanel from "@/components/InstallAppPanel";
 import {
@@ -186,6 +187,9 @@ export default async function PlayerHomePage() {
     event = candidates[0] || null;
   }
 
+  // ----- Slice 5.9: unread notification count for the bell badge -----
+  const unreadCount = await getUnreadNotificationCount(supabase);
+
   // ----- Render shell + topbar (same for all branches) -----
   const TopBar = (
     <PlayerTopBar
@@ -193,6 +197,7 @@ export default async function PlayerHomePage() {
       lastName={player.last_name}
       avatarUrl={player.avatar_url ?? null}
       isAlsoCoach={isAlsoCoach}
+      unreadCount={unreadCount}
     />
   );
 

@@ -16,6 +16,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase-server";
 import PlayerTopBar from "@/components/PlayerTopBar";
+import { getUnreadNotificationCount } from "@/lib/notifications";
 import {
   computeEventLeaderboard,
   findPlayerEntry,
@@ -83,12 +84,16 @@ export default async function LeaderboardPage() {
     .eq("owner_id", user.id);
   const isAlsoCoach = (ownedOrgCount ?? 0) > 0;
 
+  // Slice 5.9: unread notification count for the bell badge.
+  const unreadCount = await getUnreadNotificationCount(supabase);
+
   const TopBar = (
     <PlayerTopBar
       displayName={player.first_name}
       lastName={player.last_name}
       avatarUrl={player.avatar_url ?? null}
       isAlsoCoach={isAlsoCoach}
+      unreadCount={unreadCount}
     />
   );
 

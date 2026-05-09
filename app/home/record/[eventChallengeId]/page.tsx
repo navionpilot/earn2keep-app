@@ -16,6 +16,7 @@ import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase-server";
 import PlayerTopBar from "@/components/PlayerTopBar";
+import { getUnreadNotificationCount } from "@/lib/notifications";
 import RecordingForm from "@/components/RecordingForm";
 import {
   getRecordingTemplate,
@@ -188,10 +189,13 @@ export default async function RecordPage({
 
   const lastSub = (priorSubs?.[0] || null) as PriorSubmission | null;
 
+  // Slice 5.9: unread notification count for the bell badge.
+  const unreadCount = await getUnreadNotificationCount(supabase);
+
   // ---------- Render ----------
   return (
     <>
-      <PlayerTopBar displayName={player.first_name} lastName={player.last_name} avatarUrl={player.avatar_url ?? null} />
+      <PlayerTopBar displayName={player.first_name} lastName={player.last_name} avatarUrl={player.avatar_url ?? null} unreadCount={unreadCount} />
       <main className="recording-page-wrap">
         <Link href="/home" className="recording-back">
           ← Back to home

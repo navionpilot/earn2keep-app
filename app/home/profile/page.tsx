@@ -16,6 +16,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
 import PlayerTopBar from "@/components/PlayerTopBar";
+import { getUnreadNotificationCount } from "@/lib/notifications";
 import PlayerProfileForm from "@/components/PlayerProfileForm";
 import PlayerBadges from "@/components/PlayerBadges";
 import { computeBadges } from "@/lib/badges";
@@ -168,12 +169,17 @@ export default async function ProfilePage() {
     fundraisingGoalHit,
   });
 
+  // Slice 5.9: unread notification count for the bell badge.
+  const unreadCount = await getUnreadNotificationCount(supabase);
+
   return (
     <>
       <PlayerTopBar
         displayName={playerRow.first_name}
         lastName={playerRow.last_name}
+        avatarUrl={playerRow.avatar_url ?? null}
         isAlsoCoach={isAlsoCoach}
+        unreadCount={unreadCount}
       />
       <main className="player-home-wrap">
         <Link href="/home" className="recording-back">

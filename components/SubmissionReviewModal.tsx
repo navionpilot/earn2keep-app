@@ -126,6 +126,26 @@ export default function SubmissionReviewModal({
         .eq("id", submission.id);
       if (updErr) throw new Error(updErr.message);
 
+      // Slice 5.9: Fire the email notification. The DB trigger (5.9 SQL)
+      // already creates the in-app notification row synchronously as
+      // part of the UPDATE, so a player refreshing /home will see it
+      // immediately. Email is best-effort — if the API errors, we
+      // surface a non-blocking warning but the review still saves.
+      if (newStatus === "approved" || newStatus === "rejected") {
+        try {
+          await fetch("/api/notify/submission-reviewed", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ submissionId: submission.id }),
+          });
+          // We deliberately don't surface email errors to the coach —
+          // the review is saved and the in-app notification fired. If
+          // email infra is misconfigured, server logs catch it.
+        } catch {
+          // Network glitch — same reasoning, swallow.
+        }
+      }
+
       onSaved();
       onClose();
     } catch (err: any) {
@@ -207,7 +227,7 @@ export default function SubmissionReviewModal({
           </div>
         ) : (
           <div className="submission-evidence-empty">
-            No video, photo, or note attached. The player upload experience is coming soon.
+            No video, photo, or note attached. Player upload UI ships in Phase 5.
           </div>
         )}
 
