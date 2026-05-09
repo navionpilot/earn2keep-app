@@ -6622,7 +6622,7 @@ a:hover {
 .submission-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(4, 20, 24, 0.78);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -6630,18 +6630,27 @@ a:hover {
   padding: 30px 16px;
   overflow-y: auto;
   animation: sponsor-fade-in 150ms ease;
+  backdrop-filter: blur(2px);
 }
 
 .submission-modal-card {
   position: relative;
   width: 100%;
   max-width: 640px;
-  background: #fff;
-  border-radius: 16px;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 47, 55, 0.98) 0%,
+    rgba(4, 20, 24, 0.98) 100%
+  );
+  border: 1px solid var(--e2k-border);
+  border-radius: var(--e2k-r-lg, 16px);
   padding: 28px 26px 22px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(53, 213, 223, 0.08);
   animation: sponsor-pop 200ms ease;
   margin: auto 0;
+  color: var(--e2k-text);
 }
 
 .submission-modal-close {
@@ -6651,43 +6660,46 @@ a:hover {
   font-size: 26px;
   background: transparent;
   border: none;
-  color: var(--color-text-muted);
+  color: var(--e2k-text-muted);
   cursor: pointer;
   line-height: 1;
   padding: 4px 10px;
+  transition: color 150ms ease;
 }
 
 .submission-modal-close:hover {
-  color: var(--color-text);
+  color: var(--e2k-text);
 }
 
 .submission-modal-eyebrow {
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 1.2px;
-  color: var(--color-blue);
+  letter-spacing: 1.4px;
+  color: var(--e2k-cyan);
   margin-bottom: 6px;
+  text-transform: uppercase;
 }
 
 .submission-modal-title {
   font-family: var(--font-display);
   font-size: 22px;
   font-weight: 800;
-  color: var(--color-text);
+  color: var(--e2k-text);
   margin: 0 0 8px;
   letter-spacing: -0.3px;
 }
 
 .submission-modal-meta {
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: var(--e2k-text-muted);
   margin-bottom: 18px;
   line-height: 1.5;
 }
 
 .submission-evidence {
-  background: #F4F6FA;
-  border-radius: var(--radius);
+  background: rgba(10, 47, 55, 0.55);
+  border: 1px solid var(--e2k-border);
+  border-radius: var(--e2k-r-md, 12px);
   padding: 14px;
   margin-bottom: 16px;
   display: flex;
@@ -6705,42 +6717,44 @@ a:hover {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  color: var(--color-text-muted);
-  letter-spacing: 0.5px;
+  color: var(--e2k-text-muted);
+  letter-spacing: 1.0px;
 }
 
 .submission-evidence-video {
   width: 100%;
   max-height: 320px;
-  border-radius: var(--radius);
+  border-radius: var(--e2k-r-sm, 8px);
   background: #000;
+  border: 1px solid var(--e2k-border);
 }
 
 .submission-evidence-photo {
   max-width: 100%;
   max-height: 320px;
-  border-radius: var(--radius);
+  border-radius: var(--e2k-r-sm, 8px);
   object-fit: contain;
   align-self: flex-start;
+  border: 1px solid var(--e2k-border);
 }
 
 .submission-evidence-note {
-  background: #fff;
-  border-radius: var(--radius);
+  background: rgba(4, 20, 24, 0.55);
+  border-radius: var(--e2k-r-sm, 8px);
   padding: 10px 12px;
   font-size: 14px;
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
+  color: var(--e2k-text);
+  border: 1px solid var(--e2k-border);
 }
 
 .submission-evidence-empty {
-  background: #F4F6FA;
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius);
+  background: rgba(10, 47, 55, 0.40);
+  border: 1px dashed var(--e2k-border);
+  border-radius: var(--e2k-r-md, 12px);
   padding: 14px;
   margin-bottom: 16px;
   font-size: 13px;
-  color: var(--color-text-muted);
+  color: var(--e2k-text-muted);
   text-align: center;
   font-style: italic;
 }
@@ -6751,14 +6765,15 @@ a:hover {
   gap: 8px;
   margin-bottom: 14px;
   font-size: 14px;
+  color: var(--e2k-text);
 }
 
 .submission-claim-label {
-  font-size: 12px;
-  color: var(--color-text-muted);
+  font-size: 11px;
+  color: var(--e2k-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 700;
+  letter-spacing: 1.0px;
+  font-weight: 800;
 }
 
 .submission-reps-block {
@@ -16955,4 +16970,172 @@ input.form-input-with-prefix {
   line-height: 1.55;
   color: var(--e2k-text-muted);
   font-style: italic;
+}
+
+
+/* ============================================================
+   Slice 5.9.6 — SubmissionReviewModal e²k dark theme
+   ============================================================
+   The modal itself was restyled in place (above). These rules
+   override shared classes (.form-input, .form-label, .btn-*,
+   .alert) ONLY when nested inside the modal so other surfaces
+   that still use the light theme aren't disturbed.
+   ============================================================ */
+
+
+/* Form labels inside the modal */
+.submission-modal-card .form-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.0px;
+  color: var(--e2k-cyan);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.submission-modal-card .form-optional {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--e2k-text-muted);
+  letter-spacing: 0.6px;
+  margin-left: 6px;
+  text-transform: uppercase;
+}
+
+
+/* Inputs + textareas inside the modal */
+.submission-modal-card .form-input {
+  background: rgba(4, 20, 24, 0.55);
+  border: 1px solid var(--e2k-border);
+  color: var(--e2k-text);
+  padding: 10px 14px;
+  border-radius: var(--e2k-r-sm, 8px);
+  font-size: 14px;
+  width: 100%;
+  font-family: inherit;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.submission-modal-card .form-input::placeholder {
+  color: rgba(255, 255, 255, 0.30);
+}
+
+.submission-modal-card .form-input:focus {
+  outline: none;
+  border-color: var(--e2k-cyan);
+  background: rgba(4, 20, 24, 0.75);
+  box-shadow: 0 0 0 3px rgba(53, 213, 223, 0.18);
+}
+
+
+/* Reps input — keep narrow, dark themed */
+.submission-modal-card .submission-reps-input {
+  width: 110px;
+}
+
+.submission-modal-card .submission-reps-preview {
+  font-size: 13px;
+  color: var(--e2k-text-muted);
+}
+
+
+/* Action row separator */
+.submission-modal-card .submission-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--e2k-border);
+}
+
+
+/* Buttons inside the modal — dark-theme variants */
+.submission-modal-card .btn-secondary {
+  background: transparent;
+  color: var(--e2k-text-muted);
+  border: 1px solid var(--e2k-border);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 18px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.submission-modal-card .btn-secondary:hover:not(:disabled) {
+  border-color: var(--e2k-cyan);
+  color: var(--e2k-text);
+}
+
+.submission-modal-card .btn-danger {
+  background: transparent;
+  color: var(--e2k-coral);
+  border: 1px solid var(--e2k-coral);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 18px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.submission-modal-card .btn-danger:hover:not(:disabled) {
+  background: rgba(255, 117, 95, 0.10);
+  box-shadow: 0 0 18px rgba(255, 117, 95, 0.20);
+}
+
+.submission-modal-card .btn-primary {
+  background: var(--e2k-coral);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+  padding: 12px 22px;
+  border-radius: 99px;
+  border: none;
+  cursor: pointer;
+  transition: all 150ms ease;
+  box-shadow: 0 6px 18px rgba(255, 117, 95, 0.30);
+}
+
+.submission-modal-card .btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(255, 117, 95, 0.40);
+}
+
+.submission-modal-card .btn-primary:disabled,
+.submission-modal-card .btn-secondary:disabled,
+.submission-modal-card .btn-danger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+/* Alert / error banner inside the modal */
+.submission-modal-card .alert.alert-error {
+  background: rgba(255, 117, 95, 0.10);
+  border: 1px solid rgba(255, 117, 95, 0.40);
+  color: #ffd1c4;
+  padding: 10px 14px;
+  border-radius: var(--e2k-r-sm, 8px);
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+
+/* Section spacing inside the modal */
+.submission-modal-card .submission-reps-block,
+.submission-modal-card .submission-note-block {
+  margin-bottom: 16px;
+}
+
+
+/* Native video controls — make the bar more visible on dark bg */
+.submission-modal-card .submission-evidence-video::-webkit-media-controls-panel {
+  background-color: rgba(0, 0, 0, 0.65);
 }
