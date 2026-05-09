@@ -36,7 +36,33 @@ interface InviteData {
   org: {
     id: string;
     name: string;
+    owner_role: string | null;   // ADDED in 5.4.2
   };
+}
+
+// Slice 5.4.2: map a primary_role enum value to the natural-language label
+// the player sees in "Your <X> added you to..." copy. The 8 roles in the
+// system: coach, parent, teacher, youth_pastor, scout_leader, gym_owner,
+// org_director, other.
+function inviterLabel(role: string | null | undefined): string {
+  switch (role) {
+    case "coach":
+      return "coach";
+    case "teacher":
+      return "teacher";
+    case "youth_pastor":
+      return "youth pastor";
+    case "scout_leader":
+      return "scout leader";
+    case "gym_owner":
+      return "gym instructor";
+    case "parent":
+      return "parent";
+    case "org_director":
+    case "other":
+    default:
+      return "team leader";
+  }
 }
 
 export default async function JoinPage({
@@ -149,7 +175,7 @@ export default async function JoinPage({
         Welcome, {invite.player.first_name}!
       </h1>
       <p className="join-page-text">
-        Your coach added you to{" "}
+        Your {inviterLabel(invite.org.owner_role)} added you to{" "}
         <strong>{invite.team.name}</strong>
         {invite.team.sport_or_activity ? ` (${invite.team.sport_or_activity})` : ""} at{" "}
         <strong>{invite.org.name}</strong>. Set up your account so you can

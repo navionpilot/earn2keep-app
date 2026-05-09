@@ -25,6 +25,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
 import PlayerTopBar from "@/components/PlayerTopBar";
+import PlayerSponsorCard from "@/components/PlayerSponsorCard";
 
 interface PlayerRow {
   id: string;
@@ -42,6 +43,7 @@ interface TeamShape {
   id: string;
   name: string;
   sport_or_activity: string | null;
+  age_group: string | null;
   organizations: { id: string; name: string } | { id: string; name: string }[] | null;
 }
 
@@ -120,7 +122,7 @@ export default async function PlayerHomePage() {
   const { data: playerRow } = await supabase
     .from("players")
     .select(
-      "id, first_name, last_name, jersey_number, team_id, teams(id, name, sport_or_activity, organizations(id, name))"
+      "id, first_name, last_name, jersey_number, team_id, teams(id, name, sport_or_activity, age_group, organizations(id, name))"
     )
     .eq("linked_user_id", user.id)
     .maybeSingle();
@@ -483,7 +485,20 @@ export default async function PlayerHomePage() {
           </div>
 
           {tokenRow?.token ? (
-            <SponsorLinkCard token={tokenRow.token} />
+            <PlayerSponsorCard
+              token={tokenRow.token}
+              playerFirstName={player.first_name}
+              playerLastName={player.last_name}
+              teamName={team?.name ?? "team"}
+              teamSport={team?.sport_or_activity ?? null}
+              teamAgeGroup={team?.age_group ?? null}
+              eventName={event.name}
+              eventType={event.event_type ?? "camp"}
+              organizationName={org?.name ?? "the team"}
+              goalAmount={Number(event.goal_amount) || 0}
+              eventStartDate={event.start_date ?? ""}
+              eventEndDate={event.end_date ?? event.start_date ?? ""}
+            />
           ) : (
             <div className="player-home-card">
               <p className="player-home-card-text">
@@ -514,41 +529,11 @@ export default async function PlayerHomePage() {
 }
 
 // -----------------------------------------------------------------------------
-// SponsorLinkCard — display the player's sponsor URL with a Copy button.
-// Server component (just renders); the copy interaction would need to be a
-// client component to call navigator.clipboard. For 5.3 we render it as a
-// link and let the player long-press / select-all to copy. Real Copy button
-// lands when we build a richer player profile in 5.5.
+// Note: the previous in-file SponsorLinkCard helper was deleted in 5.4.2.
+// Player sponsor display now lives in components/PlayerSponsorCard.tsx —
+// a real client component with QR code, native share, and PDF flyer
+// download. Reused the same lib/sponsorFlyerPdf.ts the coach uses.
 // -----------------------------------------------------------------------------
-function SponsorLinkCard({ token }: { token: string }) {
-  // Note: server-side, we don't know the request's exact origin. The
-  // SITE_URL env var is normally set, but it's a reasonable default to
-  // hardcode app.earn2keep.com here since this is a player-facing
-  // production page. If you're testing on a preview deploy, the link
-  // will still point at production — that's OK for a placeholder
-  // sponsor page.
-  const url = `https://app.earn2keep.com/sponsor/${token}`;
-  return (
-    <div className="player-home-sponsor-card">
-      <p className="player-home-card-text">
-        Share this link with family, friends, and local businesses. They
-        click, they pledge, and the money goes straight to your team.
-      </p>
-      <a
-        href={url}
-        target="_blank"
-        rel="noreferrer"
-        className="player-home-sponsor-link"
-      >
-        {url}
-      </a>
-      <p className="player-home-card-fineprint">
-        Tap and hold the link above to copy it on mobile. (Recording flow +
-        a one-tap share button land in the next update.)
-      </p>
-    </div>
-  );
-}
 
 // Small "March 15" formatter used in the upcoming-event copy.
 function formatDate(iso: string): string {

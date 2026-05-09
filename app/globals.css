@@ -13885,3 +13885,167 @@ input.form-input-with-prefix {
   border-color: rgba(53, 213, 223, 0.30) !important;
   background: rgba(53, 213, 223, 0.04);
 }
+
+
+/* ============================================================
+   Slice 5.4.2 — PlayerSponsorCard (QR + share + flyer)
+   ============================================================
+   Replaces the simple URL-only sponsor card. Now has a
+   centered QR code, three action buttons (Share / Save flyer
+   / Copy), and a small URL display below for fallback.
+   ============================================================ */
+
+.player-sponsor-card {
+  background: rgba(53, 213, 223, 0.06);
+  border: 1px solid rgba(53, 213, 223, 0.30);
+  border-left: 3px solid var(--e2k-cyan);
+  border-radius: var(--e2k-r-lg);
+  padding: 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+
+/* --- QR display: white card so the code scans cleanly even on
+       phones in dark mode. --- */
+.player-sponsor-qr-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 0;
+}
+
+.player-sponsor-qr {
+  width: 220px;
+  height: 220px;
+  background: #ffffff;
+  padding: 14px;
+  border-radius: var(--e2k-r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-sponsor-qr svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.player-sponsor-qr-loading {
+  width: 220px;
+  height: 220px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed var(--e2k-border);
+  border-radius: var(--e2k-r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--e2k-text-muted);
+  font-size: 12px;
+}
+
+
+/* --- Instructional copy --- */
+.player-sponsor-instruct {
+  font-size: 13px;
+  color: var(--e2k-text);
+  line-height: 1.55;
+  margin: 0;
+  text-align: center;
+}
+
+.player-sponsor-instruct strong {
+  color: var(--e2k-cyan);
+}
+
+
+/* --- Action button stack --- */
+.player-sponsor-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.player-sponsor-btn-primary,
+.player-sponsor-btn-secondary,
+.player-sponsor-btn-tertiary {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 12px 18px;
+  border-radius: 99px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease, transform 100ms ease;
+  border: 1px solid transparent;
+}
+
+/* Primary: Share my page (the most-used button on mobile) */
+.player-sponsor-btn-primary {
+  background: linear-gradient(135deg, var(--e2k-coral) 0%, #ff9a7b 100%);
+  color: #ffffff;
+}
+
+.player-sponsor-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 117, 95, 0.30);
+}
+
+/* Secondary: Save flyer (PDF) — cyan to match the card accent */
+.player-sponsor-btn-secondary {
+  background: rgba(53, 213, 223, 0.12);
+  color: var(--e2k-cyan);
+  border-color: rgba(53, 213, 223, 0.40);
+}
+
+.player-sponsor-btn-secondary:hover:not(:disabled) {
+  background: rgba(53, 213, 223, 0.20);
+  border-color: var(--e2k-cyan);
+}
+
+.player-sponsor-btn-secondary:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+/* Tertiary: Copy link — subtle outline */
+.player-sponsor-btn-tertiary {
+  background: transparent;
+  color: var(--e2k-text-muted);
+  border-color: var(--e2k-border);
+}
+
+.player-sponsor-btn-tertiary:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--e2k-text);
+  border-color: var(--e2k-border-strong);
+}
+
+
+/* --- URL display (small, monospace, selectable) --- */
+.player-sponsor-url-display {
+  padding: 8px 12px;
+  background: rgba(4, 20, 24, 0.55);
+  border: 1px solid var(--e2k-border);
+  border-radius: var(--e2k-r-sm);
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--e2k-text-muted);
+  word-break: break-all;
+  user-select: all;
+  -webkit-user-select: all;
+  text-align: center;
+}
+
+
+/* --- Fine hint at the bottom --- */
+.player-sponsor-finehint {
+  font-size: 12px;
+  color: var(--e2k-text-faint);
+  line-height: 1.5;
+  margin: 0;
+  font-style: italic;
+}

@@ -31,6 +31,10 @@ export interface InviteEmailOptions {
   eventName: string | null;
   eventType: "camp" | "tournament" | null;
   inviteUrl: string;
+  // Slice 5.4.2: inclusive role label so emails don't always say "coach".
+  // Caller passes whatever's appropriate ("coach", "youth pastor", "scout
+  // leader", etc.). Defaults to "team leader" if not provided.
+  inviterLabel?: string;
 }
 
 export interface SendResult {
@@ -126,10 +130,13 @@ function buildSubject(opts: InviteEmailOptions): string {
 // -----------------------------------------------------------------------------
 function buildHtmlTemplate(opts: InviteEmailOptions): string {
   const { playerFirstName, teamName, teamSport, orgName, eventName, eventType, inviteUrl } = opts;
+  // Slice 5.4.2: inviterLabel falls back to "team leader" — generic and
+  // works for all 8 roles when none is specified.
+  const inviter = opts.inviterLabel || "team leader";
 
   const heroLine = eventName
     ? `You've been invited to compete in <strong style="color:#ffffff;">${escape(eventName)}</strong> with the <strong style="color:#ffffff;">${escape(teamName)}</strong>${teamSport ? ` ${escape(teamSport)} team` : ""} at <strong style="color:#ffffff;">${escape(orgName)}</strong>.`
-    : `Your coach added you to <strong style="color:#ffffff;">${escape(teamName)}</strong>${teamSport ? ` (${escape(teamSport)})` : ""} at <strong style="color:#ffffff;">${escape(orgName)}</strong>.`;
+    : `Your ${escape(inviter)} added you to <strong style="color:#ffffff;">${escape(teamName)}</strong>${teamSport ? ` (${escape(teamSport)})` : ""} at <strong style="color:#ffffff;">${escape(orgName)}</strong>.`;
 
   const eyebrow =
     eventType === "camp"
@@ -139,8 +146,8 @@ function buildHtmlTemplate(opts: InviteEmailOptions): string {
       : "YOU'RE ON THE ROSTER";
 
   const preheader = eventName
-    ? `Your coach added you to ${eventName}. Set up your account to compete and earn.`
-    : `Your coach added you to ${teamName}. Set up your account on earn²keep.`;
+    ? `Your ${inviter} added you to ${eventName}. Set up your account to compete and earn.`
+    : `Your ${inviter} added you to ${teamName}. Set up your account on earn²keep.`;
 
   // Bulletproof CTA button. The VML rect renders in Outlook desktop with the
   // exact coral pill shape and centered white text. Every other client uses
@@ -255,7 +262,7 @@ ${escape(preheader)}
         <tr>
           <td bgcolor="#041418" style="background-color:#041418;padding:20px 32px;border-radius:0 0 12px 12px;font-family:Arial,sans-serif;">
             <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;color:#6b8788;line-height:1.6;text-align:center;">
-              You got this email because a coach at <strong style="color:#9fc3c7;">${escape(orgName)}</strong> added you to their team on earn²keep. If you weren't expecting this, it's safe to ignore — no account is created until you click the button.
+              You got this email because a ${escape(inviter)} at <strong style="color:#9fc3c7;">${escape(orgName)}</strong> added you to their team on earn²keep. If you weren't expecting this, it's safe to ignore — no account is created until you click the button.
             </div>
             <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;color:#6b8788;text-align:center;margin-top:10px;">
               earn²keep · Earn it. Keep it.
@@ -316,10 +323,11 @@ function renderFeatureRow(
 // -----------------------------------------------------------------------------
 function buildPlainText(opts: InviteEmailOptions): string {
   const { playerFirstName, teamName, teamSport, orgName, eventName, eventType, inviteUrl } = opts;
+  const inviter = opts.inviterLabel || "team leader";
 
   const heroLine = eventName
     ? `You've been invited to compete in ${eventName} with the ${teamName}${teamSport ? ` ${teamSport} team` : ""} at ${orgName}.`
-    : `Your coach added you to ${teamName}${teamSport ? ` (${teamSport})` : ""} at ${orgName}.`;
+    : `Your ${inviter} added you to ${teamName}${teamSport ? ` (${teamSport})` : ""} at ${orgName}.`;
 
   const eyebrow =
     eventType === "camp"
@@ -342,7 +350,7 @@ What you'll do on earn²keep:
 Set up your account:
 ${inviteUrl}
 
-You got this email because a coach at ${orgName} added you to their team
+You got this email because a ${inviter} at ${orgName} added you to their team
 on earn²keep. If you weren't expecting it, ignore this message — no
 account is created until you click the link.
 

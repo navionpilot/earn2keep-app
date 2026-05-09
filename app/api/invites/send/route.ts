@@ -26,6 +26,30 @@ import { createClient } from "@/lib/supabase-server";
 import { generateInviteToken } from "@/lib/invites";
 import { sendInviteEmail } from "@/lib/email";
 
+// Slice 5.4.2: same mapping as in /join/[token]/page.tsx — keeps email
+// copy and web copy aligned. The 8 roles are coach, parent, teacher,
+// youth_pastor, scout_leader, gym_owner, org_director, other.
+function roleToInviterLabel(role: string | null | undefined): string {
+  switch (role) {
+    case "coach":
+      return "coach";
+    case "teacher":
+      return "teacher";
+    case "youth_pastor":
+      return "youth pastor";
+    case "scout_leader":
+      return "scout leader";
+    case "gym_owner":
+      return "gym instructor";
+    case "parent":
+      return "parent";
+    case "org_director":
+    case "other":
+    default:
+      return "team leader";
+  }
+}
+
 interface InviteRequestItem {
   playerId: string;
   email?: string;
@@ -132,6 +156,17 @@ export async function POST(req: NextRequest) {
   if (!players || players.length === 0) {
     return NextResponse.json({ error: "No matching players found." }, { status: 404 });
   }
+
+  // Slice 5.4.2: pull the sending coach's primary_role so the email can
+  // refer to them by their actual role (youth pastor, scout leader, etc.)
+  // rather than always saying "coach". One query, used for every send.
+  const { data: profileRow } = await supabase
+    .from("profiles")
+    .select("primary_role")
+    .eq("id", user.id)
+    .maybeSingle();
+  const inviterRole = profileRow?.primary_role || null;
+  const inviterLabel = roleToInviterLabel(inviterRole);
 
   const playersTyped = players as PlayerRow[];
 
@@ -359,6 +394,7 @@ export async function POST(req: NextRequest) {
         eventName: ctx?.eventName ?? null,
         eventType: ctx?.eventType ?? null,
         inviteUrl: `${origin}/join/${queued.token}`,
+        inviterLabel,
       });
 
       if (sendResult.ok) {

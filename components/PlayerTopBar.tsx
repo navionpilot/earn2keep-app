@@ -52,7 +52,7 @@ export default function PlayerTopBar({ displayName, isAlsoCoach = false }: Props
         <div className="player-topbar-right">
           {isAlsoCoach && (
             <Link href="/dashboard" className="player-topbar-coach-link">
-              Coach Dashboard →
+              Dashboard →
             </Link>
           )}
           {displayName && (
