@@ -256,9 +256,9 @@ export default async function PlayerHomePage() {
     todayChallenges = (ec || []) as EventChallengeRow[];
   }
 
-  // Slice 5.4: pull the player's most recent submission per event_challenge
-  // for THIS event so the home page can show status pills next to each
-  // challenge. One batched query keeps it cheap.
+  // Slice 5.4.5: pull ALL of this player's submissions for THIS event
+  // (not just today's). Used for the dashboard stats grid + activity feed
+  // + the existing today-challenge status pills.
   type SubRow = {
     id: string;
     event_challenge_id: string;
@@ -266,22 +266,66 @@ export default async function PlayerHomePage() {
     reps_claimed: number | null;
     reps_approved: number | null;
     submitted_at: string;
+    rejection_reason: string | null;
+    event_challenges:
+      | { id: string; points_value: number | null; challenges: { name: string } | { name: string }[] | null }
+      | { id: string; points_value: number | null; challenges: { name: string } | { name: string }[] | null }[]
+      | null;
   };
+
+  const { data: allSubsRaw } = await supabase
+    .from("submissions")
+    .select(
+      "id, event_challenge_id, status, reps_claimed, reps_approved, submitted_at, rejection_reason, event_challenges(id, points_value, challenges(name))"
+    )
+    .eq("player_id", player.id)
+    .eq("event_id", event.id)
+    .order("submitted_at", { ascending: false });
+  const allSubs = (allSubsRaw || []) as SubRow[];
+
+  // Stat 1: total points = sum of points_value for approved submissions.
+  // (One point bucket per approved submission, not per rep — matches how
+  // the leaderboard scoring works on the coach side.)
+  const totalPoints = allSubs
+    .filter((s) => s.status === "approved")
+    .reduce((sum, s) => {
+      const ec = single(s.event_challenges);
+      return sum + (ec?.points_value ?? 0);
+    }, 0);
+
+  // Stat 2-3: approved + pending counts across the whole event.
+  const approvedCount = allSubs.filter((s) => s.status === "approved").length;
+  const pendingCount = allSubs.filter((s) => s.status === "pending").length;
+
+  // Subs-by-challenge index (most recent first per challenge) — feeds the
+  // status pill on each today's challenge card. Same logic as before.
   const subsByChallenge: Record<string, SubRow> = {};
-  if (todayChallenges.length > 0) {
-    const ecIds = todayChallenges.map((c) => c.id);
-    const { data: subs } = await supabase
-      .from("submissions")
-      .select("id, event_challenge_id, status, reps_claimed, reps_approved, submitted_at")
-      .eq("player_id", player.id)
-      .in("event_challenge_id", ecIds)
-      .order("submitted_at", { ascending: false });
-    for (const s of (subs || []) as SubRow[]) {
-      // Most recent first thanks to the order clause; only set once.
-      if (!subsByChallenge[s.event_challenge_id]) {
-        subsByChallenge[s.event_challenge_id] = s;
-      }
+  for (const s of allSubs) {
+    if (!subsByChallenge[s.event_challenge_id]) {
+      subsByChallenge[s.event_challenge_id] = s;
     }
+  }
+
+  // Activity feed: the most recent 6 submissions across the whole event.
+  const recentActivity = allSubs.slice(0, 6);
+
+  // Stat 4: days left in the event (positive = days remaining,
+  // 0 = today's the last day, negative = past).
+  let daysLeftCount: number | null = null;
+  if (event.end_date) {
+    daysLeftCount = daysUntil(event.end_date);
+  }
+
+  // Event progress percent (Day X of Y).
+  let progressPercent: number | null = null;
+  let dayCurrent: number | null = null;
+  if (totalDays && dayIdx !== null && dayIdx >= 0) {
+    const cappedDay = Math.min(dayIdx + 1, totalDays);
+    dayCurrent = cappedDay;
+    progressPercent = Math.round((cappedDay / totalDays) * 100);
+  } else if (totalDays && isCompleted) {
+    dayCurrent = totalDays;
+    progressPercent = 100;
   }
 
   // Pull this player's sponsor token for this event. May not exist yet —
@@ -325,28 +369,99 @@ export default async function PlayerHomePage() {
     <>
       {TopBar}
       <main className="player-home-wrap">
-        {/* Greeting hero card */}
-        <div className="player-home-hero">
+        {/* === Terminal-style mission control hero ===  */}
+        <div className="player-home-hero player-home-hero-terminal">
+          <div className="player-home-hero-eyebrow">
+            <span className="player-home-hero-prompt">&gt;</span>
+            <span>MISSION CONTROL</span>
+            <span className={`player-home-hero-statusdot player-home-statusdot-${
+              isActive ? "active" : isUpcoming ? "upcoming" : isCompleted ? "completed" : "paused"
+            }`} aria-hidden="true" />
+          </div>
           <div className="player-home-hero-greeting">
-            Hey, {player.first_name}! 👋
+            {player.first_name} {player.last_name ?? ""}
           </div>
           <div className="player-home-hero-context">
-            You&apos;re on <strong>{team?.name ?? "your team"}</strong>
-            {team?.sport_or_activity ? ` (${team.sport_or_activity})` : ""}
-            {org?.name ? <> at <strong>{org.name}</strong></> : null}, competing
-            in <strong>{event.name}</strong>.
+            <strong>{team?.name ?? "your team"}</strong>
+            {team?.sport_or_activity ? ` · ${team.sport_or_activity}` : ""}
+            {org?.name ? <> · {org.name}</> : null}
           </div>
-          <div className="player-home-hero-meta">
-            <span className={`player-home-status-pill ${statusClass}`}>
-              {statusLabel}
-            </span>
+          <div className="player-home-hero-event">
+            {event.name}
+            <span className={`player-home-status-pill ${statusClass}`}>{statusLabel}</span>
           </div>
         </div>
+
+        {/* === Stats grid (4 cards) === */}
+        <div className="player-home-stats-grid">
+          <div className="player-home-stat">
+            <div className="player-home-stat-value">
+              {String(totalPoints).padStart(3, "0")}
+            </div>
+            <div className="player-home-stat-label">POINTS</div>
+          </div>
+          <div className="player-home-stat">
+            <div className="player-home-stat-value">
+              {String(approvedCount).padStart(2, "0")}
+            </div>
+            <div className="player-home-stat-label">APPROVED</div>
+          </div>
+          <div className="player-home-stat">
+            <div className="player-home-stat-value">
+              {String(pendingCount).padStart(2, "0")}
+            </div>
+            <div className="player-home-stat-label">PENDING</div>
+          </div>
+          <div className="player-home-stat">
+            <div className="player-home-stat-value">
+              {daysLeftCount === null
+                ? "—"
+                : daysLeftCount < 0
+                ? "0"
+                : String(daysLeftCount).padStart(2, "0")}
+            </div>
+            <div className="player-home-stat-label">
+              {isUpcoming
+                ? "DAYS TO START"
+                : isCompleted
+                ? "EVENT ENDED"
+                : "DAYS LEFT"}
+            </div>
+          </div>
+        </div>
+
+        {/* === Event timeline progress bar === */}
+        {totalDays && (isActive || isCompleted) && (
+          <div className="player-home-timeline">
+            <div className="player-home-timeline-head">
+              <span className="player-home-timeline-label">
+                <span className="player-home-hero-prompt">&gt;</span>{" "}
+                EVENT TIMELINE
+              </span>
+              <span className="player-home-timeline-progress">
+                DAY {dayCurrent ?? 0} OF {totalDays} · {progressPercent ?? 0}%
+              </span>
+            </div>
+            <div className="player-home-timeline-bar-bg">
+              <div
+                className="player-home-timeline-bar-fill"
+                style={{ width: `${Math.max(2, progressPercent ?? 0)}%` }}
+              />
+            </div>
+            <div className="player-home-timeline-dates">
+              {event.start_date ? formatDate(event.start_date) : "?"}
+              <span className="player-home-timeline-sep">→</span>
+              {event.end_date ? formatDate(event.end_date) : "?"}
+            </div>
+          </div>
+        )}
 
         {/* Today's challenges */}
         <section className="player-home-section">
           <div className="player-home-section-head">
-            <span className="player-home-section-eyebrow">{todayLabel.toUpperCase()}</span>
+            <span className="player-home-section-eyebrow">
+              <span className="player-home-hero-prompt">&gt;</span> {todayLabel.toUpperCase()}
+            </span>
             <h2 className="player-home-section-title">
               {isUpcoming
                 ? "Get ready! 🏁"
@@ -477,10 +592,80 @@ export default async function PlayerHomePage() {
           )}
         </section>
 
+        {/* === Recent Activity feed === */}
+        {recentActivity.length > 0 && (
+          <section className="player-home-section">
+            <div className="player-home-section-head">
+              <span className="player-home-section-eyebrow">
+                <span className="player-home-hero-prompt">&gt;</span> RECENT ACTIVITY
+              </span>
+              <h2 className="player-home-section-title">Submission log</h2>
+            </div>
+            <div className="player-home-activity">
+              {recentActivity.map((sub) => {
+                const ec = single(sub.event_challenges);
+                const challenge = single(ec?.challenges);
+                const challengeName = challenge?.name ?? "Challenge";
+                const ago = formatRelativeTime(sub.submitted_at);
+                let pillClass = "player-home-activity-pill";
+                let pillLabel: string;
+                if (sub.status === "approved") {
+                  pillClass += " player-home-activity-pill-approved";
+                  pillLabel = "✓ APPROVED";
+                } else if (sub.status === "pending") {
+                  pillClass += " player-home-activity-pill-pending";
+                  pillLabel = "⏳ PENDING";
+                } else if (sub.status === "rejected") {
+                  pillClass += " player-home-activity-pill-rejected";
+                  pillLabel = "❌ REJECTED";
+                } else {
+                  pillLabel = sub.status.toUpperCase();
+                }
+                const reps =
+                  sub.status === "approved" && sub.reps_approved != null
+                    ? sub.reps_approved
+                    : sub.reps_claimed;
+                const points =
+                  sub.status === "approved" ? ec?.points_value ?? 0 : null;
+                return (
+                  <div className="player-home-activity-row" key={sub.id}>
+                    <span className={pillClass}>{pillLabel}</span>
+                    <div className="player-home-activity-main">
+                      <div className="player-home-activity-name">
+                        {challengeName}
+                      </div>
+                      <div className="player-home-activity-meta">
+                        {reps != null && (
+                          <span>
+                            {reps} {reps === 1 ? "rep" : "reps"}
+                          </span>
+                        )}
+                        {points != null && points > 0 && (
+                          <span>
+                            · <strong>+{points}</strong> pts
+                          </span>
+                        )}
+                        {sub.status === "rejected" && sub.rejection_reason && (
+                          <span className="player-home-activity-reason">
+                            · {sub.rejection_reason}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="player-home-activity-time">{ago}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {/* Sponsor link */}
         <section className="player-home-section">
           <div className="player-home-section-head">
-            <span className="player-home-section-eyebrow">MY SPONSOR PAGE</span>
+            <span className="player-home-section-eyebrow">
+              <span className="player-home-hero-prompt">&gt;</span> MY SPONSOR PAGE
+            </span>
             <h2 className="player-home-section-title">Get sponsored 💸</h2>
           </div>
 
@@ -541,4 +726,21 @@ function formatDate(iso: string): string {
     month: "long",
     day: "numeric",
   });
+}
+
+// "2h ago", "3d ago", "5m ago" — used in the recent activity feed.
+// ISO is the full timestamp from submissions.submitted_at.
+function formatRelativeTime(iso: string): string {
+  const then = new Date(iso).getTime();
+  const now = Date.now();
+  const diffSec = Math.max(0, Math.floor((now - then) / 1000));
+  if (diffSec < 60) return "just now";
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  const diffDay = Math.floor(diffHr / 24);
+  if (diffDay < 30) return `${diffDay}d ago`;
+  // Beyond a month, switch to a date so it stays meaningful.
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }

@@ -14070,3 +14070,348 @@ input.form-input-with-prefix {
   font-style: italic;
   margin: 0;
 }
+
+
+/* ============================================================
+   Slice 5.4.5 — Player Dashboard Redesign
+   ============================================================
+   Mission-control vibe: monospace stat numbers, terminal-style
+   `>` prompt prefixes on section eyebrows, glowing status dot
+   on the hero, event timeline progress bar, recent activity
+   feed. Stays on-brand (teal + coral) — not full Matrix.
+   ============================================================ */
+
+
+/* --- Mission control hero (replaces friendly greeting card) --- */
+.player-home-hero-terminal {
+  background: linear-gradient(135deg,
+    rgba(53, 213, 223, 0.08) 0%,
+    rgba(255, 117, 95, 0.04) 100%);
+  border: 1px solid var(--e2k-border-strong);
+  border-left: 3px solid var(--e2k-cyan);
+  border-radius: var(--e2k-r-lg);
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.player-home-hero-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: monospace, var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--e2k-cyan);
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+}
+
+.player-home-hero-prompt {
+  color: var(--e2k-coral);
+  font-weight: 900;
+}
+
+.player-home-hero-statusdot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-left: 4px;
+  display: inline-block;
+}
+
+.player-home-statusdot-active {
+  background: #6EE7B7;
+  box-shadow: 0 0 8px rgba(110, 231, 183, 0.7);
+  animation: e2k-statuspulse 2s ease-in-out infinite;
+}
+
+.player-home-statusdot-upcoming {
+  background: var(--e2k-cyan);
+  box-shadow: 0 0 8px rgba(53, 213, 223, 0.6);
+}
+
+.player-home-statusdot-completed {
+  background: #94A3B8;
+}
+
+.player-home-statusdot-paused {
+  background: #FCD34D;
+}
+
+@keyframes e2k-statuspulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.55; transform: scale(0.85); }
+}
+
+.player-home-hero-greeting {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--e2k-text);
+  letter-spacing: -0.6px;
+  line-height: 1.1;
+  margin-top: 2px;
+}
+
+/* Override the .player-home-hero-context inside the terminal hero so it
+   reads as a single info line, not a sentence. */
+.player-home-hero-terminal .player-home-hero-context {
+  font-family: monospace, var(--font-display);
+  font-size: 12px;
+  color: var(--e2k-text-muted);
+  letter-spacing: 0.4px;
+}
+
+.player-home-hero-terminal .player-home-hero-context strong {
+  color: var(--e2k-text);
+  font-weight: 700;
+}
+
+.player-home-hero-event {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--e2k-text);
+  letter-spacing: -0.2px;
+}
+
+
+/* --- Stats grid (4 cards) --- */
+.player-home-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+@media (max-width: 600px) {
+  .player-home-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.player-home-stat {
+  background: rgba(10, 47, 55, 0.55);
+  border: 1px solid var(--e2k-border);
+  border-radius: var(--e2k-r-md);
+  padding: 14px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle glow line at top — terminal-y accent */
+.player-home-stat::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--e2k-cyan) 50%,
+    transparent 100%);
+  opacity: 0.5;
+}
+
+.player-home-stat-value {
+  font-family: monospace, var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--e2k-text);
+  letter-spacing: -0.8px;
+}
+
+.player-home-stat-label {
+  font-family: monospace, var(--font-display);
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--e2k-text-muted);
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+
+/* --- Event timeline progress bar --- */
+.player-home-timeline {
+  background: rgba(10, 47, 55, 0.55);
+  border: 1px solid var(--e2k-border);
+  border-radius: var(--e2k-r-md);
+  padding: 14px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.player-home-timeline-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.player-home-timeline-label {
+  font-family: monospace, var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--e2k-cyan);
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
+
+.player-home-timeline-progress {
+  font-family: monospace, var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--e2k-text-muted);
+  letter-spacing: 0.8px;
+}
+
+.player-home-timeline-bar-bg {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--e2k-border);
+  border-radius: 4px;
+  height: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.player-home-timeline-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--e2k-cyan) 0%, var(--e2k-coral) 100%);
+  border-radius: 3px;
+  transition: width 300ms ease;
+  box-shadow: 0 0 8px rgba(53, 213, 223, 0.4);
+}
+
+.player-home-timeline-dates {
+  font-family: monospace, var(--font-display);
+  font-size: 11px;
+  color: var(--e2k-text-faint);
+  letter-spacing: 0.4px;
+}
+
+.player-home-timeline-sep {
+  color: var(--e2k-coral);
+  margin: 0 8px;
+  font-weight: 700;
+}
+
+
+/* --- Recent activity feed --- */
+.player-home-activity {
+  background: rgba(10, 47, 55, 0.55);
+  border: 1px solid var(--e2k-border);
+  border-radius: var(--e2k-r-md);
+  padding: 4px 0;
+}
+
+.player-home-activity-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--e2k-border);
+  font-family: monospace, var(--font-body);
+}
+
+.player-home-activity-row:last-child {
+  border-bottom: none;
+}
+
+.player-home-activity-pill {
+  flex-shrink: 0;
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  white-space: nowrap;
+  font-family: monospace;
+}
+
+.player-home-activity-pill-approved {
+  background: rgba(93, 202, 165, 0.18);
+  color: #6EE7B7;
+  border: 1px solid rgba(93, 202, 165, 0.40);
+}
+
+.player-home-activity-pill-pending {
+  background: rgba(251, 191, 36, 0.16);
+  color: #FCD34D;
+  border: 1px solid rgba(251, 191, 36, 0.40);
+}
+
+.player-home-activity-pill-rejected {
+  background: rgba(252, 165, 165, 0.14);
+  color: #FCA5A5;
+  border: 1px solid rgba(252, 165, 165, 0.42);
+}
+
+.player-home-activity-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.player-home-activity-name {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--e2k-text);
+  letter-spacing: -0.1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-home-activity-meta {
+  font-size: 11px;
+  color: var(--e2k-text-muted);
+  margin-top: 2px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.player-home-activity-meta strong {
+  color: #6EE7B7;
+  font-weight: 700;
+}
+
+.player-home-activity-reason {
+  color: #FCA5A5;
+  font-style: italic;
+  display: inline;
+}
+
+.player-home-activity-time {
+  flex-shrink: 0;
+  font-family: monospace;
+  font-size: 10px;
+  color: var(--e2k-text-faint);
+  letter-spacing: 0.4px;
+  text-align: right;
+}
+
+@media (max-width: 480px) {
+  .player-home-activity-row {
+    flex-wrap: wrap;
+    padding: 10px 14px;
+  }
+  .player-home-activity-time {
+    width: 100%;
+    text-align: left;
+    margin-left: 60px; /* align under the name, not under the pill */
+  }
+}
