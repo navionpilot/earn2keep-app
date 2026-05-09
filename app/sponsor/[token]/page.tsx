@@ -151,6 +151,13 @@ export default async function SponsorPage({
     Math.round((eventEnd.getTime() - eventStart.getTime()) / 86_400_000) + 1
   );
 
+  // Slice 5.9.5: build a polite team label for the headline.
+  // If the coach already named the team something ending in "Team",
+  // don't double it up ("Hawks Team Team").
+  const teamLabel = /\bteam\s*$/i.test(row.team_name)
+    ? row.team_name
+    : `${row.team_name} Team`;
+
   return (
     <div className="sponsor-page">
       {/* ============================================================
@@ -177,13 +184,13 @@ export default async function SponsorPage({
               Cold visitors said "I have no idea what this is for" —
               so now we lead with the structural context. */}
           <div className="sponsor-eyebrow">
-            ★ {isCamp ? "FUNDRAISER · YOUTH CHALLENGE" : "TOURNAMENT REGISTRATION"} ★
+            ★ {isCamp ? "FUNDRAISER" : "TOURNAMENT REGISTRATION"} ★
           </div>
 
           <div className="sponsor-frame">
-            earn²keep is a platform where kids earn their way into camps,
-            tournaments, and prizes by completing daily challenges with
-            video proof. Sponsors back their effort.
+            earn²keep is a platform where participants earn their way into
+            camps, tournaments, and prizes by completing daily challenges
+            with video proof. Sponsors back their effort.
           </div>
 
           {/* Player avatar + pronouns (Slice 5.5). Falls back to initials. */}
@@ -207,11 +214,13 @@ export default async function SponsorPage({
 
           {isCamp ? (
             <h1 className="sponsor-headline">
-              Back <span className="sponsor-name">{playerName}</span>&apos;s effort.
+              Support <span className="sponsor-name">{playerName}</span> and the{" "}
+              <span className="sponsor-team">{teamLabel}</span>
             </h1>
           ) : (
             <h1 className="sponsor-headline">
-              Cover <span className="sponsor-name">{playerName}</span>&apos;s spot.
+              Support <span className="sponsor-name">{playerName}</span> and the{" "}
+              <span className="sponsor-team">{teamLabel}</span>
             </h1>
           )}
 
@@ -384,19 +393,20 @@ export default async function SponsorPage({
           </div>
         </div>
 
-        {/* "What is earn²keep?" deeper explainer — kept for the curious
+        {/* "How earn²keep works" deeper explainer — kept for the curious
             who scroll down for more context. The hero now says enough
             for an action decision; this section is for "tell me more". */}
         <div className="sponsor-explainer">
           <h2 className="sponsor-explainer-title">How earn²keep works</h2>
           <p>
-            <strong>Coaches</strong> create fundraisers and tournaments for their
-            youth groups — sports teams, scout troops, churches, after-school
-            programs, anything where kids do work together.
+            <strong>Organizers</strong> — coaches, teachers, scout leaders,
+            youth pastors, gym owners, parents, organization directors, and
+            other group leaders — create fundraisers and tournaments for
+            their teams, troops, classes, programs, or other groups.
           </p>
           <p>
             <strong>Players</strong> like {row.player_first_name} compete in
-            daily challenges chosen by their coach — push-ups, free throws,
+            daily challenges chosen by their organizer — push-ups, free throws,
             memory verses, mile times, reading minutes — and submit short
             videos as proof. Every approved challenge earns them points.
           </p>
@@ -406,7 +416,7 @@ export default async function SponsorPage({
             minimum, and you get to follow their progress all the way through.
           </p>
           <p>
-            <strong>The kids who put in the most work win.</strong> Top
+            <strong>The players who put in the most work win.</strong> Top
             performers earn cash prizes, gear, scholarships, or whatever the
             organization sets up for their event.
           </p>
