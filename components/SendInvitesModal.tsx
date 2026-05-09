@@ -210,7 +210,7 @@ export default function SendInvitesModal({
       <div className="invites-modal" role="dialog" aria-modal="true">
         <div className="invites-modal-header">
           <div>
-            <h2 className="invites-modal-title">Send player invites</h2>
+            <h2 className="invites-modal-title">Send player/participant invites</h2>
             <p className="invites-modal-sub">
               {teamName}
               {stage === "configure" && totalEligible === 0 && (

@@ -15561,3 +15561,162 @@ input.form-input-with-prefix {
   font-weight: 700;
   letter-spacing: 0.3px;
 }
+
+
+/* ============================================================
+   Slice 5.7.2 — Calendar Week + List restyle
+   ============================================================
+   The Calendar Month view was restyled to the dark Teal & Coral
+   palette in earlier slices, but the Week and List views were
+   missed and still rendered with legacy --color-surface
+   (#FFFFFF) / --color-border (light beige) tokens — looking
+   completely off-brand on the schedule page. This block
+   overrides those rules to use the --e2k-* tokens.
+   ============================================================ */
+
+
+/* --- Week view --- */
+.cal-week-row {
+  margin-bottom: 6px;
+}
+
+.cal-week-label {
+  color: var(--e2k-text-muted) !important;
+}
+
+.cal-week-cell {
+  background: rgba(10, 47, 55, 0.55) !important;
+  border: 1px solid var(--e2k-border) !important;
+  border-radius: var(--e2k-r-md) !important;
+  color: var(--e2k-text) !important;
+  min-height: 64px !important;
+  transition: border-color 150ms ease, background 150ms ease, transform 100ms ease !important;
+}
+
+.cal-week-cell:hover:not(.cal-week-cell-empty):not(.cal-week-cell-selected) {
+  border-color: var(--e2k-cyan) !important;
+  background: rgba(53, 213, 223, 0.06) !important;
+  transform: translateY(-1px);
+}
+
+.cal-week-cell-empty {
+  background: transparent !important;
+  border: 1px dashed var(--e2k-border) !important;
+}
+
+.cal-week-cell-today {
+  border-color: var(--e2k-coral) !important;
+  border-width: 2px !important;
+  box-shadow: 0 0 12px rgba(255, 117, 95, 0.20);
+}
+
+.cal-week-cell-selected {
+  background: rgba(53, 213, 223, 0.10) !important;
+  border-color: var(--e2k-cyan) !important;
+  border-width: 2px !important;
+  box-shadow: 0 0 12px rgba(53, 213, 223, 0.30);
+}
+
+.cal-week-cell-rest {
+  background: rgba(4, 20, 24, 0.40) !important;
+}
+
+.cal-week-cell-date {
+  color: var(--e2k-text) !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+}
+
+.cal-week-cell-count {
+  color: var(--e2k-cyan) !important;
+  font-size: 11px !important;
+}
+
+.cal-week-cell-rest-label {
+  color: var(--e2k-text-faint) !important;
+  font-family: monospace, var(--font-display) !important;
+  letter-spacing: 1.2px !important;
+}
+
+.cal-weekday {
+  color: var(--e2k-text-muted) !important;
+  font-family: monospace, var(--font-display) !important;
+  letter-spacing: 1.4px !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+}
+
+
+/* --- List view --- */
+.cal-list-row {
+  background: rgba(10, 47, 55, 0.55) !important;
+  border: 1px solid var(--e2k-border) !important;
+  border-radius: var(--e2k-r-md) !important;
+  color: var(--e2k-text) !important;
+  transition: border-color 150ms ease, background 150ms ease, transform 100ms ease !important;
+}
+
+.cal-list-row:hover:not(.cal-list-row-selected) {
+  border-color: var(--e2k-cyan) !important;
+  background: rgba(53, 213, 223, 0.06) !important;
+  transform: translateY(-1px);
+}
+
+.cal-list-row-today {
+  border-color: var(--e2k-coral) !important;
+  border-width: 2px !important;
+  box-shadow: 0 0 12px rgba(255, 117, 95, 0.20);
+}
+
+.cal-list-row-selected {
+  background: rgba(53, 213, 223, 0.10) !important;
+  border-color: var(--e2k-cyan) !important;
+  border-width: 2px !important;
+  box-shadow: 0 0 12px rgba(53, 213, 223, 0.30);
+}
+
+.cal-list-row-rest {
+  background: rgba(4, 20, 24, 0.40) !important;
+}
+
+.cal-list-day-num-text {
+  color: var(--e2k-cyan) !important;
+  font-family: monospace, var(--font-display) !important;
+  letter-spacing: 1.4px !important;
+}
+
+.cal-list-day-date {
+  color: var(--e2k-text) !important;
+  font-weight: 700 !important;
+}
+
+.cal-list-today-pill {
+  background: var(--e2k-coral) !important;
+  color: #ffffff !important;
+  font-family: monospace, var(--font-display) !important;
+  letter-spacing: 1px !important;
+}
+
+.cal-list-summary {
+  color: var(--e2k-text) !important;
+}
+
+.cal-list-summary strong {
+  color: var(--e2k-cyan) !important;
+}
+
+.cal-list-rest-label {
+  color: var(--e2k-text-faint) !important;
+  font-family: monospace, var(--font-display) !important;
+  letter-spacing: 1.4px !important;
+}
+
+.cal-list-chevron {
+  color: var(--e2k-text-muted) !important;
+}
+
+.cal-list-cat-pill {
+  background: rgba(53, 213, 223, 0.10) !important;
+  border: 1px solid rgba(53, 213, 223, 0.30) !important;
+  color: var(--e2k-text) !important;
+}

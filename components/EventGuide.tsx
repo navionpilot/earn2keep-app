@@ -9,7 +9,7 @@
 // invites should come before activation. New order:
 //
 //   1. Build training schedule
-//   2. Send invites to your players      ← MOVED UP from step 3
+//   2. Send invites to your players/participants      ← MOVED UP from step 3
 //   3. Generate sponsor QR codes         ← MOVED UP from step 4
 //   4. Activate the event                ← MOVED DOWN from step 2
 //   5. Review submissions
@@ -65,9 +65,9 @@ const STEPS: StepCopy[] = [
   },
   {
     num: 2,
-    title: "Send invites to your players",
+    title: "Send invites to your players/participants",
     intro:
-      "Players need their own accounts to record challenges and track fundraising. Send invites BEFORE activating the event so they're ready to go on day one.",
+      "Players/participants need their own accounts to record challenges and track fundraising. Send invites BEFORE activating the event so they're ready to go on day one.",
     detail:
       "Each player gets a branded email with a one-click sign-up link. They don't need a password — just click the link in their inbox. The button below jumps straight to your team page with the invite modal open.",
     tip: "If a parent's email is on the player record, that's where the invite goes. Otherwise paste in the right address right in the modal.",
@@ -76,7 +76,7 @@ const STEPS: StepCopy[] = [
     num: 3,
     title: "Generate sponsor QR codes",
     intro:
-      "Each player has a unique sponsor page with their own QR code. Print flyers, text the link to family, post on socials — these are how money gets raised.",
+      "Each player/participant has a unique sponsor page with their own QR code. Print flyers, text the link to family, post on socials — these are how money gets raised.",
     detail:
       "Sponsors scan the QR or click the link, see the player's name and event, and pledge support. Camps: sponsors back a fundraising minimum. Tournaments: registration fees are paid up front.",
     tip: "Open the QR Codes tab to download a printable flyer per player, or copy individual sponsor links to share digitally.",
@@ -85,7 +85,7 @@ const STEPS: StepCopy[] = [
     num: 4,
     title: "Activate the event",
     intro:
-      "While your event is in Draft, players can't submit anything and sponsors can't pledge. Click ▶ Activate Event in the header to flip it live.",
+      "While your event is in Draft, players/participants can't submit anything and sponsors can't pledge. Click ▶ Activate Event in the header to flip it live.",
     detail:
       "You can pause an active event later if you need to (rain delay, schedule shift) — that just freezes new submissions without ending the event.",
     tip: "Don't worry about activating too early. Sponsor pages and player tracking only \"go live\" once you flip the switch.",
@@ -94,7 +94,7 @@ const STEPS: StepCopy[] = [
     num: 5,
     title: "Review challenge submissions",
     intro:
-      "As players record and send in their challenge videos, they pile up in your Submissions queue waiting for your call.",
+      "As players/participants record and send in their challenge videos, they pile up in your Submissions queue waiting for your call.",
     detail:
       "Tap a submission, watch the clip, and approve, reject, or adjust the rep count with one click. Approved submissions earn points; rejected ones don't.",
     tip: "Quick rejection reasons (\"camera too shaky,\" \"reps not visible,\" \"wrong drill\") are pre-built so reviewing a backlog goes fast.",

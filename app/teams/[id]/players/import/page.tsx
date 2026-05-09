@@ -319,7 +319,7 @@ export default function ImportPlayersPage() {
 
   const handleImport = async () => {
     if (validRows.length === 0) {
-      setError("No valid players to import. Please check your column mappings.");
+      setError("No valid players/participants to import. Please check your column mappings.");
       return;
     }
 
@@ -390,7 +390,7 @@ export default function ImportPlayersPage() {
               </div>
               <h1 className="form-title">Upload Roster CSV</h1>
               <p className="form-subtitle">
-                Importing players to <strong>{teamName}</strong>. Works with exports
+                Importing players/participants to <strong>{teamName}</strong>. Works with exports
                 from TeamSnap, GameChanger, SportsEngine, or any spreadsheet.
               </p>
 
@@ -544,7 +544,7 @@ export default function ImportPlayersPage() {
                   onClick={handleImport}
                   disabled={validRows.length === 0}
                 >
-                  Import {validRows.length} {validRows.length === 1 ? "Player" : "Players"} →
+                  Import {validRows.length} {validRows.length === 1 ? "Player/Participant" : "Players/Participants"} →
                 </button>
               </div>
             </>
@@ -553,7 +553,7 @@ export default function ImportPlayersPage() {
           {step === "importing" && (
             <div style={{ textAlign: "center", padding: "60px 20px" }}>
               <div style={{ fontSize: "48px", marginBottom: "16px" }}>⏳</div>
-              <h2 className="form-title">Importing players...</h2>
+              <h2 className="form-title">Importing players/participants...</h2>
               <p className="form-subtitle">This will only take a moment.</p>
             </div>
           )}
@@ -563,7 +563,7 @@ export default function ImportPlayersPage() {
               <div style={{ fontSize: "48px", marginBottom: "8px" }}>🎉</div>
               <h2 className="form-title">Import Complete!</h2>
               <p className="form-subtitle">
-                Successfully imported <strong>{importResult.imported}</strong> {importResult.imported === 1 ? "player" : "players"} to your roster.
+                Successfully imported <strong>{importResult.imported}</strong> {importResult.imported === 1 ? "player/participant" : "players/participants"} to your roster.
                 {importResult.skipped > 0 && (
                   <> {importResult.skipped} {importResult.skipped === 1 ? "row was" : "rows were"} skipped because of missing first name.</>
                 )}

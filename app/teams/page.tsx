@@ -14,12 +14,32 @@ export default async function TeamsIndexPage() {
     .eq("id", user.id)
     .single();
 
-  // All teams owned by user, with their org name and player count
+  // All teams owned by user, with their org name and ACTIVE player count.
+  // Slice 5.7.2: filter the joined players to is_active=true so the count
+  // matches the team-detail page's "Roster (N)" — soft-deleted players
+  // shouldn't inflate the index page's "X players total" line.
   const { data: teams } = await supabase
     .from("teams")
-    .select("id, name, age_group, organization_id, organizations(id, name), players(id)")
+    .select("id, name, age_group, organization_id, organizations(id, name), players(id, is_active)")
     .eq("owner_id", user.id)
     .order("created_at", { ascending: false });
+
+  // Filter the players client-side after the query (PostgREST doesn't
+  // easily express "filter joined rows where col=true" in a single call;
+  // the join's count is small per team so client-filter is fine).
+  type TeamWithPlayers = {
+    id: string;
+    name: string;
+    age_group: string | null;
+    organization_id: string;
+    organizations: { id: string; name: string } | { id: string; name: string }[] | null;
+    players: { id: string; is_active: boolean | null }[] | null;
+  };
+  const teamsTyped = (teams || []) as TeamWithPlayers[];
+  const teamsCleaned = teamsTyped.map((t) => ({
+    ...t,
+    players: (t.players || []).filter((p) => p.is_active !== false),
+  }));
 
   // Most-recent org for "+ New Team" CTA
   const { data: orgs } = await supabase
@@ -32,8 +52,8 @@ export default async function TeamsIndexPage() {
     ? `/organizations/${orgs[0].id}/teams/new`
     : "/organizations/new";
 
-  const totalPlayers = (teams || []).reduce(
-    (sum: number, t: any) => sum + (t.players?.length || 0),
+  const totalPlayers = teamsCleaned.reduce(
+    (sum, t) => sum + (t.players?.length || 0),
     0
   );
 
@@ -43,8 +63,8 @@ export default async function TeamsIndexPage() {
         <div>
           <h1 className="e2k-page-title">Teams</h1>
           <p className="e2k-page-sub">
-            {teams && teams.length > 0
-              ? `${teams.length} ${teams.length === 1 ? "team" : "teams"} · ${totalPlayers} ${totalPlayers === 1 ? "player" : "players"} total`
+            {teamsCleaned.length > 0
+              ? `${teamsCleaned.length} ${teamsCleaned.length === 1 ? "team" : "teams"} · ${totalPlayers} ${totalPlayers === 1 ? "player/participant" : "players/participants"} total`
               : "Add your first team to start building rosters."}
           </p>
         </div>
@@ -53,7 +73,7 @@ export default async function TeamsIndexPage() {
         </Link>
       </div>
 
-      {!teams || teams.length === 0 ? (
+      {!teamsCleaned || teamsCleaned.length === 0 ? (
         <section className="e2k-panel">
           <div className="e2k-empty">
             <p>You don&apos;t have any teams yet.</p>
@@ -65,14 +85,18 @@ export default async function TeamsIndexPage() {
       ) : (
         <section className="e2k-panel">
           <div className="e2k-team-grid">
-            {teams.map((team: any) => (
+            {teamsCleaned.map((team) => {
+              const orgRel = Array.isArray(team.organizations)
+                ? team.organizations[0]
+                : team.organizations;
+              return (
               <Link
                 key={team.id}
                 href={`/teams/${team.id}`}
                 className="e2k-team-card"
               >
                 <div className="e2k-team-card-org">
-                  {team.organizations?.name || "—"}
+                  {orgRel?.name || "—"}
                 </div>
                 <div className="e2k-team-card-name">{team.name}</div>
                 {team.age_group && (
@@ -81,12 +105,13 @@ export default async function TeamsIndexPage() {
                 <div className="e2k-team-card-stats">
                   <span>
                     <strong>{team.players?.length || 0}</strong>{" "}
-                    {team.players?.length === 1 ? "player" : "players"}
+                    {team.players?.length === 1 ? "player/participant" : "players/participants"}
                   </span>
                 </div>
                 <div className="e2k-team-card-action">Manage →</div>
               </Link>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}

@@ -249,9 +249,9 @@ export default function SubmissionsQueuePage() {
 
           {submissions.length === 0 && (
             <div className="alert alert-info" style={{ marginBottom: "20px" }}>
-              <strong>No submissions yet.</strong> Submissions appear here when players
-              upload videos or photos of completed challenges. The player upload
-              experience is coming soon — for now, this queue is set up and waiting.
+              <strong>No submissions yet.</strong> Submissions appear here when players/participants
+              upload videos or photos of completed challenges. Player upload UI ships
+              in Phase 5; for now this queue is set up and waiting.
             </div>
           )}
 
@@ -301,7 +301,7 @@ export default function SubmissionsQueuePage() {
             <div className="dashboard-card" style={{ marginTop: "20px" }}>
               <p className="dashboard-card-text" style={{ textAlign: "center" }}>
                 {submissions.length === 0
-                  ? "Player upload coming soon."
+                  ? "Player upload arrives in Phase 5."
                   : "No submissions match your filters."}
               </p>
             </div>

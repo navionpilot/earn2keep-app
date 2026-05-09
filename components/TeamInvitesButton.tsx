@@ -47,7 +47,7 @@ export default function TeamInvitesButton({
         type="button"
         className="btn-add"
         onClick={() => setOpen(true)}
-        title="Generate invite links for players to join earn²keep"
+        title="Generate invite links for players/participants to join earn²keep"
       >
         ✉ Send Invites
       </button>

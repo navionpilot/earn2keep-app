@@ -74,7 +74,7 @@ export default function EventListRow({ event }: EventListRowProps) {
     : 0;
   const peopleCount = variant === "tournament" && event.team_count
     ? `${event.team_count} TEAMS`
-    : `${event.player_count} ${event.player_count === 1 ? "PLAYER" : "PLAYERS"}`;
+    : `${event.player_count} ${event.player_count === 1 ? "PLAYER/PART." : "PLAYERS/PART."}`;
   const daysLabel = event.days_left === null
     ? "TBD"
     : event.days_left < 0

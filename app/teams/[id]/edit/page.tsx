@@ -94,7 +94,7 @@ export default function EditTeamPage() {
             <div>
               <label htmlFor="name" className="form-label">
                 Team name <span className="required">*</span>
-                <Tooltip text="The name your players know this team by.">
+                <Tooltip text="The name your players/participants know this team by.">
                   <span className="help-icon">?</span>
                 </Tooltip>
               </label>

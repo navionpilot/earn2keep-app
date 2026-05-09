@@ -84,9 +84,9 @@ const STEPS: StepCopy[] = [
   {
     num: 3,
     phase: "setup",
-    title: "Add players to your roster",
+    title: "Add players/participants to your roster",
     intro:
-      "Add each player's name and jersey number. You can add them one at a time or import a CSV.",
+      "Add each player/participant's name and jersey number. You can add them one at a time or import a CSV.",
     detail:
       "We auto-detect CSV exports from TeamSnap, GameChanger, SportsEngine, and a few others — just drop in the file.",
     tip: "An optional verification photo per player helps confirm it's the right kid in submitted videos.",
@@ -108,9 +108,9 @@ const STEPS: StepCopy[] = [
   {
     num: 5,
     phase: "launch",
-    title: "Send invites to your players",
+    title: "Send invites to your players/participants",
     intro:
-      "Players need their own accounts to record challenges and track fundraising. Open the team page and click ✉ Send Invites.",
+      "Players/participants need their own accounts to record challenges and track fundraising. Open the team page and click ✉ Send Invites.",
     detail:
       "Each player gets a branded email with a one-click sign-up link. They don't need a password — just click the link in their inbox.",
     tip: "If a parent's email is on the player record, that's where the invite goes. Otherwise paste in the right address right in the modal.",
@@ -120,7 +120,7 @@ const STEPS: StepCopy[] = [
     phase: "launch",
     title: "Generate sponsor QR codes",
     intro:
-      "Each player gets a unique QR code. Print them, share them, or have players hand them out at school or practice.",
+      "Each player/participant gets a unique QR code. Print them, share them, or have players hand them out at school or practice.",
     detail:
       "Sponsors (parents, family, local businesses) scan the QR, see the player's real verified work, and contribute. The code is tied to the player and the event.",
   },
@@ -139,7 +139,7 @@ const STEPS: StepCopy[] = [
     phase: "run",
     title: "Review submissions as they come in",
     intro:
-      "As the event runs, players submit videos of their challenges. You review and approve them with one tap.",
+      "As the event runs, players/participants submit videos of their challenges. You review and approve them with one tap.",
     detail:
       "The leaderboard updates automatically. You can review submissions from the Events page → submissions tab.",
   },

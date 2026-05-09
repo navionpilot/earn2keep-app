@@ -123,9 +123,9 @@ export default async function TeamDetailPage({
               <div className="empty-state-icon">
                 <span style={{ fontSize: "48px" }}>👥</span>
               </div>
-              <h2 className="empty-state-title">Add Your First Players</h2>
+              <h2 className="empty-state-title">Add Your First Player/Participants</h2>
               <p className="empty-state-text">
-                Build your roster two ways: add one player at a time, or upload
+                Build your roster two ways: add one player/participant at a time, or upload
                 a CSV exported from TeamSnap, GameChanger, SportsEngine, or any
                 spreadsheet.
               </p>
@@ -134,12 +134,12 @@ export default async function TeamDetailPage({
                   📋 Upload Roster (CSV) →
                 </Link>
                 <Link href={`/teams/${team.id}/players/new`} className="btn-secondary-link">
-                  + Add One Player
+                  + Add One Player/Participant
                 </Link>
               </div>
               <div style={{ marginTop: "20px" }}>
-                <Tooltip text="Each player on your team gets their own roster entry. Once added, they can compete in events and have their own sponsor QR code. You only need a first name to get started — everything else can be filled in later.">
-                  <a className="help-link">❓ What's a player?</a>
+                <Tooltip text="Each player/participant on your team gets their own roster entry. Once added, they can compete in events and have their own sponsor QR code. You only need a first name to get started — everything else can be filled in later.">
+                  <a className="help-link">❓ What&apos;s a player/participant?</a>
                 </Tooltip>
               </div>
             </div>
@@ -150,7 +150,7 @@ export default async function TeamDetailPage({
                   Roster <span className="roster-count">({playerCount})</span>
                 </h2>
                 <div className="section-header-actions">
-                  <Tooltip text="Upload a CSV file of players. Works with exports from TeamSnap, GameChanger, SportsEngine, and any spreadsheet.">
+                  <Tooltip text="Upload a CSV file of players/participants. Works with exports from TeamSnap, GameChanger, SportsEngine, and any spreadsheet.">
                     <Link href={`/teams/${team.id}/players/import`} className="btn-secondary-link">
                       📋 Import CSV
                     </Link>
@@ -166,9 +166,9 @@ export default async function TeamDetailPage({
                     teamName={team.name}
                     defaultOpen={autoOpenInvites}
                   />
-                  <Tooltip text="Add another player one at a time.">
+                  <Tooltip text="Add another player/participant one at a time.">
                     <Link href={`/teams/${team.id}/players/new`} className="btn-add">
-                      + Add Player
+                      + Add Player/Participant
                     </Link>
                   </Tooltip>
                 </div>
@@ -240,7 +240,7 @@ export default async function TeamDetailPage({
             recordName={team.name}
             redirectTo={org ? `/organizations/${org.id}` : "/dashboard"}
             consequences={[
-              `${playerCount} player${playerCount === 1 ? "" : "s"} on the roster`,
+              `${playerCount} player/participant${playerCount === 1 ? "" : "s"} on the roster`,
               `Any event links to this team (the events themselves stay)`,
             ]}
             buttonLabel="Delete this team"

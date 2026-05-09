@@ -124,7 +124,7 @@ export default async function DashboardPage() {
     },
     {
       num: String(playerCount || 0),
-      label: "Players",
+      label: "Player/Participants",
       trend: (playerCount || 0) > 0 ? "On your rosters" : "Add players to start",
       trendTone: (playerCount || 0) > 0 ? "positive" : "neutral",
     },
@@ -372,9 +372,9 @@ function SetupBanner({
     ctaLabel = "Open your organization";
     ctaHref = `/organizations/${orgs[0]?.id}`;
   } else if (!hasPlayers) {
-    title = "Step 3: Add players to your roster";
+    title = "Step 3: Add players/participants to your roster";
     body =
-      "Click into your team, then add the players who will be competing. You can add them one at a time or import a CSV from TeamSnap, GameChanger, or SportsEngine.";
+      "Click into your team, then add the players/participants who will be competing. You can add them one at a time or import a CSV from TeamSnap, GameChanger, or SportsEngine.";
     ctaLabel = "Open your team";
     ctaHref = `/organizations/${orgs[0]?.id}`;
   }
