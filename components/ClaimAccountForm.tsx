@@ -57,9 +57,12 @@ export default function ClaimAccountForm({
     try {
       const supabase = createClient();
       const origin = window.location.origin;
+      // Slice 5.4.3: lands the player on /home instead of /welcome since
+      // the dedicated welcome page is now bypassed by the primary one-
+      // click flow. Keeping /welcome accessible but no longer the default.
       const redirectTo = `${origin}/auth/callback?invite=${encodeURIComponent(
         token
-      )}&next=${encodeURIComponent("/welcome")}`;
+      )}&next=${encodeURIComponent("/home")}`;
 
       const { error: signInError } = await supabase.auth.signInWithOtp({
         email: trimmed,

@@ -19,7 +19,11 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const inviteToken = searchParams.get("invite");
-  const next = searchParams.get("next") ?? "/dashboard";
+  // Slice 5.4.3: when an invite token is present (player signup flow), default
+  // to /home so the new player goes straight to their home screen. Coach
+  // signup flow continues to default to /dashboard.
+  const next =
+    searchParams.get("next") ?? (inviteToken ? "/home" : "/dashboard");
 
   if (!code) {
     // Old behavior preserved — no code means nothing to exchange.

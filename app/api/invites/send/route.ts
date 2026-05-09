@@ -23,6 +23,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/supabase-admin";
 import { generateInviteToken } from "@/lib/invites";
 import { sendInviteEmail } from "@/lib/email";
 
@@ -377,12 +378,64 @@ export async function POST(req: NextRequest) {
     const origin =
       req.nextUrl.origin || `https://${req.headers.get("host") || "app.earn2keep.com"}`;
 
+    // Slice 5.4.3: try to get an admin client so we can generate Supabase
+    // magic-link URLs server-side. If SUPABASE_SERVICE_ROLE_KEY isn't set,
+    // we'll degrade to the original 2-email flow (link goes to /join/[token]
+    // which sends a separate magic-link email when the player submits).
+    const adminClient = createAdminClient();
+    if (!adminClient) {
+      console.warn(
+        "[invites] SUPABASE_SERVICE_ROLE_KEY not set — falling back to legacy 2-email flow."
+      );
+    }
+
     for (const queued of sendQueue) {
       const player = playerById.get(queued.playerId);
       if (!player) continue;
       const ctx = teamEventCtx.get(player.team_id);
       const result = results.find((r) => r.playerId === queued.playerId);
       if (!result) continue;
+
+      // Default URL is the legacy /join/<token> page. We'll override with
+      // a magic-link URL below if admin client is available + the call
+      // succeeds. The /join/<token> page still works as a fallback for
+      // expired magic links or partial failures.
+      let primaryUrl = `${origin}/join/${queued.token}`;
+
+      if (adminClient) {
+        // generateLink with type='magiclink' creates a one-time auth URL
+        // WITHOUT triggering Supabase to send its own email. We embed
+        // the URL into our branded email instead, giving the player
+        // one-click signup.
+        //
+        // redirectTo points at /auth/callback?invite=<token>&next=/home
+        // so the callback can exchange the OTP, claim the invite, and
+        // land them on /home in one shot.
+        const redirectTo = `${origin}/auth/callback?invite=${encodeURIComponent(
+          queued.token
+        )}&next=${encodeURIComponent("/home")}`;
+
+        try {
+          const { data: linkData, error: linkErr } =
+            await adminClient.auth.admin.generateLink({
+              type: "magiclink",
+              email: queued.email,
+              options: { redirectTo },
+            });
+
+          if (linkErr) {
+            console.warn(
+              `[invites] generateLink failed for ${queued.email}:`,
+              linkErr.message
+            );
+          } else if (linkData?.properties?.action_link) {
+            primaryUrl = linkData.properties.action_link;
+          }
+        } catch (err) {
+          console.warn("[invites] generateLink threw:", err);
+          // Fall back to /join/<token> — already set above.
+        }
+      }
 
       const sendResult = await sendInviteEmail({
         to: queued.email,
@@ -393,7 +446,7 @@ export async function POST(req: NextRequest) {
         orgName: ctx?.orgName || "your organization",
         eventName: ctx?.eventName ?? null,
         eventType: ctx?.eventType ?? null,
-        inviteUrl: `${origin}/join/${queued.token}`,
+        inviteUrl: primaryUrl,
         inviterLabel,
       });
 
