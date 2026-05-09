@@ -1,15 +1,15 @@
 // =============================================================================
-// app/home/profile/page.tsx — Player profile (Slice 5.5)
+// app/home/profile/page.tsx — Player profile (Slice 5.5 + 5.3.2 badges)
 // =============================================================================
-// Server component. Loads the player's current row and dual-role flag,
-// renders the page chrome (PlayerTopBar, ← Back link), and hands the
-// editable fields off to <PlayerProfileForm /> client component for the
-// actual save flow.
+// Server component. Loads the player's row, dual-role flag, lifetime
+// submission stats, and (if they're in an active event) their current
+// rank — then renders the page chrome, profile form, and achievement
+// badge grid (Slice 5.3.2).
 //
 // Branches:
 //   - No auth user        → middleware bounces to /login
 //   - No player record    → /dashboard (they're a coach-only account)
-//   - Otherwise           → render profile form
+//   - Otherwise           → render profile form + badge grid
 // =============================================================================
 
 import { redirect } from "next/navigation";
@@ -17,6 +17,17 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
 import PlayerTopBar from "@/components/PlayerTopBar";
 import PlayerProfileForm from "@/components/PlayerProfileForm";
+import PlayerBadges from "@/components/PlayerBadges";
+import { computeBadges } from "@/lib/badges";
+import {
+  pointsEarnedForSubmission,
+  type ScoringEventChallenge,
+  type SubmissionStatus,
+} from "@/lib/scoring";
+import {
+  computeEventLeaderboard,
+  findPlayerEntry,
+} from "@/lib/leaderboard";
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -66,6 +77,97 @@ export default async function ProfilePage() {
       })
     : null;
 
+  // ---------------------------------------------------------------------------
+  // Slice 5.3.2 — Compute lifetime stats + current-event rank for badges
+  // ---------------------------------------------------------------------------
+  // Lifetime: every submission this player has ever made (across events).
+  // Drives all the milestone + points-based badges.
+  type ChRel = { name: string; difficulty: string | null };
+  type EcRel = {
+    id: string;
+    rep_target: number | null;
+    points_value: number | null;
+    challenges: ChRel | ChRel[] | null;
+  };
+  type SubRow = {
+    status: SubmissionStatus;
+    reps_claimed: number | null;
+    reps_approved: number | null;
+    event_challenges: EcRel | EcRel[] | null;
+  };
+  function single<T>(rel: T | T[] | null | undefined): T | null {
+    if (!rel) return null;
+    return Array.isArray(rel) ? rel[0] ?? null : rel;
+  }
+  const { data: subsRaw } = await supabase
+    .from("submissions")
+    .select(
+      "status, reps_claimed, reps_approved, event_challenges(id, rep_target, points_value, challenges(name, difficulty))"
+    )
+    .eq("player_id", playerRow.id);
+  const allSubs = (subsRaw || []) as SubRow[];
+  const totalPoints = allSubs.reduce((sum, s) => {
+    const ec = single(s.event_challenges);
+    if (!ec) return sum;
+    const ch = single(ec.challenges);
+    const scoringEc: ScoringEventChallenge = {
+      rep_target: ec.rep_target,
+      points_value: ec.points_value,
+      challenge_difficulty: (ch?.difficulty ?? null) as ScoringEventChallenge["challenge_difficulty"],
+    };
+    return (
+      sum +
+      pointsEarnedForSubmission(
+        {
+          status: s.status,
+          reps_claimed: s.reps_claimed,
+          reps_approved: s.reps_approved,
+        },
+        scoringEc
+      )
+    );
+  }, 0);
+  const approvedCount = allSubs.filter((s) => s.status === "approved").length;
+  const pendingCount = allSubs.filter((s) => s.status === "pending").length;
+  const totalSubmissions = allSubs.length;
+
+  // Current event rank — only meaningful if the player is in an active
+  // event. Stays null between events.
+  let rank: number | null = null;
+  let leaderboardSize = 0;
+  const fundraisingGoalHit = false; // Phase 6: wire to real raised amount
+
+  const { data: epRows } = await supabase
+    .from("event_participants")
+    .select("event_id, events(id, status)")
+    .eq("player_id", playerRow.id);
+
+  type EpEvent = { id: string; status: string | null };
+  const activeEvent = (epRows || [])
+    .map((r) => {
+      const e = Array.isArray(r.events) ? r.events[0] : r.events;
+      return e as EpEvent | null;
+    })
+    .find((e) => e && e.status === "active");
+
+  if (activeEvent) {
+    // Build the leaderboard for that event using the shared helper.
+    const lb = await computeEventLeaderboard(supabase, activeEvent.id);
+    const myEntry = findPlayerEntry(lb, playerRow.id);
+    rank = myEntry?.rank ?? null;
+    leaderboardSize = lb.length;
+  }
+
+  const { earned: earnedBadges, locked: lockedBadges } = computeBadges({
+    totalPoints,
+    approvedCount,
+    pendingCount,
+    totalSubmissions,
+    rank,
+    leaderboardSize,
+    fundraisingGoalHit,
+  });
+
   return (
     <>
       <PlayerTopBar
@@ -104,6 +206,22 @@ export default async function ProfilePage() {
           authEmail={user.email ?? null}
           joinedDate={joinedDate}
         />
+
+        {/* Slice 5.3.2: Achievement badge collection. The #badges anchor
+            lets the "View all →" link from /home jump straight here. */}
+        <section className="profile-section profile-section-badges" id="badges">
+          <h2 className="profile-section-title">Achievements</h2>
+          <p className="profile-section-help">
+            Badges unlock automatically as you submit, get approved, climb the
+            leaderboard, and hit fundraising goals. Locked ones are still ahead
+            of you — keep going!
+          </p>
+          <PlayerBadges
+            earned={earnedBadges}
+            locked={lockedBadges}
+            variant="full"
+          />
+        </section>
       </main>
     </>
   );

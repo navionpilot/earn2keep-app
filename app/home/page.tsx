@@ -35,6 +35,8 @@ import {
   computeEventLeaderboard,
   findPlayerEntry,
 } from "@/lib/leaderboard";
+import { computeBadges } from "@/lib/badges";
+import PlayerBadges from "@/components/PlayerBadges";
 
 interface PlayerRow {
   id: string;
@@ -440,6 +442,18 @@ export default async function PlayerHomePage() {
   const fundRemaining = Math.max(0, fundGoal - fundRaised);
   const showFundBar = isCamp && fundGoal > 0 && !isUpcoming;
 
+  // Slice 5.3.2: compute earned/locked badges from the existing stats.
+  const badgeStats = {
+    totalPoints,
+    approvedCount,
+    pendingCount,
+    totalSubmissions: allSubs.length,
+    rank: myRank,
+    leaderboardSize: leaderboard.length,
+    fundraisingGoalHit: fundGoal > 0 && fundRaised >= fundGoal,
+  };
+  const { earned: earnedBadges } = computeBadges(badgeStats);
+
   return (
     <>
       {TopBar}
@@ -509,11 +523,25 @@ export default async function PlayerHomePage() {
           </div>
         </div>
 
-        {/* === Slice 5.7.3: Fundraising goal progress (camps only) ===
-            Mirrors the Event Timeline bar's visual language but drives
-            from dollars instead of days. Hidden for tournaments (no
-            per-player goal) and for upcoming events (no point showing
-            "$0 of $500" before the event has even started). */}
+        {/* === Slice 5.3.2: Achievement badges strip ===
+            Earned badges only (compact). Empty state is a friendly hint
+            rather than an empty space. Tap on a badge for a tooltip. */}
+        <section className="player-home-badges">
+          <div className="player-home-section-head player-home-badges-head">
+            <span className="player-home-section-eyebrow">
+              <span className="player-home-hero-prompt">&gt;</span> ACHIEVEMENTS
+            </span>
+            <Link
+              href="/home/profile#badges"
+              className="player-home-badges-viewall"
+            >
+              View all →
+            </Link>
+          </div>
+          <PlayerBadges earned={earnedBadges} variant="compact" />
+        </section>
+
+        {/* === Slice 5.7.3: Fundraising goal progress (camps only) === */}
         {showFundBar && (
           <div className="player-home-timeline">
             <div className="player-home-timeline-head">

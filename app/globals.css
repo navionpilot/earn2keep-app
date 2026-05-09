@@ -16010,3 +16010,228 @@ input.form-input-with-prefix {
   color: var(--e2k-cyan);
   font-weight: 800;
 }
+
+
+/* ============================================================
+   Slice 5.3.2 — Achievement Badges
+   ============================================================ */
+
+
+/* --- Player home badges section --- */
+.player-home-badges {
+  margin: 18px 0 22px;
+}
+
+.player-home-badges-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.player-home-badges-viewall {
+  font-family: monospace, var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--e2k-cyan);
+  letter-spacing: 1px;
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(53, 213, 223, 0.40);
+  padding-bottom: 1px;
+}
+
+.player-home-badges-viewall:hover {
+  color: #ffffff;
+  border-bottom-color: var(--e2k-cyan);
+}
+
+
+/* --- Compact strip (earned only, scrollable horizontally) --- */
+.player-badges-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.player-badges-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: rgba(4, 20, 24, 0.40);
+  border: 1px dashed var(--e2k-border);
+  border-radius: var(--e2k-r-md);
+  font-size: 13px;
+  color: var(--e2k-text-muted);
+}
+
+.player-badges-empty-icon {
+  font-size: 22px;
+}
+
+
+/* --- Single badge chip (used in compact strip) --- */
+.player-badge-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px 8px 10px;
+  border-radius: 99px;
+  border: 1px solid var(--e2k-border);
+  background: rgba(10, 47, 55, 0.55);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--e2k-text);
+  cursor: default;
+  transition: transform 100ms ease, background 150ms ease;
+}
+
+.player-badge-chip-earned {
+  background: linear-gradient(
+    135deg,
+    rgba(53, 213, 223, 0.10) 0%,
+    rgba(255, 117, 95, 0.08) 100%
+  );
+  border-color: rgba(53, 213, 223, 0.40);
+  box-shadow: 0 0 8px rgba(53, 213, 223, 0.15);
+}
+
+.player-badge-chip-earned:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(53, 213, 223, 0.25);
+}
+
+.player-badge-chip-locked {
+  opacity: 0.45;
+  filter: grayscale(0.6);
+}
+
+.player-badge-chip-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.player-badge-chip-name {
+  letter-spacing: 0.2px;
+}
+
+
+/* --- Full grid view (profile page) --- */
+.profile-section-badges {
+  /* Inherits .profile-section base styles from Slice 5.5 */
+}
+
+.player-badges-full {
+  margin-top: 8px;
+}
+
+.player-badges-full-head {
+  margin-bottom: 14px;
+}
+
+.player-badges-full-eyebrow {
+  font-family: monospace, var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--e2k-cyan);
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.player-badges-full-progressbar {
+  margin-top: 6px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--e2k-border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.player-badges-full-progressbar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--e2k-cyan) 0%, var(--e2k-coral) 100%);
+  border-radius: 99px;
+  transition: width 300ms ease;
+  box-shadow: 0 0 6px rgba(53, 213, 223, 0.4);
+}
+
+.player-badges-full-section-head {
+  font-family: monospace, var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--e2k-text-muted);
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  margin: 14px 0 8px;
+}
+
+.player-badges-full-section-locked {
+  color: var(--e2k-text-faint);
+}
+
+.player-badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 480px) {
+  .player-badges-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+}
+
+
+/* --- Single badge card (used in full grid) --- */
+.player-badge-card {
+  padding: 14px 12px 12px;
+  border-radius: var(--e2k-r-md);
+  border: 1px solid var(--e2k-border);
+  background: rgba(10, 47, 55, 0.55);
+  text-align: center;
+  transition: transform 100ms ease, box-shadow 200ms ease, border-color 150ms ease;
+}
+
+.player-badge-card-earned {
+  background: linear-gradient(
+    135deg,
+    rgba(53, 213, 223, 0.10) 0%,
+    rgba(255, 117, 95, 0.08) 100%
+  );
+  border-color: rgba(53, 213, 223, 0.40);
+  box-shadow: 0 0 12px rgba(53, 213, 223, 0.20);
+}
+
+.player-badge-card-earned:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(53, 213, 223, 0.30);
+  border-color: var(--e2k-cyan);
+}
+
+.player-badge-card-locked {
+  opacity: 0.55;
+  filter: grayscale(0.7);
+}
+
+.player-badge-card-icon {
+  font-size: 38px;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.player-badge-card-name {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--e2k-text);
+  margin-bottom: 4px;
+  letter-spacing: -0.2px;
+}
+
+.player-badge-card-desc {
+  font-size: 11px;
+  color: var(--e2k-text-muted);
+  line-height: 1.4;
+}
