@@ -185,6 +185,7 @@ export default async function PlayerHomePage() {
   const TopBar = (
     <PlayerTopBar
       displayName={player.first_name}
+      lastName={player.last_name}
       isAlsoCoach={isAlsoCoach}
     />
   );

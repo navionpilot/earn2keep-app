@@ -83,7 +83,11 @@ export default async function LeaderboardPage() {
   const isAlsoCoach = (ownedOrgCount ?? 0) > 0;
 
   const TopBar = (
-    <PlayerTopBar displayName={player.first_name} isAlsoCoach={isAlsoCoach} />
+    <PlayerTopBar
+      displayName={player.first_name}
+      lastName={player.last_name}
+      isAlsoCoach={isAlsoCoach}
+    />
   );
 
   // No event yet — show empty state.

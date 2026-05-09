@@ -132,6 +132,7 @@ export default async function RecordPage({
     return (
       <ErrorPage
         playerFirstName={player.first_name}
+        playerLastName={player.last_name}
         title="That challenge isn't yours"
         text="This challenge belongs to an event your team isn't competing in. Head back home to see today's challenges."
       />
@@ -156,7 +157,7 @@ export default async function RecordPage({
         "Your coach has paused this event. Hold tight — recording will reopen soon.";
     }
     return (
-      <ErrorPage playerFirstName={player.first_name} title={title} text={text} />
+      <ErrorPage playerFirstName={player.first_name} playerLastName={player.last_name} title={title} text={text} />
     );
   }
 
@@ -179,7 +180,7 @@ export default async function RecordPage({
   // ---------- Render ----------
   return (
     <>
-      <PlayerTopBar displayName={player.first_name} />
+      <PlayerTopBar displayName={player.first_name} lastName={player.last_name} />
       <main className="recording-page-wrap">
         <Link href="/home" className="recording-back">
           ← Back to home
@@ -283,16 +284,18 @@ function PriorSubmissionPill({ sub }: { sub: PriorSubmission }) {
 // Friendly error page — used for "not your event" + "not active" branches.
 function ErrorPage({
   playerFirstName,
+  playerLastName,
   title,
   text,
 }: {
   playerFirstName: string;
+  playerLastName?: string | null;
   title: string;
   text: string;
 }) {
   return (
     <>
-      <PlayerTopBar displayName={playerFirstName} />
+      <PlayerTopBar displayName={playerFirstName} lastName={playerLastName} />
       <main className="recording-page-wrap">
         <Link href="/home" className="recording-back">
           ← Back to home

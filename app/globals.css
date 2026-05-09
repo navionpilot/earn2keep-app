@@ -15063,3 +15063,51 @@ input.form-input-with-prefix {
 .day-challenge-minimize-btn:hover {
   background: rgba(255, 117, 95, 0.20);
 }
+
+
+/* ============================================================
+   Slice 5.7.1 — PlayerTopBar matches AppHeader pixel-for-pixel
+   ============================================================
+   The player top bar now uses .e2k-header (same as the coach
+   AppHeader), so brand size/font/tagline/avatar/bell are all
+   identical between the two surfaces. This block adds only the
+   tiny player-specific overrides:
+     - "← Coach View" link styling on .player-topbar-coach-link
+       (already defined further up; just ensuring consistent
+       vertical alignment in the new e2k-header context)
+     - The .player-topbar-header marker class lets us
+       differentiate when needed (currently no overrides; the
+       class exists for future variant work)
+   ============================================================ */
+
+.player-topbar-header .player-topbar-coach-link {
+  /* Match the height + visual rhythm of the bell + avatar buttons. */
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--e2k-cyan);
+  text-decoration: none;
+  background: rgba(53, 213, 223, 0.10);
+  border: 1px solid rgba(53, 213, 223, 0.40);
+  border-radius: 99px;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.player-topbar-header .player-topbar-coach-link:hover {
+  background: rgba(53, 213, 223, 0.20);
+  border-color: var(--e2k-cyan);
+}
+
+@media (max-width: 480px) {
+  /* On phones, hide the "← Coach View" label text and just keep the
+     arrow icon to save horizontal room next to the bell + avatar. */
+  .player-topbar-header .player-topbar-coach-link {
+    padding: 0 10px;
+    font-size: 11px;
+  }
+}
