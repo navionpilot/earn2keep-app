@@ -408,10 +408,13 @@ export async function POST(req: NextRequest) {
         // the URL into our branded email instead, giving the player
         // one-click signup.
         //
-        // redirectTo points at /auth/callback?invite=<token>&next=/home
-        // so the callback can exchange the OTP, claim the invite, and
-        // land them on /home in one shot.
-        const redirectTo = `${origin}/auth/callback?invite=${encodeURIComponent(
+        // Slice 5.4.4: redirect_to points at the CLIENT-side /auth/finish
+        // handler. Server-generated magic links use the implicit (hash)
+        // flow — the access token comes back in the URL hash, which our
+        // server-side /auth/callback can't see. /auth/finish is a client
+        // page that reads the hash, sets the session, claims the invite,
+        // and redirects to /home.
+        const redirectTo = `${origin}/auth/finish?invite=${encodeURIComponent(
           queued.token
         )}&next=${encodeURIComponent("/home")}`;
 

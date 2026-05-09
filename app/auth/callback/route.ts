@@ -25,9 +25,19 @@ export async function GET(request: Request) {
   const next =
     searchParams.get("next") ?? (inviteToken ? "/home" : "/dashboard");
 
+  // Slice 5.4.4: when there's no ?code= but the request landed here, it's
+  // likely an admin-generated magic link using the implicit (hash) flow —
+  // the access_token is in the URL hash, which we can't see server-side.
+  // Redirect to the client-side /auth/finish handler. Browsers preserve
+  // the hash through HTTP redirects when the destination URL doesn't
+  // include its own hash.
   if (!code) {
-    // Old behavior preserved — no code means nothing to exchange.
-    return NextResponse.redirect(`${origin}/login?error=auth_failed`);
+    const passthrough = new URLSearchParams();
+    if (inviteToken) passthrough.set("invite", inviteToken);
+    passthrough.set("next", next);
+    return NextResponse.redirect(
+      `${origin}/auth/finish?${passthrough.toString()}`
+    );
   }
 
   const supabase = await createClient();
