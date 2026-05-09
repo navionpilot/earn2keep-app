@@ -22,6 +22,7 @@ interface PlayerRow {
   id: string;
   first_name: string;
   last_name: string | null;
+  avatar_url: string | null;
   team_id: string;
 }
 
@@ -85,7 +86,7 @@ export default async function RecordPage({
   // 1. Look up player record for this auth user.
   const { data: playerRow } = await supabase
     .from("players")
-    .select("id, first_name, last_name, team_id")
+    .select("id, first_name, last_name, avatar_url, team_id")
     .eq("linked_user_id", user.id)
     .maybeSingle();
 
@@ -180,7 +181,7 @@ export default async function RecordPage({
   // ---------- Render ----------
   return (
     <>
-      <PlayerTopBar displayName={player.first_name} lastName={player.last_name} />
+      <PlayerTopBar displayName={player.first_name} lastName={player.last_name} avatarUrl={player.avatar_url ?? null} />
       <main className="recording-page-wrap">
         <Link href="/home" className="recording-back">
           ← Back to home

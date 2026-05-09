@@ -94,12 +94,32 @@ export default async function SponsorPage({
 
   const row: SponsorView = Array.isArray(data) ? data[0] : data;
 
+  // Slice 5.5: pull the player extras (avatar, bio, pronouns) from the
+  // new sibling RPC. If the RPC returns null (older sponsor links from
+  // before 5.5 deploy still work fine — bucket + columns may exist but
+  // this player just hasn't filled out a profile yet), we fall back to
+  // initials + no-bio rendering.
+  const { data: extrasData } = await supabase.rpc(
+    "get_public_sponsor_player_extras",
+    { token_input: token }
+  );
+  const extras = (extrasData || {}) as {
+    avatar_url?: string | null;
+    bio?: string | null;
+    pronouns?: string | null;
+  };
+
   const isCamp = row.event_type === "camp";
   const playerName = row.player_last_initial
     ? `${row.player_first_name} ${row.player_last_initial}`
     : row.player_first_name;
   const goal = Number(row.event_goal_amount || 0);
   const eventDateRange = formatDateRange(row.event_start_date, row.event_end_date);
+
+  // Initials for the avatar placeholder if no photo yet.
+  const avatarInitials = `${row.player_first_name[0] ?? "?"}${
+    row.player_last_initial?.[0] ?? ""
+  }`.toUpperCase();
 
   return (
     <div className="sponsor-page">
@@ -115,6 +135,27 @@ export default async function SponsorPage({
         <div className="sponsor-card">
           <div className="sponsor-eyebrow">
             ★ {isCamp ? "FUNDRAISER" : "TOURNAMENT"} ★
+          </div>
+
+          {/* Slice 5.5: player avatar + pronouns (when set). The avatar
+              gets a soft glow ring; falls back to initials when the
+              player hasn't uploaded a photo yet. */}
+          <div className="sponsor-player-avatar-wrap">
+            {extras.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={extras.avatar_url}
+                alt={playerName}
+                className="sponsor-player-avatar"
+              />
+            ) : (
+              <div className="sponsor-player-avatar sponsor-player-avatar-initials">
+                {avatarInitials}
+              </div>
+            )}
+            {extras.pronouns && (
+              <div className="sponsor-player-pronouns">({extras.pronouns})</div>
+            )}
           </div>
 
           {isCamp ? (
@@ -133,6 +174,17 @@ export default async function SponsorPage({
             {row.team_sport && <> ({row.team_sport}{row.team_age_group ? `, ${row.team_age_group}` : ""})</>}
             {" "}from <strong>{row.organization_name}</strong>.
           </p>
+
+          {/* Slice 5.5: optional bio in the player's own words. Skipped
+              entirely when not set so we don't show an empty quote box. */}
+          {extras.bio && (
+            <blockquote className="sponsor-player-bio">
+              <span className="sponsor-player-bio-mark">"</span>
+              {extras.bio}
+              <span className="sponsor-player-bio-mark">"</span>
+              <cite>— {playerName}</cite>
+            </blockquote>
+          )}
 
           <div className="sponsor-event-strip">
             <div className="sponsor-event-block">

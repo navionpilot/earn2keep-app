@@ -26,6 +26,9 @@ interface Props {
   displayName: string;
   // The player's last name (for the second initial). Optional.
   lastName?: string | null;
+  // Slice 5.5: optional avatar URL. When set, shows the photo instead
+  // of initials inside the avatar circle.
+  avatarUrl?: string | null;
   // True when this auth user also owns at least one organization (i.e.,
   // they're a coach who's also linked to a player record). When true, we
   // surface a link back to the coach dashboard so they can switch views.
@@ -38,6 +41,7 @@ interface Props {
 export default function PlayerTopBar({
   displayName,
   lastName,
+  avatarUrl,
   isAlsoCoach = false,
   unreadCount = 0,
 }: Props) {
@@ -108,7 +112,25 @@ export default function PlayerTopBar({
         </button>
 
         <div className="e2k-header-avatar" title={fullName || displayName}>
-          {initials}
+          {/* Slice 5.5: clickable Link wrapping the avatar — tap to edit
+              your profile. Shows the uploaded photo when present, falls
+              back to initials. */}
+          <Link
+            href="/home/profile"
+            className="player-topbar-avatar-link"
+            aria-label="Edit your profile"
+          >
+            {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={avatarUrl}
+                alt={fullName || displayName}
+                className="player-topbar-avatar-img"
+              />
+            ) : (
+              <span>{initials}</span>
+            )}
+          </Link>
         </div>
 
         <div className="e2k-header-logout">

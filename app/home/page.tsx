@@ -41,6 +41,8 @@ interface PlayerRow {
   first_name: string;
   last_name: string | null;
   jersey_number: number | null;
+  avatar_url: string | null;   // Slice 5.5
+  pronouns: string | null;     // Slice 5.5
   team_id: string;
   teams:
     | TeamShape
@@ -131,7 +133,7 @@ export default async function PlayerHomePage() {
   const { data: playerRow } = await supabase
     .from("players")
     .select(
-      "id, first_name, last_name, jersey_number, team_id, teams(id, name, sport_or_activity, age_group, organizations(id, name))"
+      "id, first_name, last_name, jersey_number, avatar_url, pronouns, team_id, teams(id, name, sport_or_activity, age_group, organizations(id, name))"
     )
     .eq("linked_user_id", user.id)
     .maybeSingle();
@@ -186,6 +188,7 @@ export default async function PlayerHomePage() {
     <PlayerTopBar
       displayName={player.first_name}
       lastName={player.last_name}
+      avatarUrl={player.avatar_url ?? null}
       isAlsoCoach={isAlsoCoach}
     />
   );
@@ -436,6 +439,11 @@ export default async function PlayerHomePage() {
           </div>
           <div className="player-home-hero-greeting">
             {player.first_name} {player.last_name ?? ""}
+            {player.pronouns && (
+              <span className="player-home-hero-pronouns">
+                ({player.pronouns})
+              </span>
+            )}
           </div>
           <div className="player-home-hero-context">
             <strong>{team?.name ?? "your team"}</strong>

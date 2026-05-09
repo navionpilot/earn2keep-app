@@ -15111,3 +15111,453 @@ input.form-input-with-prefix {
     font-size: 11px;
   }
 }
+
+
+/* ============================================================
+   Slice 5.5 — Player Profile
+   ============================================================ */
+
+
+/* --- Profile page header --- */
+.profile-header {
+  margin-bottom: 18px;
+}
+
+.profile-header-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: monospace, var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--e2k-cyan);
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.profile-header-title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--e2k-text);
+  letter-spacing: -0.5px;
+  margin: 0 0 6px;
+}
+
+.profile-header-sub {
+  font-size: 13px;
+  color: var(--e2k-text-muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+
+/* --- Profile form sections --- */
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 100px; /* room above the sticky save bar */
+}
+
+.profile-section {
+  background: rgba(10, 47, 55, 0.45);
+  border: 1px solid var(--e2k-border);
+  border-radius: var(--e2k-r-md);
+  padding: 18px 18px 16px;
+}
+
+.profile-section-readonly {
+  background: rgba(4, 20, 24, 0.55);
+  border-style: dashed;
+}
+
+.profile-section-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--e2k-text);
+  letter-spacing: -0.2px;
+  margin: 0 0 4px;
+}
+
+.profile-section-help {
+  font-size: 12px;
+  color: var(--e2k-text-muted);
+  line-height: 1.55;
+  margin: 0 0 12px;
+}
+
+
+/* --- Inputs --- */
+.profile-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-input-row .form-input {
+  flex: 1;
+}
+
+.profile-counter {
+  font-family: monospace, var(--font-body);
+  font-size: 11px;
+  color: var(--e2k-text-faint);
+  white-space: nowrap;
+}
+
+.profile-counter-right {
+  text-align: right;
+  margin-top: 4px;
+}
+
+.profile-bio {
+  width: 100%;
+  resize: vertical;
+  min-height: 90px;
+}
+
+
+/* --- Toggle --- */
+.profile-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--e2k-text);
+  cursor: pointer;
+}
+
+.profile-toggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--e2k-cyan);
+  cursor: pointer;
+}
+
+
+/* --- Read-only roster details --- */
+.profile-readonly-list {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-readonly-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--e2k-border);
+}
+
+.profile-readonly-row:last-child {
+  border-bottom: none;
+}
+
+.profile-readonly-row dt {
+  font-family: monospace, var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--e2k-text-muted);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.profile-readonly-row dd {
+  margin: 0;
+  font-size: 13px;
+  color: var(--e2k-text);
+  font-weight: 600;
+  text-align: right;
+}
+
+
+/* --- Save bar (sticky bottom) --- */
+.profile-save-bar {
+  position: sticky;
+  bottom: 0;
+  margin-top: 14px;
+  padding: 14px 16px;
+  background: linear-gradient(
+    180deg,
+    rgba(4, 20, 24, 0.0) 0%,
+    rgba(4, 20, 24, 0.95) 50%,
+    rgba(4, 20, 24, 1.0) 100%
+  );
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.profile-save-btn {
+  display: block;
+  width: 100%;
+  padding: 14px 22px;
+  background: linear-gradient(135deg, var(--e2k-coral) 0%, #ff9a7b 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 99px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  transition: transform 100ms ease, box-shadow 150ms ease;
+}
+
+.profile-save-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(255, 117, 95, 0.35);
+}
+
+.profile-save-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.profile-toast {
+  padding: 10px 14px;
+  border-radius: var(--e2k-r-sm);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.profile-toast-ok {
+  background: rgba(110, 231, 183, 0.15);
+  color: #6EE7B7;
+  border: 1px solid rgba(110, 231, 183, 0.40);
+}
+
+.profile-toast-err {
+  background: rgba(252, 165, 165, 0.12);
+  color: #FCA5A5;
+  border: 1px solid rgba(252, 165, 165, 0.42);
+}
+
+
+/* ============================================================
+   Avatar upload
+   ============================================================ */
+.avatar-upload {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 12px;
+  border: 1px dashed var(--e2k-border);
+  border-radius: var(--e2k-r-md);
+  background: rgba(4, 20, 24, 0.35);
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.avatar-upload-dragover {
+  background: rgba(53, 213, 223, 0.06);
+  border-color: var(--e2k-cyan);
+  border-style: solid;
+}
+
+.avatar-upload-preview {
+  flex-shrink: 0;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--e2k-cyan) 0%, #20a4ad 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #041418;
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  overflow: hidden;
+  border: 2px solid rgba(53, 213, 223, 0.40);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.30);
+}
+
+.avatar-upload-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-upload-initials {
+  letter-spacing: -0.5px;
+}
+
+.avatar-upload-controls {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.avatar-upload-btn-primary,
+.avatar-upload-btn-secondary {
+  padding: 8px 14px;
+  border-radius: 99px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+  border: 1px solid transparent;
+}
+
+.avatar-upload-btn-primary {
+  background: rgba(53, 213, 223, 0.12);
+  color: var(--e2k-cyan);
+  border-color: rgba(53, 213, 223, 0.40);
+}
+
+.avatar-upload-btn-primary:hover:not(:disabled) {
+  background: rgba(53, 213, 223, 0.22);
+  border-color: var(--e2k-cyan);
+}
+
+.avatar-upload-btn-primary:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.avatar-upload-btn-secondary {
+  background: transparent;
+  color: var(--e2k-text-muted);
+  border-color: var(--e2k-border);
+}
+
+.avatar-upload-btn-secondary:hover {
+  color: #FCA5A5;
+  border-color: rgba(252, 165, 165, 0.40);
+}
+
+.avatar-upload-hint {
+  font-size: 11px;
+  color: var(--e2k-text-faint);
+  margin: 4px 0 0;
+  font-style: italic;
+}
+
+.avatar-upload-error {
+  font-size: 12px;
+  color: #FCA5A5;
+  margin: 4px 0 0;
+  font-weight: 600;
+}
+
+
+/* ============================================================
+   PlayerTopBar avatar with linked image (5.5)
+   ============================================================ */
+.player-topbar-avatar-link {
+  display: block;
+  width: 100%;
+  height: 100%;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-topbar-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+
+/* ============================================================
+   Player home — pronouns next to greeting (5.5)
+   ============================================================ */
+.player-home-hero-pronouns {
+  margin-left: 8px;
+  font-family: monospace, var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--e2k-text-muted);
+  letter-spacing: 0.4px;
+  vertical-align: middle;
+}
+
+
+/* ============================================================
+   Sponsor page — player avatar, pronouns, bio (5.5)
+   ============================================================ */
+.sponsor-player-avatar-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 18px;
+}
+
+.sponsor-player-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(255, 117, 95, 0.50);
+  box-shadow: 0 4px 18px rgba(255, 117, 95, 0.25);
+  background: linear-gradient(135deg, var(--e2k-coral) 0%, #ff9a7b 100%);
+}
+
+.sponsor-player-avatar-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.6px;
+}
+
+.sponsor-player-pronouns {
+  font-family: monospace, var(--font-body);
+  font-size: 12px;
+  color: var(--e2k-text-muted);
+  letter-spacing: 0.4px;
+}
+
+.sponsor-player-bio {
+  position: relative;
+  margin: 16px 0 8px;
+  padding: 14px 18px 16px;
+  background: rgba(53, 213, 223, 0.06);
+  border: 1px solid rgba(53, 213, 223, 0.30);
+  border-left: 3px solid var(--e2k-cyan);
+  border-radius: var(--e2k-r-md);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--e2k-text);
+  font-style: italic;
+}
+
+.sponsor-player-bio-mark {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--e2k-cyan);
+  margin: 0 4px;
+  font-family: var(--font-display);
+  font-style: normal;
+  vertical-align: text-top;
+}
+
+.sponsor-player-bio cite {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  font-style: normal;
+  color: var(--e2k-text-muted);
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}

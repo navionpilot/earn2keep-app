@@ -26,6 +26,7 @@ interface PlayerRow {
   id: string;
   first_name: string;
   last_name: string | null;
+  avatar_url: string | null;
   team_id: string;
 }
 
@@ -51,7 +52,7 @@ export default async function LeaderboardPage() {
   // Find the player record for this auth user.
   const { data: playerRow } = await supabase
     .from("players")
-    .select("id, first_name, last_name, team_id")
+    .select("id, first_name, last_name, avatar_url, team_id")
     .eq("linked_user_id", user.id)
     .maybeSingle();
   if (!playerRow) redirect("/dashboard");
@@ -86,6 +87,7 @@ export default async function LeaderboardPage() {
     <PlayerTopBar
       displayName={player.first_name}
       lastName={player.last_name}
+      avatarUrl={player.avatar_url ?? null}
       isAlsoCoach={isAlsoCoach}
     />
   );
