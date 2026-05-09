@@ -13863,3 +13863,25 @@ input.form-input-with-prefix {
   font-size: 15px !important;
   text-align: center;
 }
+
+
+/* ============================================================
+   Slice 5.4.1 — Allow re-inviting already-joined players
+   ============================================================
+   When a coach selects a row that's also already-joined, the row
+   gets a small cyan "↻ Re-send" pill alongside the green
+   "✓ Already joined" pill, plus a subtle border tint so it's
+   clear they're about to send a duplicate.
+   ============================================================ */
+
+.invites-row-pill-resend {
+  background: rgba(53, 213, 223, 0.16) !important;
+  color: var(--e2k-cyan) !important;
+  border: 1px solid rgba(53, 213, 223, 0.40) !important;
+  margin-left: 4px;
+}
+
+.invites-row-resend {
+  border-color: rgba(53, 213, 223, 0.30) !important;
+  background: rgba(53, 213, 223, 0.04);
+}

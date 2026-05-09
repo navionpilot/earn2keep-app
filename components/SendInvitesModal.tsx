@@ -312,24 +312,36 @@ export default function SendInvitesModal({
                       }`.trim();
                       const missingEmailWarn =
                         mode === "send" && r.selected && !r.email.trim();
+                      // Slice 5.4.1: allow re-inviting already-joined players.
+                      // Useful for testing, and for real cases where a player
+                      // lost their phone and needs a fresh sign-in link. The
+                      // claim_player_invite RPC handles re-claim gracefully
+                      // (returns already_claimed=true if same user).
+                      const isResend = alreadyJoined && r.selected;
                       return (
                         <div
                           key={r.player.id}
                           className={`invites-row ${
                             alreadyJoined ? "invites-row-done" : ""
-                          } ${missingEmailWarn ? "invites-row-warn" : ""}`}
+                          } ${missingEmailWarn ? "invites-row-warn" : ""} ${
+                            isResend ? "invites-row-resend" : ""
+                          }`}
                         >
                           <input
                             type="checkbox"
                             checked={r.selected}
                             onChange={() => toggleRow(r.player.id)}
-                            disabled={alreadyJoined}
                           />
                           <div className="invites-row-name">
                             {fullName}
                             {alreadyJoined && (
                               <span className="invites-row-pill">
                                 ✓ Already joined
+                              </span>
+                            )}
+                            {isResend && (
+                              <span className="invites-row-pill invites-row-pill-resend">
+                                ↻ Re-send
                               </span>
                             )}
                             {missingEmailWarn && (
@@ -350,7 +362,7 @@ export default function SendInvitesModal({
                             onChange={(e) =>
                               setEmail(r.player.id, e.target.value)
                             }
-                            disabled={alreadyJoined || !r.selected}
+                            disabled={!r.selected}
                           />
                         </div>
                       );
