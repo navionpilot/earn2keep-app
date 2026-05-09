@@ -15720,3 +15720,45 @@ input.form-input-with-prefix {
   border: 1px solid rgba(53, 213, 223, 0.30) !important;
   color: var(--e2k-text) !important;
 }
+
+
+/* ============================================================
+   Slice 5.7.3 — Player Mission Control fundraising bar
+   ============================================================
+   New progress bar that mirrors the Event Timeline bar's layout
+   but uses a coral-on-coral fill to differentiate visually:
+     - Cyan→coral gradient = time progressing (event timeline)
+     - Pure coral gradient = effort/dollars (fundraising)
+   Renders only for camp events with a goal_amount set, and
+   only after the event has started (no point showing "$0/$500"
+   before the event begins). Currently raised is always 0 since
+   donations/payments aren't shipped — the UI is in place for
+   when payments wire up in Phase 6.
+   ============================================================ */
+
+.player-home-fund-bar-fill {
+  background: linear-gradient(90deg, var(--e2k-coral) 0%, #ff9a7b 100%) !important;
+  box-shadow: 0 0 8px rgba(255, 117, 95, 0.45) !important;
+}
+
+.player-home-fund-share-link {
+  color: var(--e2k-cyan);
+  text-decoration: none;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  border-bottom: 1px dashed rgba(53, 213, 223, 0.40);
+  transition: color 150ms ease, border-color 150ms ease;
+}
+
+.player-home-fund-share-link:hover {
+  color: #ffffff;
+  border-bottom-color: var(--e2k-cyan);
+}
+
+.player-home-fund-hit {
+  font-family: monospace, var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--e2k-coral);
+  letter-spacing: 0.6px;
+}

@@ -424,6 +424,22 @@ export default async function PlayerHomePage() {
     todayLabel = "Today";
   }
 
+  // Slice 5.7.3: Fundraiser goal progress for camp events.
+  // For camps, event.goal_amount is the per-player dollar goal. We don't
+  // have a donations/payments table yet (planned for a future Phase 6
+  // payments slice), so amount_raised is currently always 0. The bar
+  // renders anyway as a clear visual placeholder so players see what's
+  // coming — when payments wire up, just swap the 0 for a real query.
+  const isCamp = event.event_type === "camp";
+  const fundGoal = Number(event.goal_amount) || 0;
+  const fundRaised = 0; // TODO Phase 6: SUM of donations linked to this player+event
+  const fundPct =
+    fundGoal > 0
+      ? Math.min(100, Math.max(0, Math.round((fundRaised / fundGoal) * 100)))
+      : 0;
+  const fundRemaining = Math.max(0, fundGoal - fundRaised);
+  const showFundBar = isCamp && fundGoal > 0 && !isUpcoming;
+
   return (
     <>
       {TopBar}
@@ -492,6 +508,54 @@ export default async function PlayerHomePage() {
             </div>
           </div>
         </div>
+
+        {/* === Slice 5.7.3: Fundraising goal progress (camps only) ===
+            Mirrors the Event Timeline bar's visual language but drives
+            from dollars instead of days. Hidden for tournaments (no
+            per-player goal) and for upcoming events (no point showing
+            "$0 of $500" before the event has even started). */}
+        {showFundBar && (
+          <div className="player-home-timeline">
+            <div className="player-home-timeline-head">
+              <span className="player-home-timeline-label">
+                <span className="player-home-hero-prompt">&gt;</span>{" "}
+                FUNDRAISING GOAL
+              </span>
+              <span className="player-home-timeline-progress">
+                ${fundRaised.toLocaleString()} / ${fundGoal.toLocaleString()} · {fundPct}%
+              </span>
+            </div>
+            <div className="player-home-timeline-bar-bg">
+              <div
+                className="player-home-timeline-bar-fill player-home-fund-bar-fill"
+                style={{ width: `${Math.max(2, fundPct)}%` }}
+              />
+            </div>
+            <div className="player-home-timeline-dates">
+              {fundRaised >= fundGoal && fundGoal > 0 ? (
+                <span className="player-home-fund-hit">
+                  🎉 GOAL HIT — KEEP RAISING TO BANK BONUS POINTS
+                </span>
+              ) : (
+                <>
+                  <span>
+                    ${fundRemaining.toLocaleString()} TO GO
+                  </span>
+                  <span className="player-home-timeline-sep">·</span>
+                  <span>
+                    SHARE YOUR{" "}
+                    <a
+                      href="#sponsor"
+                      className="player-home-fund-share-link"
+                    >
+                      SPONSOR PAGE ↓
+                    </a>
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* === Event timeline progress bar === */}
         {totalDays && (isActive || isCompleted) && (
@@ -799,7 +863,7 @@ export default async function PlayerHomePage() {
         )}
 
         {/* Sponsor link */}
-        <section className="player-home-section">
+        <section className="player-home-section" id="sponsor">
           <div className="player-home-section-head">
             <span className="player-home-section-eyebrow">
               <span className="player-home-hero-prompt">&gt;</span> MY SPONSOR PAGE
