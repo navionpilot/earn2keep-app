@@ -121,25 +121,51 @@ export default async function SponsorPage({
     row.player_last_initial?.[0] ?? ""
   }`.toUpperCase();
 
+  // Slice 5.9.2: compute event length in days for the explainer line
+  // ("they'll complete challenges over X days"). Inclusive count.
+  const eventStart = new Date(row.event_start_date + "T12:00:00");
+  const eventEnd = new Date(row.event_end_date + "T12:00:00");
+  const totalDays = Math.max(
+    1,
+    Math.round((eventEnd.getTime() - eventStart.getTime()) / 86_400_000) + 1
+  );
+
   return (
     <div className="sponsor-page">
+      {/* ============================================================
+          Header — bigger logo + tagline so visitors who land cold
+          immediately know they're on a real platform, not just one
+          person's GoFundMe.
+          ============================================================ */}
       <header className="sponsor-header">
         <div className="sponsor-header-inner">
-          <span className="sponsor-logo">
-            earn<sup className="logo-sup">2</sup>keep
-          </span>
+          <div className="sponsor-brand">
+            <span className="sponsor-logo">
+              earn<sup className="logo-sup">2</sup>keep
+            </span>
+            <span className="sponsor-brand-tag">EARN IT. KEEP IT.</span>
+          </div>
         </div>
       </header>
 
       <main className="sponsor-main">
         <div className="sponsor-card">
+          {/* "What is this?" eyebrow + first-time framing.
+              The previous version led with "Help Blake hit their goal"
+              which assumed the visitor already knew what earn²keep was.
+              Cold visitors said "I have no idea what this is for" —
+              so now we lead with the structural context. */}
           <div className="sponsor-eyebrow">
-            ★ {isCamp ? "FUNDRAISER" : "TOURNAMENT"} ★
+            ★ {isCamp ? "FUNDRAISER · YOUTH CHALLENGE" : "TOURNAMENT REGISTRATION"} ★
           </div>
 
-          {/* Slice 5.5: player avatar + pronouns (when set). The avatar
-              gets a soft glow ring; falls back to initials when the
-              player hasn't uploaded a photo yet. */}
+          <div className="sponsor-frame">
+            earn²keep is a platform where kids earn their way into camps,
+            tournaments, and prizes by completing daily challenges with
+            video proof. Sponsors back their effort.
+          </div>
+
+          {/* Player avatar + pronouns (Slice 5.5). Falls back to initials. */}
           <div className="sponsor-player-avatar-wrap">
             {extras.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -160,32 +186,55 @@ export default async function SponsorPage({
 
           {isCamp ? (
             <h1 className="sponsor-headline">
-              Help <span className="sponsor-name">{playerName}</span> hit their goal.
+              Back <span className="sponsor-name">{playerName}</span>&apos;s effort.
             </h1>
           ) : (
             <h1 className="sponsor-headline">
-              Cover <span className="sponsor-name">{playerName}</span>'s spot.
+              Cover <span className="sponsor-name">{playerName}</span>&apos;s spot.
             </h1>
           )}
 
-          <p className="sponsor-subhead">
-            <strong>{playerName}</strong> is competing with the{" "}
-            <strong>{row.team_name}</strong>
-            {row.team_sport && <> ({row.team_sport}{row.team_age_group ? `, ${row.team_age_group}` : ""})</>}
-            {" "}from <strong>{row.organization_name}</strong>.
-          </p>
+          {/* The pitch — now spells out exactly what's happening, who
+              the visitor is sponsoring, and what they're sponsoring for.
+              No more "earn it / keep it" mantra at the top — that's brand
+              shorthand a sponsor doesn't decode on first read. */}
+          <div className="sponsor-pitch">
+            {isCamp ? (
+              <p>
+                <strong>{playerName}</strong> is on the{" "}
+                <strong>{row.team_name}</strong>
+                {row.team_sport ? ` (${row.team_sport}${row.team_age_group ? `, ${row.team_age_group}` : ""})` : ""}{" "}
+                from <strong>{row.organization_name}</strong>. They&apos;re competing in{" "}
+                <strong>{row.event_name}</strong> — a {totalDays}-day challenge
+                where they need to raise <strong>${formatMoney(goal)}</strong> to
+                compete and unlock their team&apos;s prize. Every dollar above the
+                minimum earns them bonus points on the leaderboard.
+              </p>
+            ) : (
+              <p>
+                <strong>{playerName}</strong> is on the{" "}
+                <strong>{row.team_name}</strong>
+                {row.team_sport ? ` (${row.team_sport}${row.team_age_group ? `, ${row.team_age_group}` : ""})` : ""}{" "}
+                from <strong>{row.organization_name}</strong>. They&apos;re registering
+                for <strong>{row.event_name}</strong>. The{" "}
+                <strong>${formatMoney(goal)}</strong> registration fee covers their
+                spot to compete with their team for the prize.
+              </p>
+            )}
+          </div>
 
-          {/* Slice 5.5: optional bio in the player's own words. Skipped
-              entirely when not set so we don't show an empty quote box. */}
+          {/* Optional bio quote (Slice 5.5) — the player's own words. */}
           {extras.bio && (
             <blockquote className="sponsor-player-bio">
-              <span className="sponsor-player-bio-mark">"</span>
+              <span className="sponsor-player-bio-mark">&ldquo;</span>
               {extras.bio}
-              <span className="sponsor-player-bio-mark">"</span>
+              <span className="sponsor-player-bio-mark">&rdquo;</span>
               <cite>— {playerName}</cite>
             </blockquote>
           )}
 
+          {/* Event-detail strip — kept (it's useful), but now it lives
+              BELOW the pitch so the explanation comes first. */}
           <div className="sponsor-event-strip">
             <div className="sponsor-event-block">
               <div className="sponsor-event-label">Event</div>
@@ -205,55 +254,74 @@ export default async function SponsorPage({
             </div>
           </div>
 
-          <div className="sponsor-pitch">
-            {isCamp ? (
-              <>
-                <p>
-                  <strong>{playerName}</strong> needs to raise{" "}
-                  <strong>${formatMoney(goal)}</strong> to compete in{" "}
-                  <strong>{row.event_name}</strong>. Every dollar they raise above the
-                  minimum earns them bonus points toward winning the prize.
-                </p>
-                <p className="sponsor-pitch-mantra">
-                  Help them <em>earn it.</em> Help them <em>keep it.</em>
-                </p>
-              </>
-            ) : (
-              <>
-                <p>
-                  Covering <strong>{playerName}</strong>'s ${formatMoney(goal)}{" "}
-                  registration fee gets them a spot in{" "}
-                  <strong>{row.event_name}</strong>. They'll compete with the{" "}
-                  {row.team_name} for the prize.
-                </p>
-                <p className="sponsor-pitch-mantra">
-                  Help them <em>earn it.</em> Help them <em>keep it.</em>
-                </p>
-              </>
-            )}
-          </div>
-
+          {/* CTA — "launching soon" until Stripe ships in 5.10 */}
           <SponsorComingSoonButton playerName={playerName} />
 
-          <div className="sponsor-trust-row">
-            <span className="sponsor-trust-item">🔒 Secure payment when live</span>
-            <span className="sponsor-trust-item">📺 You'll see {row.player_first_name}'s submissions</span>
-            <span className="sponsor-trust-item">🏆 Get notified when they win</span>
+          {/* "What you get as a sponsor" — answers the unasked question
+              "why would I bother?" Each item is concrete and verifiable. */}
+          <div className="sponsor-benefits">
+            <div className="sponsor-benefits-title">
+              What you get as a sponsor
+            </div>
+            <ul className="sponsor-benefits-list">
+              <li>
+                <span className="sponsor-benefits-icon" aria-hidden="true">📺</span>
+                <span>
+                  <strong>See the work.</strong> {row.player_first_name} submits a video for every challenge.
+                  You can watch their progress as they go.
+                </span>
+              </li>
+              <li>
+                <span className="sponsor-benefits-icon" aria-hidden="true">📨</span>
+                <span>
+                  <strong>Get updates.</strong> We&apos;ll email you when {row.player_first_name}{" "}
+                  hits milestones — first challenge, halfway point, goal reached.
+                </span>
+              </li>
+              <li>
+                <span className="sponsor-benefits-icon" aria-hidden="true">💯</span>
+                <span>
+                  <strong>100% goes to the team.</strong> Money goes directly to{" "}
+                  {row.organization_name}, not to a middleman. earn²keep doesn&apos;t
+                  take a cut from sponsors.
+                </span>
+              </li>
+              <li>
+                <span className="sponsor-benefits-icon" aria-hidden="true">🔒</span>
+                <span>
+                  <strong>Secure payments.</strong> Card processing through Stripe.
+                  Receipt emailed instantly. Cancel anytime before charge.
+                </span>
+              </li>
+            </ul>
           </div>
         </div>
 
+        {/* "What is earn²keep?" deeper explainer — kept for the curious
+            who scroll down for more context. The hero now says enough
+            for an action decision; this section is for "tell me more". */}
         <div className="sponsor-explainer">
-          <h2 className="sponsor-explainer-title">What is earn²keep?</h2>
+          <h2 className="sponsor-explainer-title">How earn²keep works</h2>
           <p>
-            earn²keep is a youth fundraising platform that lets kids earn rewards
-            instead of just collecting donations. Athletes, scouts, students, and
-            kids of faith use it to{" "}
-            {isCamp
-              ? "raise money for their teams and earn prizes for the work they put in."
-              : "compete for prizes in fair, structured tournaments."}
+            <strong>Coaches</strong> create fundraisers and tournaments for their
+            youth groups — sports teams, scout troops, churches, after-school
+            programs, anything where kids do work together.
           </p>
           <p>
-            Coaches set the rules. Players compete. Sponsors back them. Everyone wins.
+            <strong>Players</strong> like {row.player_first_name} compete in
+            daily challenges chosen by their coach — push-ups, free throws,
+            memory verses, mile times, reading minutes — and submit short
+            videos as proof. Every approved challenge earns them points.
+          </p>
+          <p>
+            <strong>Sponsors</strong> like you back a specific player&apos;s
+            effort. Your sponsorship covers their entry fee or fundraising
+            minimum, and you get to follow their progress all the way through.
+          </p>
+          <p>
+            <strong>The kids who put in the most work win.</strong> Top
+            performers earn cash prizes, gear, scholarships, or whatever the
+            organization sets up for their event.
           </p>
           <p style={{ marginTop: "10px" }}>
             <a href="https://earn2keep.com" className="sponsor-explainer-link" target="_blank" rel="noopener noreferrer">

@@ -16652,3 +16652,139 @@ input.form-input-with-prefix {
   line-height: 1.5;
   margin: 0;
 }
+
+
+/* ============================================================
+   Slice 5.9.2 — Sponsor page redesign for cold visitors
+   ============================================================
+   Public sponsor page — what someone sees when they scan a QR
+   or tap a shared link. Cold visitor feedback was "I have no
+   idea what this is for" — so the new structure leads with a
+   "what is earn²keep" frame BEFORE asking them to sponsor.
+   Also bumps the brand logo from 20px to 36px with a tagline
+   so it reads as a real platform, not a kid's GoFundMe.
+   ============================================================ */
+
+/* --- Bigger header brand --- */
+.sponsor-header-inner {
+  padding: 16px 32px !important;
+}
+
+.sponsor-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.sponsor-logo {
+  font-size: 36px !important;
+  letter-spacing: -0.6px !important;
+  line-height: 1;
+}
+
+.sponsor-logo .logo-sup {
+  font-size: 20px !important;
+}
+
+.sponsor-brand-tag {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.0px;
+  color: var(--color-blue);
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+
+@media (max-width: 480px) {
+  .sponsor-header-inner {
+    padding: 14px 16px !important;
+  }
+  .sponsor-logo {
+    font-size: 30px !important;
+  }
+  .sponsor-logo .logo-sup {
+    font-size: 16px !important;
+  }
+  .sponsor-brand-tag {
+    font-size: 10px;
+    letter-spacing: 1.6px;
+  }
+}
+
+
+/* --- "What is this?" framing line under the eyebrow --- */
+.sponsor-frame {
+  margin: 0 auto 22px;
+  max-width: 480px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text-soft);
+  padding: 12px 16px;
+  background: linear-gradient(
+    135deg,
+    rgba(53, 213, 223, 0.06) 0%,
+    rgba(255, 117, 95, 0.04) 100%
+  );
+  border: 1px solid rgba(53, 213, 223, 0.18);
+  border-radius: 10px;
+}
+
+
+/* --- "What you get as a sponsor" benefits block --- */
+.sponsor-benefits {
+  margin-top: 22px;
+  padding: 18px 18px 14px;
+  background: #fafbfc;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+
+.sponsor-benefits-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.sponsor-benefits-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sponsor-benefits-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--color-text);
+}
+
+.sponsor-benefits-list strong {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.sponsor-benefits-icon {
+  font-size: 22px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+
+/* --- Hide the obsolete "trust row" if it shows up via cache --- */
+.sponsor-trust-row {
+  display: none !important;
+}
