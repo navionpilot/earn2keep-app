@@ -22,6 +22,7 @@
 // =============================================================================
 
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
 import PlayerTopBar from "@/components/PlayerTopBar";
 
@@ -253,6 +254,34 @@ export default async function PlayerHomePage() {
     todayChallenges = (ec || []) as EventChallengeRow[];
   }
 
+  // Slice 5.4: pull the player's most recent submission per event_challenge
+  // for THIS event so the home page can show status pills next to each
+  // challenge. One batched query keeps it cheap.
+  type SubRow = {
+    id: string;
+    event_challenge_id: string;
+    status: string;
+    reps_claimed: number | null;
+    reps_approved: number | null;
+    submitted_at: string;
+  };
+  const subsByChallenge: Record<string, SubRow> = {};
+  if (todayChallenges.length > 0) {
+    const ecIds = todayChallenges.map((c) => c.id);
+    const { data: subs } = await supabase
+      .from("submissions")
+      .select("id, event_challenge_id, status, reps_claimed, reps_approved, submitted_at")
+      .eq("player_id", player.id)
+      .in("event_challenge_id", ecIds)
+      .order("submitted_at", { ascending: false });
+    for (const s of (subs || []) as SubRow[]) {
+      // Most recent first thanks to the order clause; only set once.
+      if (!subsByChallenge[s.event_challenge_id]) {
+        subsByChallenge[s.event_challenge_id] = s;
+      }
+    }
+  }
+
   // Pull this player's sponsor token for this event. May not exist yet —
   // gets lazy-created when the coach opens the QR codes page.
   const { data: tokenRow } = await supabase
@@ -362,6 +391,37 @@ export default async function PlayerHomePage() {
             <div className="player-home-challenges">
               {todayChallenges.map((ec) => {
                 const challenge = single(ec.challenges);
+                const sub = subsByChallenge[ec.id];
+                // Status pill copy — informs the player whether they've
+                // already submitted (and where it stands) so they don't
+                // accidentally re-record a challenge they already nailed.
+                let statusPill: React.ReactNode = null;
+                let buttonLabel = "Record →";
+                if (sub) {
+                  if (sub.status === "approved") {
+                    statusPill = (
+                      <span className="player-home-sub-pill player-home-sub-pill-approved">
+                        ✓ Approved
+                        {sub.reps_approved != null ? ` · ${sub.reps_approved}` : ""}
+                      </span>
+                    );
+                    buttonLabel = "Re-do →";
+                  } else if (sub.status === "pending") {
+                    statusPill = (
+                      <span className="player-home-sub-pill player-home-sub-pill-pending">
+                        ⏳ Pending review
+                      </span>
+                    );
+                    buttonLabel = "View →";
+                  } else if (sub.status === "rejected") {
+                    statusPill = (
+                      <span className="player-home-sub-pill player-home-sub-pill-rejected">
+                        ❌ Rejected
+                      </span>
+                    );
+                    buttonLabel = "Try again →";
+                  }
+                }
                 return (
                   <div className="player-home-challenge" key={ec.id}>
                     <div className="player-home-challenge-main">
@@ -387,18 +447,18 @@ export default async function PlayerHomePage() {
                           {ec.notes}
                         </div>
                       ) : null}
+                      {statusPill && (
+                        <div className="player-home-challenge-status">
+                          {statusPill}
+                        </div>
+                      )}
                     </div>
-                    <button
-                      type="button"
-                      className="player-home-challenge-record"
-                      // 5.3 ships the layout but not the recording flow —
-                      // that's slice 5.4. For now this button is a stub
-                      // that explains what's coming.
-                      title="Recording flow lands in the next update"
-                      disabled
+                    <Link
+                      href={`/home/record/${ec.id}`}
+                      className="player-home-challenge-record-link"
                     >
-                      Record (soon)
-                    </button>
+                      {buttonLabel}
+                    </Link>
                   </div>
                 );
               })}
@@ -441,10 +501,10 @@ export default async function PlayerHomePage() {
           <div className="player-home-coming-soon">
             <div className="player-home-coming-soon-eyebrow">COMING SOON</div>
             <ul className="player-home-coming-soon-list">
-              <li>📹 Record challenges from your phone</li>
               <li>🏆 Achievement badges as you hit milestones</li>
               <li>📊 Live leaderboard view</li>
               <li>💰 Real-time fundraising progress</li>
+              <li>📲 Push notifications when your coach reviews</li>
             </ul>
           </div>
         </section>

@@ -13407,3 +13407,459 @@ input.form-input-with-prefix {
     font-size: 11px;
   }
 }
+
+
+/* ============================================================
+   Slice 5.4 — Recording / Submission Flow
+   ============================================================
+   - Record button on /home challenge cards (was disabled, now linked)
+   - Submission status pills under each challenge
+   - /home/record/[eventChallengeId] page styles
+   ============================================================ */
+
+
+/* --- Replacement for the disabled record stub: a real Link --- */
+.player-home-challenge-record-link {
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--e2k-coral) 0%, #ff9a7b 100%);
+  color: #ffffff !important;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 10px 18px;
+  border-radius: 99px;
+  text-decoration: none;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  transition: transform 100ms ease, box-shadow 150ms ease;
+}
+
+.player-home-challenge-record-link:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 117, 95, 0.30);
+}
+
+
+/* --- Submission status pills under each challenge on /home --- */
+.player-home-challenge-status {
+  margin-top: 8px;
+}
+
+.player-home-sub-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.player-home-sub-pill-approved {
+  background: rgba(93, 202, 165, 0.18);
+  color: #6EE7B7;
+  border: 1px solid rgba(93, 202, 165, 0.40);
+}
+
+.player-home-sub-pill-pending {
+  background: rgba(251, 191, 36, 0.16);
+  color: #FCD34D;
+  border: 1px solid rgba(251, 191, 36, 0.40);
+}
+
+.player-home-sub-pill-rejected {
+  background: rgba(252, 165, 165, 0.14);
+  color: #FCA5A5;
+  border: 1px solid rgba(252, 165, 165, 0.42);
+}
+
+
+/* --- /home/record/[eventChallengeId] page --- */
+.recording-page-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 18px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.recording-back {
+  display: inline-block;
+  font-size: 13px;
+  color: var(--e2k-text-muted);
+  text-decoration: none;
+  padding: 6px 0;
+  font-weight: 600;
+}
+
+.recording-back:hover {
+  color: var(--e2k-cyan);
+}
+
+
+/* --- Challenge header on the recording page --- */
+.recording-challenge-header {
+  background: rgba(10, 47, 55, 0.55);
+  border: 1px solid var(--e2k-border-strong);
+  border-radius: var(--e2k-r-lg);
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recording-eyebrow {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--e2k-cyan);
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
+
+.recording-title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--e2k-text);
+  letter-spacing: -0.4px;
+  margin: 0;
+}
+
+.recording-meta {
+  font-size: 14px;
+  color: var(--e2k-text-muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.recording-meta strong {
+  color: var(--e2k-text);
+}
+
+.recording-description {
+  font-size: 13px;
+  color: var(--e2k-text-muted);
+  line-height: 1.5;
+  margin: 6px 0 0 0;
+}
+
+.recording-notes {
+  font-size: 13px;
+  color: var(--e2k-text-muted);
+  line-height: 1.5;
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: rgba(53, 213, 223, 0.06);
+  border-left: 2px solid var(--e2k-cyan);
+  border-radius: 0 var(--e2k-r-sm) var(--e2k-r-sm) 0;
+}
+
+.recording-notes strong {
+  color: var(--e2k-cyan);
+}
+
+
+/* --- Prior submission status panel --- */
+.recording-prior {
+  background: rgba(10, 47, 55, 0.55);
+  border: 1px solid var(--e2k-border);
+  border-radius: var(--e2k-r-lg);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.recording-prior-intro {
+  font-size: 12px;
+  color: var(--e2k-text-muted);
+  margin: 0;
+}
+
+.recording-prior-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.recording-prior-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.0px;
+}
+
+.recording-prior-pill-pending {
+  background: rgba(251, 191, 36, 0.16);
+  color: #FCD34D;
+  border: 1px solid rgba(251, 191, 36, 0.40);
+}
+
+.recording-prior-pill-approved {
+  background: rgba(93, 202, 165, 0.18);
+  color: #6EE7B7;
+  border: 1px solid rgba(93, 202, 165, 0.40);
+}
+
+.recording-prior-pill-rejected {
+  background: rgba(252, 165, 165, 0.14);
+  color: #FCA5A5;
+  border: 1px solid rgba(252, 165, 165, 0.42);
+}
+
+.recording-prior-detail {
+  font-size: 12px;
+  color: var(--e2k-text-muted);
+  font-weight: 600;
+}
+
+.recording-prior-reason {
+  font-size: 12px;
+  color: var(--e2k-text);
+  line-height: 1.5;
+  margin: 4px 0 0 0;
+}
+
+.recording-prior-reason strong {
+  color: #FCA5A5;
+}
+
+
+/* --- Recording form --- */
+.recording-form {
+  background: rgba(10, 47, 55, 0.55);
+  border: 1px solid var(--e2k-border);
+  border-radius: var(--e2k-r-lg);
+  padding: 20px 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.recording-prompt {
+  text-align: center;
+  padding: 8px 0 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recording-prompt-icon {
+  font-size: 40px;
+  line-height: 1;
+}
+
+.recording-prompt-text {
+  font-size: 15px;
+  color: var(--e2k-text);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.recording-prompt-hint {
+  font-size: 12px;
+  color: var(--e2k-text-muted);
+  font-style: italic;
+  margin: 0;
+  line-height: 1.5;
+}
+
+
+/* --- Big primary action (Record now / Submit) --- */
+.recording-btn-primary {
+  display: block;
+  width: 100%;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, var(--e2k-coral) 0%, #ff9a7b 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 99px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: transform 100ms ease, box-shadow 150ms ease;
+}
+
+.recording-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(255, 117, 95, 0.30);
+}
+
+.recording-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* --- Secondary action (Upload from gallery / Choose different video) --- */
+.recording-btn-secondary {
+  display: block;
+  width: 100%;
+  padding: 12px 24px;
+  background: transparent;
+  color: var(--e2k-text-muted);
+  border: 1px solid var(--e2k-border);
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.recording-btn-secondary:hover {
+  background: rgba(53, 213, 223, 0.06);
+  color: var(--e2k-text);
+  border-color: var(--e2k-border-strong);
+}
+
+
+/* --- Video preview --- */
+.recording-preview-video {
+  width: 100%;
+  max-height: 60vh;
+  border-radius: var(--e2k-r-lg);
+  background: #000;
+  display: block;
+}
+
+
+/* --- Form rows: reps + note --- */
+.recording-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.recording-form-label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--e2k-text-muted);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.recording-reps-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.recording-reps-input {
+  width: 120px;
+  font-size: 16px !important; /* >=16px stops iOS auto-zoom */
+  padding: 12px 14px !important;
+}
+
+.recording-reps-unit {
+  font-size: 14px;
+  color: var(--e2k-text-muted);
+}
+
+.recording-reps-target {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--e2k-text-faint);
+  font-style: italic;
+}
+
+.recording-note-input {
+  font-size: 14px !important;
+  padding: 10px 14px !important;
+  resize: vertical;
+  min-height: 70px;
+  font-family: var(--font-body);
+}
+
+
+/* --- Uploading state --- */
+.recording-uploading {
+  text-align: center;
+  padding: 32px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.recording-uploading-text {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--e2k-text);
+}
+
+.recording-uploading-hint {
+  font-size: 12px;
+  color: var(--e2k-text-muted);
+  margin: 0;
+  font-style: italic;
+}
+
+
+/* --- Success state --- */
+.recording-success {
+  background: rgba(93, 202, 165, 0.08);
+  border: 1px solid rgba(93, 202, 165, 0.40);
+  border-radius: var(--e2k-r-lg);
+  padding: 36px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.recording-success-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #5DCAA5 0%, #6EE7B7 100%);
+  color: #ffffff;
+  font-size: 36px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.recording-success-title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 800;
+  color: #6EE7B7;
+  letter-spacing: -0.4px;
+  margin: 0;
+}
+
+.recording-success-text {
+  font-size: 14px;
+  color: var(--e2k-text);
+  line-height: 1.6;
+  margin: 0;
+  max-width: 460px;
+}
+
+.recording-success-text strong {
+  color: var(--e2k-text);
+}
+
+.recording-success-cta {
+  margin-top: 8px;
+  width: 100%;
+  max-width: 320px;
+  padding: 14px 24px !important;
+  font-size: 15px !important;
+  text-align: center;
+}
