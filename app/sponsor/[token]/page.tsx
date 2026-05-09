@@ -283,7 +283,7 @@ export default async function SponsorPage({
             </div>
             <div className="sponsor-event-block">
               <div className="sponsor-event-label">
-                {isCamp ? "Their goal" : "Reg fee"}
+                {isCamp ? "Event goal" : "Reg fee"}
               </div>
               <div className="sponsor-event-value sponsor-event-amount">
                 {goal > 0 ? `$${formatMoney(goal)}` : "—"}

@@ -17139,3 +17139,32 @@ input.form-input-with-prefix {
 .submission-modal-card .submission-evidence-video::-webkit-media-controls-panel {
   background-color: rgba(0, 0, 0, 0.65);
 }
+
+
+/* ============================================================
+   Slice 5.9.7 — Fix $-prefixed input overlap on event edit form
+   ============================================================
+   The `.form-input` rule earlier in the file uses
+   `padding: 14px 16px !important` (a shorthand that sets
+   padding-left to 16px). The earlier `.form-input-with-prefix`
+   rule's `padding-left: 30px !important` matches specificity
+   but loses on source order, so the actual padding-left ends
+   up as 16px — and the "$" prefix at left: 14px overlaps the
+   value text. These rules use higher specificity (two classes
+   instead of one) so they win cleanly.
+   ============================================================ */
+
+input.form-input.form-input-with-prefix,
+textarea.form-input.form-input-with-prefix,
+.input-prefix-wrap input.form-input-with-prefix,
+.input-prefix-wrap > .form-input.form-input-with-prefix {
+  padding-left: 36px !important;
+}
+
+.input-prefix-wrap .input-prefix {
+  left: 13px;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  color: var(--e2k-cyan) !important;
+  opacity: 0.85;
+}
