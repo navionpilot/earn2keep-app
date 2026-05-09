@@ -215,10 +215,10 @@ export default async function SponsorPage({
             </h1>
           )}
 
-          {/* The pitch — now spells out exactly what's happening, who
-              the visitor is sponsoring, and what they're sponsoring for.
-              No more "earn it / keep it" mantra at the top — that's brand
-              shorthand a sponsor doesn't decode on first read. */}
+          {/* The pitch — corrected wording: money supports the team
+              (not a "prize unlock"); players earn points by completing
+              video-verified challenges; bonus points for raising above
+              goal; top performers take home the door prizes shown below. */}
           <div className="sponsor-pitch">
             {isCamp ? (
               <p>
@@ -226,10 +226,14 @@ export default async function SponsorPage({
                 <strong>{row.team_name}</strong>
                 {row.team_sport ? ` (${row.team_sport}${row.team_age_group ? `, ${row.team_age_group}` : ""})` : ""}{" "}
                 from <strong>{row.organization_name}</strong>. They&apos;re competing in{" "}
-                <strong>{row.event_name}</strong> — a {totalDays}-day challenge
-                where they need to raise <strong>${formatMoney(goal)}</strong> to
-                compete and unlock their team&apos;s prize. Every dollar above the
-                minimum earns them bonus points on the leaderboard.
+                <strong>{row.event_name}</strong> — a {totalDays}-day fundraiser
+                where every dollar raised supports{" "}
+                <strong>{row.organization_name}</strong>.{" "}
+                {row.player_first_name}&apos;s personal goal is{" "}
+                <strong>${formatMoney(goal)}</strong>. Players earn points by
+                completing daily video challenges, with bonus points for raising
+                above their goal — and top performers take home the door prizes
+                shown below.
               </p>
             ) : (
               <p>
@@ -239,7 +243,10 @@ export default async function SponsorPage({
                 from <strong>{row.organization_name}</strong>. They&apos;re registering
                 for <strong>{row.event_name}</strong>. The{" "}
                 <strong>${formatMoney(goal)}</strong> registration fee covers their
-                spot to compete with their team for the prize.
+                spot and supports{" "}
+                <strong>{row.organization_name}</strong>. Players earn points by
+                competing during the event, and top performers take home the
+                door prizes shown below.
               </p>
             )}
           </div>
@@ -360,11 +367,10 @@ export default async function SponsorPage({
                 </span>
               </li>
               <li>
-                <span className="sponsor-benefits-icon" aria-hidden="true">💯</span>
+                <span className="sponsor-benefits-icon" aria-hidden="true">🏫</span>
                 <span>
-                  <strong>100% goes to the team.</strong> Money goes directly to{" "}
-                  {row.organization_name}, not to a middleman. earn²keep doesn&apos;t
-                  take a cut from sponsors.
+                  <strong>Backs the team.</strong> Your sponsorship supports{" "}
+                  {row.organization_name} and the players competing for them.
                 </span>
               </li>
               <li>

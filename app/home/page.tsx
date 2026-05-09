@@ -500,6 +500,77 @@ export default async function PlayerHomePage() {
           </div>
         </div>
 
+        {/* === Slice 5.9.3 / 5.9.4: Prizes — moved to top per feedback ===
+            First thing under Mission Control. Renders only when at least
+            one place has a prize set; old events without prizes are
+            unchanged (clean, no empty state). */}
+        {(() => {
+          const hasFirst = !!(event.first_place_prize || event.first_place_amount);
+          const hasSecond = !!(event.second_place_prize || event.second_place_amount);
+          const hasThird = !!(event.third_place_prize || event.third_place_amount);
+          if (!hasFirst && !hasSecond && !hasThird) return null;
+          const fmt = (n: number) =>
+            n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+          return (
+            <section className="player-home-section">
+              <div className="player-home-section-head">
+                <span className="player-home-section-eyebrow">
+                  <span className="player-home-hero-prompt">&gt;</span> WHAT YOU CAN WIN
+                </span>
+                <h2 className="player-home-section-title">Prizes 🏆</h2>
+              </div>
+              <div className="player-home-prizes-list">
+                {hasFirst && (
+                  <div className="player-home-prize-row player-home-prize-row-first">
+                    <span className="player-home-prize-medal" aria-hidden="true">🥇</span>
+                    <div className="player-home-prize-body">
+                      <div className="player-home-prize-place">1st Place</div>
+                      <div className="player-home-prize-text">
+                        {event.first_place_amount && (
+                          <strong>${fmt(Number(event.first_place_amount))} </strong>
+                        )}
+                        {event.first_place_prize}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {hasSecond && (
+                  <div className="player-home-prize-row">
+                    <span className="player-home-prize-medal" aria-hidden="true">🥈</span>
+                    <div className="player-home-prize-body">
+                      <div className="player-home-prize-place">2nd Place</div>
+                      <div className="player-home-prize-text">
+                        {event.second_place_amount && (
+                          <strong>${fmt(Number(event.second_place_amount))} </strong>
+                        )}
+                        {event.second_place_prize}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {hasThird && (
+                  <div className="player-home-prize-row">
+                    <span className="player-home-prize-medal" aria-hidden="true">🥉</span>
+                    <div className="player-home-prize-body">
+                      <div className="player-home-prize-place">3rd Place</div>
+                      <div className="player-home-prize-text">
+                        {event.third_place_amount && (
+                          <strong>${fmt(Number(event.third_place_amount))} </strong>
+                        )}
+                        {event.third_place_prize}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <p className="player-home-prizes-foot">
+                Top performers — measured by completed challenges and
+                fundraising — take home these door prizes when the event ends.
+              </p>
+            </section>
+          );
+        })()}
+
         {/* === Stats grid (4 cards) === */}
         <div className="player-home-stats-grid">
           <div className="player-home-stat">
@@ -925,77 +996,6 @@ export default async function PlayerHomePage() {
             </div>
           </section>
         )}
-
-        {/* === Slice 5.9.3: Prizes — what the player can actually win ===
-            Renders only when at least one place has a prize set. Shows
-            the medal + place + dollar amount + prize description so the
-            player has something concrete to chase. */}
-        {(() => {
-          const hasFirst = !!(event.first_place_prize || event.first_place_amount);
-          const hasSecond = !!(event.second_place_prize || event.second_place_amount);
-          const hasThird = !!(event.third_place_prize || event.third_place_amount);
-          if (!hasFirst && !hasSecond && !hasThird) return null;
-          const fmt = (n: number) =>
-            n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-          return (
-            <section className="player-home-section">
-              <div className="player-home-section-head">
-                <span className="player-home-section-eyebrow">
-                  <span className="player-home-hero-prompt">&gt;</span> WHAT YOU CAN WIN
-                </span>
-                <h2 className="player-home-section-title">Prizes 🏆</h2>
-              </div>
-              <div className="player-home-prizes-list">
-                {hasFirst && (
-                  <div className="player-home-prize-row player-home-prize-row-first">
-                    <span className="player-home-prize-medal" aria-hidden="true">🥇</span>
-                    <div className="player-home-prize-body">
-                      <div className="player-home-prize-place">1st Place</div>
-                      <div className="player-home-prize-text">
-                        {event.first_place_amount && (
-                          <strong>${fmt(Number(event.first_place_amount))} </strong>
-                        )}
-                        {event.first_place_prize}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {hasSecond && (
-                  <div className="player-home-prize-row">
-                    <span className="player-home-prize-medal" aria-hidden="true">🥈</span>
-                    <div className="player-home-prize-body">
-                      <div className="player-home-prize-place">2nd Place</div>
-                      <div className="player-home-prize-text">
-                        {event.second_place_amount && (
-                          <strong>${fmt(Number(event.second_place_amount))} </strong>
-                        )}
-                        {event.second_place_prize}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {hasThird && (
-                  <div className="player-home-prize-row">
-                    <span className="player-home-prize-medal" aria-hidden="true">🥉</span>
-                    <div className="player-home-prize-body">
-                      <div className="player-home-prize-place">3rd Place</div>
-                      <div className="player-home-prize-text">
-                        {event.third_place_amount && (
-                          <strong>${fmt(Number(event.third_place_amount))} </strong>
-                        )}
-                        {event.third_place_prize}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <p className="player-home-prizes-foot">
-                Top performers — measured by completed challenges and
-                fundraising — take home these prizes when the event ends.
-              </p>
-            </section>
-          );
-        })()}
 
         {/* Sponsor link */}
         <section className="player-home-section" id="sponsor">
