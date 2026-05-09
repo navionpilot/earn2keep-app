@@ -26,6 +26,15 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
 import PlayerTopBar from "@/components/PlayerTopBar";
 import PlayerSponsorCard from "@/components/PlayerSponsorCard";
+import {
+  pointsEarnedForSubmission,
+  type ScoringEventChallenge,
+  type SubmissionStatus,
+} from "@/lib/scoring";
+import {
+  computeEventLeaderboard,
+  findPlayerEntry,
+} from "@/lib/leaderboard";
 
 interface PlayerRow {
   id: string;
@@ -259,6 +268,8 @@ export default async function PlayerHomePage() {
   // Slice 5.4.5: pull ALL of this player's submissions for THIS event
   // (not just today's). Used for the dashboard stats grid + activity feed
   // + the existing today-challenge status pills.
+  // Slice 5.6: also pulls challenges.difficulty + rep_target so we can
+  // use the proper partial-credit scoring helper instead of a flat sum.
   type SubRow = {
     id: string;
     event_challenge_id: string;
@@ -268,30 +279,62 @@ export default async function PlayerHomePage() {
     submitted_at: string;
     rejection_reason: string | null;
     event_challenges:
-      | { id: string; points_value: number | null; challenges: { name: string } | { name: string }[] | null }
-      | { id: string; points_value: number | null; challenges: { name: string } | { name: string }[] | null }[]
+      | {
+          id: string;
+          rep_target: number | null;
+          points_value: number | null;
+          challenges:
+            | { name: string; difficulty: string | null }
+            | { name: string; difficulty: string | null }[]
+            | null;
+        }
+      | {
+          id: string;
+          rep_target: number | null;
+          points_value: number | null;
+          challenges:
+            | { name: string; difficulty: string | null }
+            | { name: string; difficulty: string | null }[]
+            | null;
+        }[]
       | null;
   };
 
   const { data: allSubsRaw } = await supabase
     .from("submissions")
     .select(
-      "id, event_challenge_id, status, reps_claimed, reps_approved, submitted_at, rejection_reason, event_challenges(id, points_value, challenges(name))"
+      "id, event_challenge_id, status, reps_claimed, reps_approved, submitted_at, rejection_reason, event_challenges(id, rep_target, points_value, challenges(name, difficulty))"
     )
     .eq("player_id", player.id)
     .eq("event_id", event.id)
     .order("submitted_at", { ascending: false });
   const allSubs = (allSubsRaw || []) as SubRow[];
 
-  // Stat 1: total points = sum of points_value for approved submissions.
-  // (One point bucket per approved submission, not per rep — matches how
-  // the leaderboard scoring works on the coach side.)
-  const totalPoints = allSubs
-    .filter((s) => s.status === "approved")
-    .reduce((sum, s) => {
-      const ec = single(s.event_challenges);
-      return sum + (ec?.points_value ?? 0);
-    }, 0);
+  // Stat 1 (Slice 5.6): total points uses the proper partial-credit scoring
+  // helper from lib/scoring.ts so the number matches what the coach-side
+  // leaderboard shows. (Old 5.4.5 version just summed points_value flat,
+  // which was incorrect for partial-completion approvals.)
+  const totalPoints = allSubs.reduce((sum, s) => {
+    const ec = single(s.event_challenges);
+    if (!ec) return sum;
+    const ch = single(ec.challenges);
+    const scoringEc: ScoringEventChallenge = {
+      rep_target: ec.rep_target,
+      points_value: ec.points_value,
+      challenge_difficulty: ch?.difficulty ?? null,
+    };
+    return (
+      sum +
+      pointsEarnedForSubmission(
+        {
+          status: s.status as SubmissionStatus,
+          reps_claimed: s.reps_claimed,
+          reps_approved: s.reps_approved,
+        },
+        scoringEc
+      )
+    );
+  }, 0);
 
   // Stat 2-3: approved + pending counts across the whole event.
   const approvedCount = allSubs.filter((s) => s.status === "approved").length;
@@ -309,8 +352,9 @@ export default async function PlayerHomePage() {
   // Activity feed: the most recent 6 submissions across the whole event.
   const recentActivity = allSubs.slice(0, 6);
 
-  // Stat 4: days left in the event (positive = days remaining,
-  // 0 = today's the last day, negative = past).
+  // Stat 4 (Slice 5.4.5, retired in 5.6 from the grid): days left in the
+  // event. Still computed in case we need it elsewhere; unused for now.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let daysLeftCount: number | null = null;
   if (event.end_date) {
     daysLeftCount = daysUntil(event.end_date);
@@ -336,6 +380,17 @@ export default async function PlayerHomePage() {
     .eq("player_id", player.id)
     .eq("event_id", event.id)
     .maybeSingle();
+
+  // Slice 5.6: compute the full event leaderboard for the rank stat
+  // and the Top-5 preview section. Includes ALL players (even 0-pt) so
+  // the player always sees themselves on the board.
+  const leaderboard = await computeEventLeaderboard(supabase, event.id);
+  const myEntry = findPlayerEntry(leaderboard, player.id);
+  const myRank = myEntry?.rank ?? null;
+  // Build the preview list: top 5 + the player's row inserted if not already there.
+  const top5 = leaderboard.slice(0, 5);
+  const meInTop5 = top5.some((r) => r.player_id === player.id);
+  const previewRows = meInTop5 || !myEntry ? top5 : [...top5, myEntry];
 
   // Status pill copy
   let statusLabel = "ACTIVE";
@@ -412,20 +467,19 @@ export default async function PlayerHomePage() {
             </div>
             <div className="player-home-stat-label">PENDING</div>
           </div>
+          {/* Slice 5.6: RANK stat replaces DAYS LEFT here. Days remaining is
+              still visible in the Event Timeline section's "DAY X OF Y"
+              progress bar, so we don't lose that info. */}
           <div className="player-home-stat">
             <div className="player-home-stat-value">
-              {daysLeftCount === null
+              {myRank === null || leaderboard.length === 0
                 ? "—"
-                : daysLeftCount < 0
-                ? "0"
-                : String(daysLeftCount).padStart(2, "0")}
+                : `#${myRank}`}
             </div>
             <div className="player-home-stat-label">
-              {isUpcoming
-                ? "DAYS TO START"
-                : isCompleted
-                ? "EVENT ENDED"
-                : "DAYS LEFT"}
+              {leaderboard.length > 0
+                ? `RANK · OF ${leaderboard.length}`
+                : "RANK"}
             </div>
           </div>
         </div>
@@ -591,6 +645,81 @@ export default async function PlayerHomePage() {
             </div>
           )}
         </section>
+
+        {/* === Leaderboard preview (Slice 5.6) === */}
+        {leaderboard.length > 0 && (isActive || isCompleted) && (
+          <section className="player-home-section">
+            <div className="player-home-section-head">
+              <span className="player-home-section-eyebrow">
+                <span className="player-home-hero-prompt">&gt;</span> LEADERBOARD
+              </span>
+              <h2 className="player-home-section-title">
+                {myRank === 1
+                  ? "You're #1! 🥇"
+                  : myRank && myRank <= 3
+                  ? `You're on the podium (#${myRank})`
+                  : myRank
+                  ? `You're #${myRank} of ${leaderboard.length}`
+                  : "Standings"}
+              </h2>
+            </div>
+            <div className="player-home-leaderboard-preview">
+              {previewRows.map((row, idx) => {
+                const isMe = row.player_id === player.id;
+                const skipBefore =
+                  !meInTop5 && myEntry && idx === previewRows.length - 1;
+                const rankIcon =
+                  row.rank === 1
+                    ? "🥇"
+                    : row.rank === 2
+                    ? "🥈"
+                    : row.rank === 3
+                    ? "🥉"
+                    : `#${row.rank}`;
+                return (
+                  <div key={row.player_id}>
+                    {skipBefore && (
+                      <div className="player-home-leaderboard-skip">⋯</div>
+                    )}
+                    <div
+                      className={`player-home-leaderboard-row ${
+                        isMe ? "player-home-leaderboard-row-me" : ""
+                      }`}
+                    >
+                      <span className="player-home-leaderboard-rank">
+                        {rankIcon}
+                      </span>
+                      <span className="player-home-leaderboard-name">
+                        {row.first_name}
+                        {row.last_name
+                          ? ` ${row.last_name.charAt(0)}.`
+                          : ""}
+                        {isMe && (
+                          <span className="player-home-leaderboard-you">
+                            YOU
+                          </span>
+                        )}
+                      </span>
+                      <span className="player-home-leaderboard-pts">
+                        {row.total_points}
+                        <span className="player-home-leaderboard-pts-label">
+                          {" "}
+                          PTS
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <Link
+              href="/home/leaderboard"
+              className="player-home-leaderboard-fulllink"
+            >
+              View full leaderboard →
+            </Link>
+          </section>
+        )}
 
         {/* === Recent Activity feed === */}
         {recentActivity.length > 0 && (
