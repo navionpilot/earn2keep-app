@@ -145,9 +145,15 @@ export default async function EventDetailPage({
       endDate.setHours(0, 0, 0, 0);
       durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / msPerDay) + 1;
 
-      if (today < startDate) isUpcoming = true;
-      else if (today >= startDate && today <= endDate) isRunning = true;
-      else hasEnded = true;
+      // Slice 5.5.2: only flip the date-based status pills (Upcoming /
+      // Running now / Ended) when the event has actually been activated.
+      // Without this gate, a Draft event whose start date had arrived would
+      // falsely show "Running now" alongside its "Draft" pill.
+      if (event.status === "active") {
+        if (today < startDate) isUpcoming = true;
+        else if (today >= startDate && today <= endDate) isRunning = true;
+        else hasEnded = true;
+      }
     }
   }
 
