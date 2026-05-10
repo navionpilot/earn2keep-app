@@ -172,27 +172,20 @@ async function drawFlyerPage(
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(30);
   pdf.setTextColor(...COLOR_TEXT);
-  // Slice 5.9.8: align headline with sponsor page —
-  // "Support [Player] and the [Team] Team"
-  // (handles the rare case where a coach already named their team
-  // something ending in "Team" so we don't double up).
-  const teamLabel = /\bteam\s*$/i.test(card.teamName)
-    ? card.teamName
-    : `${card.teamName} Team`;
-  const headlineText = `Support ${card.publicLabel} and the ${teamLabel}`;
+  const headlineText = isCamp
+    ? `Help ${card.publicLabel} earn their spot.`
+    : `Cover ${card.publicLabel}'s registration.`;
   const headlineLines = pdf.splitTextToSize(headlineText, PAGE_W - MARGIN_X * 2);
   pdf.text(headlineLines, PAGE_W / 2, cursorY, { align: "center" });
   cursorY += headlineLines.length * 0.42;
 
-  // Subhead — replaces the old "compete and unlock the prize" framing
-  // with the corrected version: every dollar supports the team, points
-  // come from completing daily challenges, top performers win prizes.
+  // Subhead
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(12);
   pdf.setTextColor(...COLOR_MUTED);
   const subheadText = isCamp
-    ? `Every dollar raised supports ${ctx.organizationName}. Players earn points by completing daily video challenges.`
-    : `Cover ${card.publicLabel}'s ${goalText} registration to compete with the ${card.teamName}.`;
+    ? `Every dollar above ${goalText} earns ${card.publicLabel} bonus points toward winning the prize.`
+    : `Help ${card.publicLabel} compete with the ${card.teamName} for the prize.`;
   const subheadLines = pdf.splitTextToSize(subheadText, PAGE_W - MARGIN_X * 2 - 0.4);
   pdf.text(subheadLines, PAGE_W / 2, cursorY + 0.14, { align: "center" });
   cursorY += subheadLines.length * 0.2 + 0.38;
@@ -248,7 +241,7 @@ async function drawFlyerPage(
   pdf.setFontSize(8);
   pdf.setTextColor(...COLOR_MUTED);
   pdf.text(
-    isCamp ? "EVENT GOAL" : "REGISTRATION FEE",
+    isCamp ? "FUNDRAISING GOAL" : "REGISTRATION FEE",
     amountX,
     cursorY + cardH / 2 - 0.55,
     { align: "right" }
@@ -263,7 +256,7 @@ async function drawFlyerPage(
   pdf.setFontSize(8.5);
   pdf.setTextColor(...COLOR_MUTED);
   pdf.text(
-    isCamp ? "per player/participant" : "covers their spot",
+    isCamp ? "minimum to compete" : "covers their spot",
     amountX,
     cursorY + cardH / 2 + 0.3,
     { align: "right" }
@@ -286,25 +279,24 @@ async function drawFlyerPage(
   pdf.text("?", MARGIN_X + labelW + brandW, cursorY);
   cursorY += 0.22;
 
-  // Body of pitch — Slice 5.9.8: matches the sponsor-page frame box.
-  // Removes "youth" and "kids" framing, uses "participants" + "sponsors
-  // back their effort" wording. Same copy for camp and tournament now —
-  // the structure was the same anyway.
+  // Body of pitch — uses plain "earn2keep" since the heading above
+  // already establishes the brand visually with the proper mark.
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(10.5);
   pdf.setTextColor(...COLOR_TEXT);
-  const pitch = `earn2keep is a platform where participants earn their way into camps, tournaments, and prizes by completing daily challenges with video proof. Sponsors back their effort.`;
+  const pitch = isCamp
+    ? `earn2keep is a youth fundraising platform that lets kids EARN rewards instead of just collecting handouts. ${card.publicLabel} will train, record videos of their progress, and compete for prizes \u2014 every dollar of support fuels the work.`
+    : `earn2keep is a youth fundraising platform that connects kids with sponsors who back their journey. ${card.publicLabel} will compete with the ${card.teamName}, train hard, and play for a real prize.`;
   const pitchLines = pdf.splitTextToSize(pitch, PAGE_W - MARGIN_X * 2);
   pdf.text(pitchLines, MARGIN_X, cursorY + 0.12);
   cursorY += pitchLines.length * 0.18 + 0.18;
 
-  // Tagline — kept as a brand-mantra capper, but no longer the dominant
-  // copy beat. Sponsor-page hero dropped this; PDF keeps it small here.
+  // Tagline
   pdf.setFont("helvetica", "bolditalic");
-  pdf.setFontSize(11);
+  pdf.setFontSize(12);
   pdf.setTextColor(...COLOR_BLUE);
   pdf.text(
-    `Support ${card.publicLabel}. Back the team.`,
+    `Help ${card.publicLabel} earn it. Help them keep it.`,
     PAGE_W / 2,
     cursorY + 0.05,
     { align: "center" }
@@ -412,7 +404,11 @@ async function drawFlyerPage(
 
   // -------- QR + CALL TO ACTION --------
   const qrCardY = cursorY;
-  const qrCardH = 2.95;
+  // Slice 5.5.1: trimmed from 2.95 → 2.5 (and qrSize 2.45 → 2.05, ctaY initial
+  // 0.6 → 0.45) so the "When you sponsor" section and footer have room to
+  // breathe at the bottom. QR still renders at ~130 DPI (320px / 2.05") which
+  // scans flawlessly across phone cameras.
+  const qrCardH = 2.5;
   const qrCardW = PAGE_W - MARGIN_X * 2;
   const qrCardX = MARGIN_X;
 
@@ -422,10 +418,10 @@ async function drawFlyerPage(
   pdf.roundedRect(qrCardX, qrCardY, qrCardW, qrCardH, 0.18, 0.18, "FD");
 
   // QR code on the left
-  const qrSize = 2.45;
+  const qrSize = 2.05;
   const qrX = qrCardX + 0.3;
   const qrY = qrCardY + (qrCardH - qrSize) / 2;
-  // 320px source rendered to 2.45" gives ~130 DPI — scans flawlessly,
+  // 320px source rendered to 2.05" gives ~155 DPI — scans flawlessly,
   // keeps PDF tiny. 300 DPI here would balloon a 50-player PDF to 50+ MB.
   const qrPx = 320;
 
@@ -440,7 +436,7 @@ async function drawFlyerPage(
   // Right side: SCAN TO SUPPORT block
   const ctaX = qrX + qrSize + 0.35;
   const ctaW = qrCardX + qrCardW - ctaX - 0.3;
-  let ctaY = qrCardY + 0.6;
+  let ctaY = qrCardY + 0.45;
 
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(9.5);
@@ -488,21 +484,45 @@ async function drawFlyerPage(
   cursorY = qrCardY + qrCardH + 0.3;
 
   // -------- WHEN YOU SPONSOR ... --------
+  const benefits = isCamp
+    ? [
+        `Watch ${card.publicLabel}'s training videos`,
+        "Track their fundraising progress",
+        "Get notified when they win",
+        "Help fund a young athlete's growth",
+      ]
+    : [
+        `See ${card.publicLabel} compete in real events`,
+        "Track team standings & results",
+        "Get notified when their team wins",
+        "Help a kid play the sport they love",
+      ];
+
+  // Slice 5.5.1: anchor the "When you sponsor" section to the footer
+  // instead of stacking it directly under the QR card. When the prior
+  // content (long event name, prize section, etc.) was tall, the bullets
+  // section's natural Y would crash into the fixed-position footer at
+  // Y = PAGE_H - 0.5. We now compute the section height up-front, position
+  // it just above the footer divider with a consistent gap, and only fall
+  // back to the natural position if the footer-anchored position would
+  // collide with the QR card.
+  const sponsorHeaderH = 0.22;
+  const sponsorRowsH = Math.ceil(benefits.length / 2) * 0.24;
+  const sponsorSectionH = sponsorHeaderH + sponsorRowsH;
+  const footerDividerY = (PAGE_H - 0.5) - 0.18; // matches footer math below
+  const footerGap = 0.35; // visual breathing room above the footer rule
+  const sponsorMinTopY = qrCardY + qrCardH + 0.1; // never overlap QR card
+  const sponsorAnchoredTopY = footerDividerY - footerGap - sponsorSectionH;
+
+  if (cursorY > sponsorAnchoredTopY) {
+    cursorY = Math.max(sponsorAnchoredTopY, sponsorMinTopY);
+  }
+
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(11);
   pdf.setTextColor(...COLOR_TEXT);
   pdf.text(`When you sponsor ${card.publicLabel}:`, MARGIN_X, cursorY);
-  cursorY += 0.22;
-
-  // Slice 5.9.8: aligned with sponsor-page benefits block.
-  // Camp and tournament use the same copy — the four benefits are
-  // platform-level, not event-type-specific.
-  const benefits = [
-    `See the work — ${card.publicLabel}'s video submissions`,
-    "Get updates as they hit milestones",
-    "Find out when the goal is reached",
-    `Backs ${ctx.organizationName} and the team`,
-  ];
+  cursorY += sponsorHeaderH;
 
   // Two columns of benefits with green dot bullets (drawn as filled circles
   // since the U+2713 check char doesn't render correctly in Helvetica)
@@ -522,7 +542,7 @@ async function drawFlyerPage(
     pdf.setTextColor(...COLOR_TEXT);
     pdf.text(benefits[i], bx + 0.18, by, { maxWidth: colW - 0.3 });
   }
-  cursorY += Math.ceil(benefits.length / 2) * 0.24 + 0.25;
+  cursorY += sponsorRowsH + 0.25;
 
   // -------- FOOTER --------
   const footerY = PAGE_H - 0.5;
