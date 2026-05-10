@@ -102,7 +102,7 @@ export default async function SetupGuidePage() {
             <div className="e2k-compare-label">Who is this for?</div>
             <ul className="e2k-compare-list">
               <li>A single soccer/football/basketball team</li>
-              <li>A youth group, scout troop, or Bible study</li>
+              <li>A youth group, scout troop, classroom, or small group</li>
               <li>A CrossFit box or yoga studio</li>
               <li>One classroom or school club</li>
             </ul>
@@ -149,7 +149,7 @@ export default async function SetupGuidePage() {
           <div className="e2k-compare-section">
             <div className="e2k-compare-label">Who is this for?</div>
             <ul className="e2k-compare-list">
-              <li>A youth league with 4+ teams</li>
+              <li>A multi-team league or interscholastic competition (4+ teams)</li>
               <li>An interscholastic competition (multiple schools)</li>
               <li>A multi-troop scouting event</li>
               <li>A regional gym or studio championship</li>
@@ -300,7 +300,7 @@ export default async function SetupGuidePage() {
               </p>
               <div className="e2k-walk-tip">
                 <strong>Recommended:</strong> 4–6 weeks. Shorter than 4 weeks rushes
-                the kids and limits sponsor reach. Longer than 6 weeks loses momentum.
+                the players and limits sponsor reach. Longer than 6 weeks loses momentum.
               </div>
             </div>
           </div>
@@ -319,7 +319,7 @@ export default async function SetupGuidePage() {
                 <strong>How extra money works:</strong> If a player raises more
                 than their minimum, the overage becomes <em>bonus points</em> on
                 the leaderboard plus extra prize money for that player. This is
-                the &ldquo;earn it / keep it&rdquo; magic — kids who hustle harder
+                the &ldquo;earn it / keep it&rdquo; magic — players who hustle harder
                 actually win more.
               </div>
             </div>
@@ -520,7 +520,7 @@ export default async function SetupGuidePage() {
         <div className="help-faq">
           <h4 className="help-faq-q">Do players need accounts?</h4>
           <p className="help-faq-a">
-            Not yet. Right now you (the coach) manage everything: roster, challenge
+            Not yet. Right now you (the organizer) manage everything: roster, challenge
             verification, QR distribution. Player-facing accounts are coming soon —
             each kid will get a magic-link login and upload their own challenge
             videos.

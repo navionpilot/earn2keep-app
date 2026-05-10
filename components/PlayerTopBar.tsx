@@ -77,9 +77,9 @@ export default function PlayerTopBar({
           <Link
             href="/dashboard"
             className="player-topbar-coach-link"
-            title="Switch back to your coach/admin workspace"
+            title="Switch back to your organizer workspace"
           >
-            ← Coach View
+            ← Organizer View
           </Link>
         )}
 

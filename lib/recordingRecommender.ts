@@ -124,7 +124,7 @@ What to photograph: Whatever proves you finished. For books, take a photo of the
 
 Lighting: Bright, clear photo. Make sure key details are readable / visible.
 
-Verification: A coach reviews each photo to confirm completion. Be honest — your coach knows your activity well enough to spot issues.`,
+Verification: Your organizer reviews each photo to confirm completion. Be honest — your organizer knows your activity well enough to spot issues.`,
     audioRequired: false,
     recommendedVerificationMode: "coach_only",
   },
@@ -160,7 +160,7 @@ Lighting: Face the light source so both your face and the object are clearly lit
 
 Audio: Optional — you can briefly explain what you completed.
 
-Verification: A coach reviews to confirm the work is done correctly. The face-plus-object combo prevents people from submitting someone else's work.`,
+Verification: Your organizer reviews to confirm the work is done correctly. The face-plus-object combo prevents people from submitting someone else's work.`,
     audioRequired: false,
     recommendedVerificationMode: "coach_only",
   },
@@ -169,13 +169,13 @@ Verification: A coach reviews to confirm the work is done correctly. The face-pl
     key: "custom",
     label: "Custom (write your own instructions)",
     icon: "✏️",
-    shortDescription: "Coach-written recording instructions",
+    shortDescription: "Custom recording instructions",
     instructions: `Write clear instructions for how players should set up their phone to record this challenge. Include:
 - Phone position (where to put it, what angle)
 - Framing (what should be visible)
 - Lighting tips
 - Audio requirements (if any)
-- What the coach/AI will check when reviewing`,
+- What the reviewer (or AI) will check`,
     audioRequired: false,
     recommendedVerificationMode: "coach_only",
   },

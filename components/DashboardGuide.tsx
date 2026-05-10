@@ -68,7 +68,7 @@ const STEPS: StepCopy[] = [
     intro:
       "Your organization is the top-level container — your school, club, church, troop, gym, or business.",
     detail:
-      "You can have more than one organization if you coach for multiple groups.",
+      "You can have more than one organization if you organize for multiple groups.",
     tip: "Example: 'Lincoln Middle School Athletics' or 'Crossroads Youth Group'.",
   },
   {
@@ -78,7 +78,7 @@ const STEPS: StepCopy[] = [
     intro:
       "Inside your organization, create a team. The team is the roster of players who will compete together.",
     detail:
-      "If you coach multiple age groups, create a team for each.",
+      "If you organize multiple age groups, create a team for each.",
     tip: "Example: 'Lincoln Lions U14' inside 'Lincoln Athletics'.",
   },
   {
@@ -89,7 +89,7 @@ const STEPS: StepCopy[] = [
       "Add each player/participant's name and jersey number. You can add them one at a time or import a CSV.",
     detail:
       "We auto-detect CSV exports from TeamSnap, GameChanger, SportsEngine, and a few others — just drop in the file.",
-    tip: "An optional verification photo per player helps confirm it's the right kid in submitted videos.",
+    tip: "An optional verification photo per player helps confirm it's the right player/participant in submitted videos.",
   },
 
   // ------- PHASE B: Launch an event -------

@@ -33,9 +33,9 @@ const STEPS: StepCopy[] = [
     preTypeNote:
       "There are two event types — Camp and Tournament. They use different money models, so this choice matters. Quick read below.",
     campNote:
-      "A Camp is one team competing internally. Each player has a personal fundraising minimum (the goal you'll set in step 3). Best for: a single soccer team, a youth group, a CrossFit box, a scout troop.",
+      "A Camp is one team competing internally. Each player has a personal fundraising minimum (the goal you'll set in step 3). Best for: a single team, group, troop, class, gym, or club.",
     tournamentNote:
-      "A Tournament is multiple teams competing head-to-head. Each player pays a flat registration fee (the amount you'll set in step 3). Best for: a youth league with 4+ teams, an interscholastic competition, a multi-troop event.",
+      "A Tournament is multiple teams competing head-to-head. Each player pays a flat registration fee (the amount you'll set in step 3). Best for: a multi-team league, an interscholastic competition, a multi-troop event, or any cross-group challenge.",
     tip: "Most events run 4–6 weeks. Shorter loses momentum, longer loses focus.",
   },
   {
@@ -64,7 +64,7 @@ const STEPS: StepCopy[] = [
     num: 4,
     title: "Prizes",
     intro:
-      "Decide how many places win and what they win. Most coaches do top 3.",
+      "Decide how many places win and what they win. Most organizers do top 3.",
     campNote:
       "Camp prizes go to top INDIVIDUAL players — usually whoever raised the most or earned the most points. Pick gift card type and amount per place.",
     tournamentNote:

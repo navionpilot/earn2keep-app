@@ -475,7 +475,7 @@ function buildSubmissionReviewedHtml(
        + (opts.coachNote
          ? `<table cellpadding="14" cellspacing="0" style="background:#f0fafb;border-left:3px solid ${accent};border-radius:6px;margin:0 0 18px;">
               <tr><td>
-                <div style="font-size:11px;font-weight:700;color:${accent};letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px;">Note from coach</div>
+                <div style="font-size:11px;font-weight:700;color:${accent};letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px;">Note for you</div>
                 <div style="font-size:14px;color:#0a2f37;line-height:1.5;font-style:italic;">"${escape(opts.coachNote)}"</div>
               </td></tr>
             </table>`
@@ -486,7 +486,7 @@ function buildSubmissionReviewedHtml(
        + (opts.rejectionReason
          ? `<table cellpadding="14" cellspacing="0" style="background:#fef0ec;border-left:3px solid ${accent};border-radius:6px;margin:0 0 18px;">
               <tr><td>
-                <div style="font-size:11px;font-weight:700;color:${accent};letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px;">Coach feedback</div>
+                <div style="font-size:11px;font-weight:700;color:${accent};letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px;">Reviewer feedback</div>
                 <div style="font-size:14px;color:#0a2f37;line-height:1.5;">${escape(opts.rejectionReason)}</div>
               </td></tr>
             </table>`
@@ -541,13 +541,13 @@ function buildSubmissionReviewedText(opts: SubmissionReviewedEmailOptions): stri
     }
     if (opts.coachNote) {
       lines.push("");
-      lines.push(`Coach's note: "${opts.coachNote}"`);
+      lines.push(`Reviewer note: "${opts.coachNote}"`);
     }
   } else {
     lines.push(`Hey ${opts.playerFirstName} — your ${opts.challengeName} submission needs another go.`);
     if (opts.rejectionReason) {
       lines.push("");
-      lines.push(`Coach feedback: ${opts.rejectionReason}`);
+      lines.push(`Reviewer feedback: ${opts.rejectionReason}`);
     }
   }
   lines.push("");

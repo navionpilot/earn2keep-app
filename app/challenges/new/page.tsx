@@ -255,7 +255,7 @@ function NewChallengeForm() {
           </h1>
           <p className="form-subtitle">
             {isAdmin
-              ? "You're signed in as the platform admin. This challenge will be added to the public library and visible to every coach."
+              ? "You're signed in as the platform admin. This challenge will be added to the public library and visible to every organizer."
               : "This challenge will only be visible to you and your organization. Use it for activities that don't fit the standard library."}
           </p>
 
@@ -282,15 +282,15 @@ function NewChallengeForm() {
           >
             {isAdmin ? (
               <>
-                <strong>🌐 Public to all coaches.</strong>{" "}
+                <strong>🌐 Public to all organizers.</strong>{" "}
                 As admin, every challenge you create is auto-shared with the
-                global library. New coaches will see it the moment they sign up.
+                global library. New organizers will see it the moment they sign up.
               </>
             ) : (
               <>
                 <strong>🔒 Private to your organization.</strong>{" "}
                 Only you and members of your org will see this challenge.
-                It will not appear for other coaches.
+                It will not appear for other organizers.
               </>
             )}
           </div>
@@ -353,7 +353,7 @@ function NewChallengeForm() {
             <div>
               <label htmlFor="defaultRepTarget" className="form-label">
                 Default rep target (optional)
-                <Tooltip text="A starter goal that pre-fills when adding this challenge to an event. Coaches can override per event.">
+                <Tooltip text="A starter goal that pre-fills when adding this challenge to an event. Organizers can override per event.">
                   <span className="help-icon">?</span>
                 </Tooltip>
               </label>

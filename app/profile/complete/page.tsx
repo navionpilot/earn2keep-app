@@ -182,7 +182,7 @@ export default function ProfileCompletePage() {
             </select>
             <p className="form-hint" style={{ marginTop: "8px" }}>
               earn²keep works for sports teams, scouts, churches, gyms, schools,
-              and any youth group. Pick whatever fits best — you can change it later.
+              classes, and any organized group. Pick whatever fits best — you can change it later.
             </p>
           </div>
 

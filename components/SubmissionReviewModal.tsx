@@ -261,10 +261,10 @@ export default function SubmissionReviewModal({
           </div>
         </div>
 
-        {/* Coach note (optional) */}
+        {/* Note for player (optional) */}
         <div className="submission-note-block">
           <label htmlFor="coach_note" className="form-label">
-            Coach note <span className="form-optional">(optional)</span>
+            Note for player <span className="form-optional">(optional)</span>
           </label>
           <input
             id="coach_note"

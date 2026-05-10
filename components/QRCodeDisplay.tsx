@@ -86,7 +86,7 @@ export default function QRCodeDisplay({
     <div className="qr-card">
       <div className="qr-card-public-name">{publicLabel}</div>
       {privateLabel && privateLabel !== publicLabel && (
-        <div className="qr-card-private-name" title="Coach view of the player's full name">
+        <div className="qr-card-private-name" title="Your view of the player's full name (sponsors only see initials)">
           {privateLabel}
         </div>
       )}

@@ -210,7 +210,7 @@ export default function SubcategoryPicker({
                 Add new {category === "Sports" ? "sport" : "subcategory"} to {category}
               </p>
               <p className="subcategory-add-form-hint">
-                This will be private to your organization. (If many coaches add the same one, an admin can promote it to global later.)
+                This will be private to your organization. (If many organizers add the same one, an admin can promote it to global later.)
               </p>
               <input
                 type="text"

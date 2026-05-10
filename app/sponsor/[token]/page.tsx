@@ -430,7 +430,7 @@ export default async function SponsorPage({
 
       <footer className="sponsor-footer">
         <div className="sponsor-footer-inner">
-          <span>© earn²keep · A platform for youth fundraisers and tournaments</span>
+          <span>© earn²keep · A platform for fundraisers and tournaments</span>
           <Link href="/" className="sponsor-footer-link">Coach login</Link>
         </div>
       </footer>
