@@ -30,6 +30,7 @@ interface Props {
 
 const ICONS: Record<string, string> = {
   submission_reviewed: "🎬",
+  submission_created: "📝", // Slice 7.1 — coach-side notification
   // Future kinds: "sponsorship_received", "milestone_unlocked", etc.
 };
 

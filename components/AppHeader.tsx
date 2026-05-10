@@ -47,8 +47,8 @@ export default function AppHeader({
       </div>
 
       <div className="e2k-header-right">
-        <button
-          type="button"
+        <Link
+          href="/dashboard/notifications"
           className="e2k-header-icon-btn"
           aria-label={
             unreadCount > 0
@@ -71,7 +71,7 @@ export default function AppHeader({
             <path d="M9 17v1a3 3 0 0 0 6 0v-1" />
           </svg>
           {unreadCount > 0 && <span className="e2k-header-icon-dot" />}
-        </button>
+        </Link>
         <div className="e2k-header-avatar" title={userDisplayName}>
           {initials}
         </div>
