@@ -4006,6 +4006,19 @@ a:hover {
   margin-top: auto;
 }
 
+/* Slice 7.1.2: prevent .btn-add-challenge / .btn-already-added from
+   inheriting flex: 1 (set generically at line ~3091) inside the
+   library-card flex-column container. Without this, when one card in the
+   grid row is expanded, neighbor cards stretch to match the taller row,
+   and the Add button grows vertically to fill the new space — producing
+   the giant oval buttons. Scoped to .library-card so other usages of
+   .btn-add-challenge (e.g. inside a row with a sibling Update button)
+   keep their flex: 1 behavior. */
+.library-card .btn-add-challenge,
+.library-card .btn-already-added {
+  flex: 0 0 auto;
+}
+
 /* Rep target form (inside modal after picking) */
 .rep-target-form {
   text-align: center;
