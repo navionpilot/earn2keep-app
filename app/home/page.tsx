@@ -129,7 +129,17 @@ function daysUntil(dateIso: string | null): number | null {
   return Math.round(ms / (1000 * 60 * 60 * 24));
 }
 
-export default async function PlayerHomePage() {
+export default async function PlayerHomePage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ claim_error?: string }>;
+}) {
+  // Slice 5.4.6: when /auth/callback or /auth/finish couldn't link the user
+  // to a player, they redirect here with ?claim_error=<reason>. We surface
+  // it in the recovery card below.
+  const params = (await searchParams) ?? {};
+  const claimError = params.claim_error?.trim() || null;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -184,6 +194,36 @@ export default async function PlayerHomePage() {
             your coach used to invite you doesn&apos;t match{" "}
             <strong>{user.email}</strong>.
           </p>
+          {claimError && (
+            <div
+              style={{
+                marginTop: 16,
+                marginBottom: 16,
+                padding: "12px 16px",
+                background: "rgba(255, 117, 95, 0.08)",
+                border: "1px solid rgba(255, 117, 95, 0.3)",
+                borderRadius: 8,
+                fontSize: 14,
+                color: "var(--color-text)",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.05em",
+                  textTransform: "uppercase",
+                  color: "var(--color-text-soft)",
+                  marginBottom: 4,
+                }}
+              >
+                What the system said:
+              </div>
+              <div style={{ fontFamily: "monospace", lineHeight: 1.5 }}>
+                {claimError}
+              </div>
+            </div>
+          )}
           <p className="join-page-text">
             <strong>To fix this:</strong>
           </p>

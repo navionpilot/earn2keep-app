@@ -56,16 +56,23 @@ export async function GET(request: Request) {
     );
 
     if (claimError) {
-      // Log to Vercel logs for debugging; do NOT block the redirect.
-      // The /welcome page handles the case where claim didn't link a player.
+      // Slice 5.4.6: surface the error via query param so /home can show
+      // the actual reason in its recovery card. Previously this just logged
+      // and proceeded, leaving /home to silently bounce to /dashboard.
       console.error("claim_player_invite RPC failed:", claimError.message);
+      const errRedirect = new URL(`${origin}${next}`);
+      errRedirect.searchParams.set("claim_error", claimError.message);
+      return NextResponse.redirect(errRedirect);
     } else if (claimResult && (claimResult as { ok?: boolean }).ok === false) {
-      // RPC succeeded at the protocol level but returned a soft error
-      // (expired token, claimed by someone else, etc.).
-      console.warn(
-        "claim_player_invite returned ok=false:",
-        (claimResult as { error?: string }).error
-      );
+      // Slice 5.4.6: same treatment for soft failures (RPC returned
+      // { ok: false, error: "..." } for expired / already-claimed / etc).
+      const reason =
+        (claimResult as { error?: string }).error ||
+        "the invite couldn't be linked to your account";
+      console.warn("claim_player_invite returned ok=false:", reason);
+      const errRedirect = new URL(`${origin}${next}`);
+      errRedirect.searchParams.set("claim_error", reason);
+      return NextResponse.redirect(errRedirect);
     }
   }
 
