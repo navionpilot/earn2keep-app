@@ -172,20 +172,27 @@ async function drawFlyerPage(
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(30);
   pdf.setTextColor(...COLOR_TEXT);
-  const headlineText = isCamp
-    ? `Help ${card.publicLabel} earn their spot.`
-    : `Cover ${card.publicLabel}'s registration.`;
+  // Slice 5.9.8: align headline with sponsor page —
+  // "Support [Player] and the [Team] Team"
+  // (handles the rare case where a coach already named their team
+  // something ending in "Team" so we don't double up).
+  const teamLabel = /\bteam\s*$/i.test(card.teamName)
+    ? card.teamName
+    : `${card.teamName} Team`;
+  const headlineText = `Support ${card.publicLabel} and the ${teamLabel}`;
   const headlineLines = pdf.splitTextToSize(headlineText, PAGE_W - MARGIN_X * 2);
   pdf.text(headlineLines, PAGE_W / 2, cursorY, { align: "center" });
   cursorY += headlineLines.length * 0.42;
 
-  // Subhead
+  // Subhead — replaces the old "compete and unlock the prize" framing
+  // with the corrected version: every dollar supports the team, points
+  // come from completing daily challenges, top performers win prizes.
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(12);
   pdf.setTextColor(...COLOR_MUTED);
   const subheadText = isCamp
-    ? `Every dollar above ${goalText} earns ${card.publicLabel} bonus points toward winning the prize.`
-    : `Help ${card.publicLabel} compete with the ${card.teamName} for the prize.`;
+    ? `Every dollar raised supports ${ctx.organizationName}. Players earn points by completing daily video challenges.`
+    : `Cover ${card.publicLabel}'s ${goalText} registration to compete with the ${card.teamName}.`;
   const subheadLines = pdf.splitTextToSize(subheadText, PAGE_W - MARGIN_X * 2 - 0.4);
   pdf.text(subheadLines, PAGE_W / 2, cursorY + 0.14, { align: "center" });
   cursorY += subheadLines.length * 0.2 + 0.38;
@@ -241,7 +248,7 @@ async function drawFlyerPage(
   pdf.setFontSize(8);
   pdf.setTextColor(...COLOR_MUTED);
   pdf.text(
-    isCamp ? "FUNDRAISING GOAL" : "REGISTRATION FEE",
+    isCamp ? "EVENT GOAL" : "REGISTRATION FEE",
     amountX,
     cursorY + cardH / 2 - 0.55,
     { align: "right" }
@@ -256,7 +263,7 @@ async function drawFlyerPage(
   pdf.setFontSize(8.5);
   pdf.setTextColor(...COLOR_MUTED);
   pdf.text(
-    isCamp ? "minimum to compete" : "covers their spot",
+    isCamp ? "per player/participant" : "covers their spot",
     amountX,
     cursorY + cardH / 2 + 0.3,
     { align: "right" }
@@ -279,24 +286,25 @@ async function drawFlyerPage(
   pdf.text("?", MARGIN_X + labelW + brandW, cursorY);
   cursorY += 0.22;
 
-  // Body of pitch — uses plain "earn2keep" since the heading above
-  // already establishes the brand visually with the proper mark.
+  // Body of pitch — Slice 5.9.8: matches the sponsor-page frame box.
+  // Removes "youth" and "kids" framing, uses "participants" + "sponsors
+  // back their effort" wording. Same copy for camp and tournament now —
+  // the structure was the same anyway.
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(10.5);
   pdf.setTextColor(...COLOR_TEXT);
-  const pitch = isCamp
-    ? `earn2keep is a youth fundraising platform that lets kids EARN rewards instead of just collecting handouts. ${card.publicLabel} will train, record videos of their progress, and compete for prizes \u2014 every dollar of support fuels the work.`
-    : `earn2keep is a youth fundraising platform that connects kids with sponsors who back their journey. ${card.publicLabel} will compete with the ${card.teamName}, train hard, and play for a real prize.`;
+  const pitch = `earn2keep is a platform where participants earn their way into camps, tournaments, and prizes by completing daily challenges with video proof. Sponsors back their effort.`;
   const pitchLines = pdf.splitTextToSize(pitch, PAGE_W - MARGIN_X * 2);
   pdf.text(pitchLines, MARGIN_X, cursorY + 0.12);
   cursorY += pitchLines.length * 0.18 + 0.18;
 
-  // Tagline
+  // Tagline — kept as a brand-mantra capper, but no longer the dominant
+  // copy beat. Sponsor-page hero dropped this; PDF keeps it small here.
   pdf.setFont("helvetica", "bolditalic");
-  pdf.setFontSize(12);
+  pdf.setFontSize(11);
   pdf.setTextColor(...COLOR_BLUE);
   pdf.text(
-    `Help ${card.publicLabel} earn it. Help them keep it.`,
+    `Support ${card.publicLabel}. Back the team.`,
     PAGE_W / 2,
     cursorY + 0.05,
     { align: "center" }
@@ -486,19 +494,15 @@ async function drawFlyerPage(
   pdf.text(`When you sponsor ${card.publicLabel}:`, MARGIN_X, cursorY);
   cursorY += 0.22;
 
-  const benefits = isCamp
-    ? [
-        `Watch ${card.publicLabel}'s training videos`,
-        "Track their fundraising progress",
-        "Get notified when they win",
-        "Help fund a young athlete's growth",
-      ]
-    : [
-        `See ${card.publicLabel} compete in real events`,
-        "Track team standings & results",
-        "Get notified when their team wins",
-        "Help a kid play the sport they love",
-      ];
+  // Slice 5.9.8: aligned with sponsor-page benefits block.
+  // Camp and tournament use the same copy — the four benefits are
+  // platform-level, not event-type-specific.
+  const benefits = [
+    `See the work — ${card.publicLabel}'s video submissions`,
+    "Get updates as they hit milestones",
+    "Find out when the goal is reached",
+    `Backs ${ctx.organizationName} and the team`,
+  ];
 
   // Two columns of benefits with green dot bullets (drawn as filled circles
   // since the U+2713 check char doesn't render correctly in Helvetica)
