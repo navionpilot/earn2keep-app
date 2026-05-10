@@ -103,18 +103,44 @@ export default function AuthFinishPage() {
       // ---------- 4) Claim the invite if one was passed ----------
       if (inviteToken) {
         setStatusText("Linking you to your team…");
-        const { error: claimErr } = await supabase.rpc(
+        const { data: claimData, error: claimErr } = await supabase.rpc(
           "claim_player_invite",
           { p_token: inviteToken }
         );
         if (claimErr) {
-          // Don't block the redirect — the user IS signed in, we just
-          // couldn't link them. /home will surface a "we're missing
-          // something" recovery state if there's no linked player.
+          // Slice 5.4.5: surface the error instead of redirecting blindly.
+          // Without this, /home would receive the user with no player record
+          // linked, and silently bounce them to /dashboard.
           console.error(
             "[auth/finish] claim_player_invite failed:",
             claimErr.message
           );
+          setError(
+            `We signed you in, but couldn't link you to your team: ${claimErr.message}. Please ask your coach to send a fresh invite.`
+          );
+          setStage("error");
+          return;
+        }
+        // Slice 5.4.5: also check soft failure (RPC returned { ok: false }
+        // for expired token, email mismatch, already-claimed, etc).
+        // /auth/callback already had this check; /auth/finish was missing it.
+        if (
+          claimData &&
+          typeof claimData === "object" &&
+          (claimData as { ok?: boolean }).ok === false
+        ) {
+          const reason =
+            (claimData as { error?: string }).error ||
+            "the invite couldn't be linked to your account";
+          console.warn(
+            "[auth/finish] claim_player_invite returned ok=false:",
+            reason
+          );
+          setError(
+            `We signed you in, but ${reason}. The invite link may have expired or the email may not match. Please ask your coach to send a fresh invite to this email address.`
+          );
+          setStage("error");
+          return;
         }
       }
 

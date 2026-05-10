@@ -151,8 +151,99 @@ export default async function PlayerHomePage() {
     .maybeSingle();
 
   if (!playerRow) {
-    // Coach (or unrelated user) — bounce to coach dashboard.
-    redirect("/dashboard");
+    // Slice 5.4.5: Distinguish "coach landed at /home by mistake" (legitimate
+    // bounce to /dashboard) from "participant whose claim_player_invite RPC
+    // didn't link them" (NOT a coach — silent bounce sends them to the wrong
+    // place). A coach has at least one organization they own; a stranded
+    // participant has none.
+    const { count: orgCount } = await supabase
+      .from("organizations")
+      .select("*", { count: "exact", head: true })
+      .eq("owner_id", user.id);
+
+    if ((orgCount ?? 0) > 0) {
+      // User owns organizations — they're a coach who hit /home by accident.
+      redirect("/dashboard");
+    }
+
+    // No player record AND no organization. Most likely: participant signed in
+    // via the invite email magic-link, but claim_player_invite didn't link
+    // them to a player record (expired token, email mismatch, RLS issue, etc).
+    // Show a clear recovery state instead of silently bouncing them to the
+    // organizer dashboard.
+    return (
+      <main className="join-page-wrap">
+        <div className="join-page-card">
+          <div className="join-page-brand">
+            <span className="join-page-brand-name">earn²keep</span>
+          </div>
+          <h1 className="join-page-title">Almost there!</h1>
+          <p className="join-page-text">
+            You&apos;re signed in, but we couldn&apos;t link your account to a
+            team. This usually means the invite link expired, or the email
+            your coach used to invite you doesn&apos;t match{" "}
+            <strong>{user.email}</strong>.
+          </p>
+          <p className="join-page-text">
+            <strong>To fix this:</strong>
+          </p>
+          <ul
+            style={{
+              paddingLeft: 24,
+              marginBottom: 24,
+              lineHeight: 1.7,
+              color: "var(--color-text-muted)",
+            }}
+          >
+            <li>
+              Ask your coach to send a fresh invite to{" "}
+              <strong>{user.email}</strong>, then click that new link.
+            </li>
+            <li>
+              If your coach used a different email, sign out (button below)
+              and click the invite from that email instead.
+            </li>
+          </ul>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 12,
+              marginTop: 24,
+            }}
+          >
+            <Link
+              href="/login"
+              className="btn-primary btn-inline"
+              style={{ textDecoration: "none" }}
+            >
+              Sign in with a different email
+            </Link>
+            <Link
+              href="/dashboard"
+              className="btn-cancel"
+              style={{ textDecoration: "none" }}
+            >
+              I&apos;m a coach, take me to my dashboard
+            </Link>
+          </div>
+          <p
+            className="join-page-text"
+            style={{
+              fontSize: 13,
+              color: "var(--color-text-soft)",
+              marginTop: 24,
+              borderTop: "1px solid var(--color-border)",
+              paddingTop: 16,
+            }}
+          >
+            Still stuck? Reply to your invite email and let your coach know
+            this happened — they can resend the invite, and we&apos;ll have
+            this fixed in a future update.
+          </p>
+        </div>
+      </main>
+    );
   }
 
   const player = playerRow as PlayerRow;
