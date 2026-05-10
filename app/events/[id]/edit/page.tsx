@@ -7,6 +7,11 @@ import { createClient } from "@/lib/supabase-browser";
 import Tooltip from "@/components/Tooltip";
 
 import AppShell from "@/components/AppShell";
+import {
+  MAX_EVENT_DAYS,
+  isWithinMaxDuration,
+  eventDurationDays,
+} from "@/lib/pricing";
 type Team = {
   id: string;
   name: string;
@@ -185,6 +190,10 @@ export default function EditEventPage() {
     if (!eventType) { setError("Please pick Camp or Tournament."); return; }
     if (!startDate || !endDate) { setError("Please set start and end dates."); return; }
     if (new Date(endDate) < new Date(startDate)) { setError("End date must be on or after start date."); return; }
+    if (!isWithinMaxDuration(startDate, endDate)) {
+      setError(`Events run up to ${MAX_EVENT_DAYS} days. Please shorten the date range.`);
+      return;
+    }
     if (selectedTeamIds.length === 0) {
       setError(eventType === "camp" ? "Please pick a team." : "Please pick at least one team.");
       return;
@@ -324,6 +333,18 @@ export default function EditEventPage() {
                     value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
                 </div>
               </div>
+              <p className="form-section-hint">
+                Events run up to {MAX_EVENT_DAYS} days.{" "}
+                {startDate && endDate && !isNaN(eventDurationDays(startDate, endDate)) && (
+                  <span style={{
+                    fontWeight: 600,
+                    color: isWithinMaxDuration(startDate, endDate) ? "inherit" : "#dc2626",
+                  }}>
+                    Currently: {eventDurationDays(startDate, endDate)} day{eventDurationDays(startDate, endDate) === 1 ? "" : "s"}
+                    {!isWithinMaxDuration(startDate, endDate) && " — exceeds 30-day maximum"}
+                  </span>
+                )}
+              </p>
 
               <div>
                 <label htmlFor="description" className="form-label">Description (optional)</label>
