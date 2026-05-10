@@ -24,6 +24,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/supabase-admin";
 import PlayerTopBar from "@/components/PlayerTopBar";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import PlayerSponsorCard from "@/components/PlayerSponsorCard";
@@ -176,6 +177,80 @@ export default async function PlayerHomePage({
       redirect("/dashboard");
     }
 
+    // Slice 5.4.7: Use the admin client (service-role, bypasses RLS) to look
+    // directly at what's in the database. This tells us whether the claim
+    // succeeded silently (write blocked by RLS or RPC bug) vs whether it
+    // succeeded but /home's RLS-respecting SELECT is being blocked.
+    let diagnosticText = "Admin client unavailable (SUPABASE_SERVICE_ROLE_KEY missing).";
+    try {
+      const admin = createAdminClient();
+      if (admin) {
+        const userEmail = (user.email || "").trim();
+        const [playersResp, invitesResp, linkedResp] = await Promise.all([
+          // Any player record with this email in parent_email?
+          admin
+            .from("players")
+            .select("id, first_name, last_name, parent_email, linked_user_id, team_id, owner_id")
+            .ilike("parent_email", userEmail),
+          // Any invite for this email?
+          admin
+            .from("player_invites")
+            .select("id, email, token, sent_at, claimed_at, player_id, created_by")
+            .ilike("email", userEmail)
+            .order("sent_at", { ascending: false })
+            .limit(5),
+          // Any player record already linked to this auth user?
+          admin
+            .from("players")
+            .select("id, first_name, last_name, parent_email, linked_user_id, team_id")
+            .eq("linked_user_id", user.id),
+        ]);
+
+        const lines: string[] = [];
+        lines.push(`Auth user ID:  ${user.id}`);
+        lines.push(`Auth email:    ${userEmail}`);
+        lines.push("");
+        lines.push(`Players with parent_email matching: ${playersResp.data?.length ?? 0}`);
+        if (playersResp.error) {
+          lines.push(`  (query error: ${playersResp.error.message})`);
+        }
+        for (const p of playersResp.data ?? []) {
+          lines.push(`  • player ${p.id}`);
+          lines.push(`    name:           ${p.first_name} ${p.last_name ?? ""}`.trimEnd());
+          lines.push(`    parent_email:   ${p.parent_email ?? "NULL"}`);
+          lines.push(`    linked_user_id: ${p.linked_user_id ?? "NULL"}`);
+          lines.push(`    team_id:        ${p.team_id}`);
+          lines.push(`    owner_id:       ${p.owner_id}`);
+        }
+        lines.push("");
+        lines.push(`Players already linked to THIS auth user: ${linkedResp.data?.length ?? 0}`);
+        if (linkedResp.error) {
+          lines.push(`  (query error: ${linkedResp.error.message})`);
+        }
+        for (const p of linkedResp.data ?? []) {
+          lines.push(`  • player ${p.id} (${p.first_name})`);
+          lines.push(`    parent_email:   ${p.parent_email ?? "NULL"}`);
+          lines.push(`    team_id:        ${p.team_id}`);
+        }
+        lines.push("");
+        lines.push(`Recent invites with email matching (last 5): ${invitesResp.data?.length ?? 0}`);
+        if (invitesResp.error) {
+          lines.push(`  (query error: ${invitesResp.error.message})`);
+        }
+        for (const inv of invitesResp.data ?? []) {
+          lines.push(`  • invite ${inv.id}`);
+          lines.push(`    email:        ${inv.email ?? "NULL"}`);
+          lines.push(`    sent_at:      ${inv.sent_at ?? "NULL"}`);
+          lines.push(`    claimed_at:   ${inv.claimed_at ?? "NULL (not claimed)"}`);
+          lines.push(`    player_id:    ${inv.player_id}`);
+          lines.push(`    token:        ${inv.token?.slice(0, 12)}...`);
+        }
+        diagnosticText = lines.join("\n");
+      }
+    } catch (err) {
+      diagnosticText = `Diagnostic query failed: ${err instanceof Error ? err.message : String(err)}`;
+    }
+
     // No player record AND no organization. Most likely: participant signed in
     // via the invite email magic-link, but claim_player_invite didn't link
     // them to a player record (expired token, email mismatch, RLS issue, etc).
@@ -281,6 +356,47 @@ export default async function PlayerHomePage({
             this happened — they can resend the invite, and we&apos;ll have
             this fixed in a future update.
           </p>
+
+          {/* Slice 5.4.7: developer diagnostic — admin-client view of what's
+              actually in the database. Helps me see whether the claim wrote
+              successfully but RLS is blocking the read, vs the claim never
+              wrote at all. Screenshot this and send it to me. */}
+          <details
+            style={{
+              marginTop: 20,
+              padding: 12,
+              background: "rgba(0, 0, 0, 0.25)",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              borderRadius: 6,
+              fontSize: 12,
+            }}
+          >
+            <summary
+              style={{
+                cursor: "pointer",
+                fontWeight: 700,
+                color: "var(--color-text-soft)",
+                fontSize: 11,
+                letterSpacing: "0.05em",
+                textTransform: "uppercase",
+              }}
+            >
+              Diagnostic info — please screenshot &amp; send to support
+            </summary>
+            <pre
+              style={{
+                marginTop: 12,
+                fontFamily: "ui-monospace, Menlo, Monaco, monospace",
+                fontSize: 11,
+                lineHeight: 1.5,
+                color: "var(--color-text-muted)",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+              }}
+            >
+              {diagnosticText}
+            </pre>
+          </details>
         </div>
       </main>
     );
