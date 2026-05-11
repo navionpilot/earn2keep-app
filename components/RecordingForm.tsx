@@ -171,37 +171,74 @@ export default function RecordingForm({
       return;
     }
 
-    // Slice 8.3 — AI verification fire-and-forget. Runs only when the
+    // Slice 8.4b — AI verification fire-and-forget. Runs only when the
     // challenge declares an AI strategy the client can extract frames for
-    // (rep_count or time_hold today; photo_completion/audio_match in future
-    // slices will use different client payloads). Failures here NEVER affect
-    // the player's experience — the success screen shows regardless.
-    // Slice 8.4a — surfaces errors to the browser console (not silently
-    // swallowed) so future debugging is possible.
+    // (rep_count or time_hold today). KEY CHANGE FROM 8.4a: we now ALWAYS
+    // POST to the AI route, even when frame extraction fails. This gives
+    // us server-side observability (Vercel logs + the ai_status / ai_error
+    // columns) instead of silently dropping the entire flow when iOS
+    // Safari can't extract frames. Failures here NEVER affect the player's
+    // experience — the success screen still shows.
     if (
       insertRes.submissionId &&
       isAIStrategyClientEligible(aiVerificationStrategy)
     ) {
       const submissionId = insertRes.submissionId;
       const videoFile = file;
-      // Run async without awaiting — player gets the success screen immediately
       (async () => {
+        let frames: string[] | null = null;
+        let clientError: string | null = null;
+        const traceLog: string[] = [];
+        const log = (msg: string) => {
+          traceLog.push(msg);
+          // Also surface to browser console for desktop debugging
+          // eslint-disable-next-line no-console
+          console.log(msg);
+        };
+        log(`[ai-verify] AI block reached for submission ${submissionId}`);
+        log(`[ai-verify] strategy=${aiVerificationStrategy} file=${videoFile.size}b ${videoFile.type}`);
+
         try {
-          const frames = await extractFramesFromVideo(videoFile, { frameCount: 10 });
+          frames = await extractFramesFromVideo(videoFile, {
+            frameCount: 10,
+            onProgress: log,
+          });
+          log(`[ai-verify] extracted ${frames.length} frames`);
+        } catch (err) {
+          clientError = err instanceof Error ? err.message : String(err);
+          // eslint-disable-next-line no-console
+          console.error("[ai-verify] frame extraction failed:", err);
+          log(`[ai-verify] frame extraction failed: ${clientError}`);
+        }
+
+        // ALWAYS POST — even on extraction failure, so the server can
+        // log + record what happened in the submission's ai_error field.
+        try {
+          const body: Record<string, unknown> = { submissionId };
+          if (frames && frames.length > 0) {
+            body.framesBase64 = frames;
+          }
+          if (clientError) {
+            body.clientError = clientError;
+            body.clientTrace = traceLog.slice(-20).join(" | ");
+          }
           const res = await fetch("/api/ai/verify-submission", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ submissionId, framesBase64: frames }),
+            body: JSON.stringify(body),
           });
+          log(`[ai-verify] POST returned ${res.status}`);
           if (!res.ok) {
+            // eslint-disable-next-line no-console
             console.error(
               "[ai-verify] route returned non-OK",
               res.status,
               await res.text().catch(() => "")
             );
           }
-        } catch (err) {
-          console.error("[ai-verify] client-side failure", err);
+        } catch (fetchErr) {
+          // eslint-disable-next-line no-console
+          console.error("[ai-verify] POST failed", fetchErr);
         }
       })();
     }

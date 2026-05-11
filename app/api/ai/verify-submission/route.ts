@@ -32,7 +32,12 @@ export const maxDuration = 60; // AI call can take 30-60s for image-heavy reques
 
 interface PostBody {
   submissionId: string;
-  framesBase64: string[];
+  /** Frames extracted by the client. Optional — if missing, must have clientError. */
+  framesBase64?: string[];
+  /** Slice 8.4b — set when the client could not extract frames (iOS Safari etc.) */
+  clientError?: string;
+  /** Slice 8.4b — diagnostic trace from the client (last 20 log lines) */
+  clientTrace?: string;
 }
 
 export async function POST(req: NextRequest) {
@@ -42,21 +47,55 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
-  const { submissionId, framesBase64 } = body || {};
+  const { submissionId, framesBase64, clientError, clientTrace } = body || {};
   if (!submissionId || typeof submissionId !== "string") {
+    console.error("[ai-verify] missing submissionId");
     return NextResponse.json(
       { error: "submissionId is required" },
       { status: 400 }
     );
   }
-  if (!Array.isArray(framesBase64) || framesBase64.length === 0) {
+
+  // Slice 8.4b — client-side extraction failure path. The client POSTs
+  // even when it couldn't extract frames so we have visibility into iOS
+  // Safari issues + other client-side problems. Mark the submission as
+  // failed with the client's error message, log it, and return early.
+  if (clientError) {
+    console.error("[ai-verify] client reported extraction failure", {
+      submissionId,
+      clientError,
+      clientTrace,
+    });
+    const admin = createAdminClient();
+    if (admin) {
+      await admin
+        .from("submissions")
+        .update({
+          ai_status: "failed",
+          ai_error: `Client: ${clientError}`.slice(0, 500),
+          ai_verified_at: new Date().toISOString(),
+        })
+        .eq("id", submissionId);
+    }
     return NextResponse.json(
-      { error: "framesBase64 must be a non-empty array" },
+      { ok: false, error: "Client-side frame extraction failed", details: clientError },
+      { status: 200 }
+    );
+  }
+
+  if (!Array.isArray(framesBase64) || framesBase64.length === 0) {
+    console.error("[ai-verify] missing framesBase64", { submissionId });
+    return NextResponse.json(
+      { error: "framesBase64 must be a non-empty array (or send clientError)" },
       { status: 400 }
     );
   }
   // Defensive frame cap — see lib/aiVerification MAX_FRAMES
   const frames = framesBase64.slice(0, 12);
+  console.log("[ai-verify] request received", {
+    submissionId,
+    frameCount: frames.length,
+  });
 
   const supabase = await createClient();
   const {
