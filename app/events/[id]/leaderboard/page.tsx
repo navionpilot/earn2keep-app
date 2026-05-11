@@ -243,8 +243,22 @@ export default function LeaderboardPage() {
 
           {rows.length === 0 ? (
             <div className="dashboard-card">
-              <p className="dashboard-card-text">
-                No players on this event yet. Add teams to the event and players to those teams.
+              <p className="dashboard-card-text" style={{ marginBottom: "10px" }}>
+                <strong>No leaderboard yet.</strong>
+              </p>
+              <p className="dashboard-card-text" style={{ fontSize: "14px" }}>
+                Points appear here as players submit challenge videos and you
+                approve them. To get started, make sure you have:
+              </p>
+              <ul style={{ fontSize: "14px", lineHeight: "1.7", paddingLeft: "20px", margin: "8px 0 16px" }}>
+                <li>One or more teams added to this event</li>
+                <li>Active players on those teams</li>
+                <li>Challenges scheduled on the event calendar</li>
+                <li>The event activated (not draft)</li>
+              </ul>
+              <p className="dashboard-card-text" style={{ fontSize: "14px", color: "var(--e2k-text-muted)" }}>
+                Once players start submitting and you start approving, names
+                will sort themselves in real time based on points earned.
               </p>
               <div style={{ textAlign: "center", marginTop: "16px" }}>
                 <Link href={`/events/${eventId}`} className="btn-primary-link">
