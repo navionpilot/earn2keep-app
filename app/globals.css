@@ -7482,7 +7482,10 @@ a:hover {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-top: 1px solid var(--e2k-border);
-    padding: 10px 0 14px;
+    /* Slice 7.8: bottom padding includes env(safe-area-inset-bottom)
+       so the iOS home indicator gesture bar doesn't crowd the nav
+       buttons. Fallback 0px on Android, desktop, non-notch iOS. */
+    padding: 10px 0 calc(14px + env(safe-area-inset-bottom, 0px));
     position: fixed;
     bottom: 0;
     left: 0;
@@ -8098,7 +8101,10 @@ body {
 
 .e2k-app-main { padding: 28px 36px 48px; gap: 20px; }
 @media (max-width: 900px) {
-  .e2k-app-main { padding: 20px 18px 110px; }
+  /* Slice 7.8: padding-bottom adds env(safe-area-inset-bottom) so content
+     scrolls clear of the now-taller mobile nav (which itself was bumped
+     above to respect the iOS home indicator). */
+  .e2k-app-main { padding: 20px 18px calc(110px + env(safe-area-inset-bottom, 0px)); }
   .e2k-header { padding: 14px 16px; }
   .e2k-header-brand-name { font-size: 24px; }
   .e2k-header-brand-sup { font-size: 14px; }

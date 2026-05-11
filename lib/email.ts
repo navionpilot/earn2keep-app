@@ -21,6 +21,30 @@ const RESEND_ENDPOINT = "https://api.resend.com/emails";
 
 const FROM_ADDRESS = "earn²keep <noreply@earn2keep.com>";
 
+// =============================================================================
+// Slice 7.8: roleToLabel — translates the 8 organizer roles (stored as
+// profiles.primary_role) into a friendly noun for emails. Mirrors the
+// SQL CASE in tg_submission_review_notify (slice 7.6) and the local
+// roleToInviterLabel in app/api/invites/send/route.ts (slice 5.4.2).
+//
+// Centralized here so any email module can stay consistent. Anything not
+// recognized falls through to "team leader" — covers org_director, other,
+// null, and any role added in the future before this mapping is updated.
+// =============================================================================
+export function roleToLabel(role: string | null | undefined): string {
+  switch (role) {
+    case "coach":        return "coach";
+    case "teacher":      return "teacher";
+    case "youth_pastor": return "youth pastor";
+    case "scout_leader": return "scout leader";
+    case "gym_owner":    return "gym instructor";
+    case "parent":       return "parent";
+    case "org_director":
+    case "other":
+    default:             return "team leader";
+  }
+}
+
 export interface InviteEmailOptions {
   to: string;
   playerFirstName: string;
@@ -393,6 +417,12 @@ export interface SubmissionReviewedEmailOptions {
   rejectionReason: string | null;
   // Deep link back into the app's recording page
   appUrl: string;
+  // Slice 7.8: noun for the organizer ("coach", "youth pastor", "scout
+  // leader", "gym instructor", "teacher", "parent", or "team leader").
+  // Caller resolves via roleToLabel(profile.primary_role). Optional for
+  // back-compat — defaults to "coach" when not provided so older call
+  // sites keep their current wording.
+  ownerLabel?: string;
 }
 
 export async function sendSubmissionReviewedEmail(
@@ -463,9 +493,14 @@ function buildSubmissionReviewedHtml(
     ? `Nice work, ${safeName}!`
     : `Hey ${safeName} — give it another shot.`;
 
+  // Slice 7.8: noun for the organizer (varies by their primary_role).
+  // Default to "coach" when not provided so existing call sites stay
+  // grammatical even before they upgrade.
+  const ownerLabel = opts.ownerLabel || "coach";
+
   const bodyHtml = isApproved
     ? `<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#0a2f37;">
-         Your <strong>${safeChallenge}</strong>${safeEvent ? ` submission for <strong>${safeEvent}</strong>` : ""} just got approved by your coach.
+         Your <strong>${safeChallenge}</strong>${safeEvent ? ` submission for <strong>${safeEvent}</strong>` : ""} just got approved by your ${escape(ownerLabel)}.
        </p>`
        + (opts.repsApproved != null
          ? `<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#0a2f37;">
@@ -475,7 +510,7 @@ function buildSubmissionReviewedHtml(
        + (opts.coachNote
          ? `<table cellpadding="14" cellspacing="0" style="background:#f0fafb;border-left:3px solid ${accent};border-radius:6px;margin:0 0 18px;">
               <tr><td>
-                <div style="font-size:11px;font-weight:700;color:${accent};letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px;">Note for you</div>
+                <div style="font-size:11px;font-weight:700;color:${accent};letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px;">Note from your ${escape(ownerLabel)}</div>
                 <div style="font-size:14px;color:#0a2f37;line-height:1.5;font-style:italic;">"${escape(opts.coachNote)}"</div>
               </td></tr>
             </table>`
@@ -486,7 +521,7 @@ function buildSubmissionReviewedHtml(
        + (opts.rejectionReason
          ? `<table cellpadding="14" cellspacing="0" style="background:#fef0ec;border-left:3px solid ${accent};border-radius:6px;margin:0 0 18px;">
               <tr><td>
-                <div style="font-size:11px;font-weight:700;color:${accent};letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px;">Reviewer feedback</div>
+                <div style="font-size:11px;font-weight:700;color:${accent};letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px;">Feedback from your ${escape(ownerLabel)}</div>
                 <div style="font-size:14px;color:#0a2f37;line-height:1.5;">${escape(opts.rejectionReason)}</div>
               </td></tr>
             </table>`
@@ -529,25 +564,26 @@ function buildSubmissionReviewedHtml(
 }
 
 function buildSubmissionReviewedText(opts: SubmissionReviewedEmailOptions): string {
+  const ownerLabel = opts.ownerLabel || "coach"; // Slice 7.8
   const lines: string[] = [];
   if (opts.status === "approved") {
     lines.push(`Nice work, ${opts.playerFirstName}!`);
     lines.push("");
     lines.push(
-      `Your ${opts.challengeName}${opts.eventName ? ` submission for ${opts.eventName}` : ""} just got approved by your coach.`
+      `Your ${opts.challengeName}${opts.eventName ? ` submission for ${opts.eventName}` : ""} just got approved by your ${ownerLabel}.`
     );
     if (opts.repsApproved != null) {
       lines.push(`You got credit for ${opts.repsApproved} reps.`);
     }
     if (opts.coachNote) {
       lines.push("");
-      lines.push(`Reviewer note: "${opts.coachNote}"`);
+      lines.push(`Note from your ${ownerLabel}: "${opts.coachNote}"`);
     }
   } else {
     lines.push(`Hey ${opts.playerFirstName} — your ${opts.challengeName} submission needs another go.`);
     if (opts.rejectionReason) {
       lines.push("");
-      lines.push(`Reviewer feedback: ${opts.rejectionReason}`);
+      lines.push(`Feedback from your ${ownerLabel}: ${opts.rejectionReason}`);
     }
   }
   lines.push("");

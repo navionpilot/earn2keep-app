@@ -23,7 +23,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-admin";
-import { sendSubmissionReviewedEmail } from "@/lib/email";
+import { sendSubmissionReviewedEmail, roleToLabel } from "@/lib/email";
 
 export const runtime = "nodejs";
 
@@ -155,6 +155,18 @@ export async function POST(req: NextRequest) {
     "https://app.earn2keep.com";
   const appUrl = `${baseUrl}/home/record/${subRow.event_challenge_id}`;
 
+  // Slice 7.8: fetch the organizer's primary_role so the email uses
+  // role-aware language ("approved by your youth pastor" / "scout leader" /
+  // etc.) instead of always saying "coach". Mirrors slice 7.6 which did
+  // this in the in-app notification trigger. Falls back to "team leader"
+  // via roleToLabel() if profile/role missing — never blocks email send.
+  const { data: ownerProfile } = await supabase
+    .from("profiles")
+    .select("primary_role")
+    .eq("id", user.id)
+    .maybeSingle();
+  const ownerLabel = roleToLabel(ownerProfile?.primary_role);
+
   const result = await sendSubmissionReviewedEmail({
     to: toEmail,
     playerFirstName: player.first_name,
@@ -165,6 +177,7 @@ export async function POST(req: NextRequest) {
     coachNote: subRow.coach_note,
     rejectionReason: subRow.rejection_reason,
     appUrl,
+    ownerLabel,
   });
 
   if (!result.ok) {

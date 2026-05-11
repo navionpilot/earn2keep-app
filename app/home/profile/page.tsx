@@ -16,6 +16,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
 import PlayerTopBar from "@/components/PlayerTopBar";
+import LogoutButton from "@/components/LogoutButton";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import PlayerProfileForm from "@/components/PlayerProfileForm";
 import PlayerBadges from "@/components/PlayerBadges";
@@ -227,6 +228,20 @@ export default async function ProfilePage() {
             locked={lockedBadges}
             variant="full"
           />
+        </section>
+
+        {/* Slice 7.8: mobile-accessible logout for participants. PlayerTopBar's
+            logout is hidden below 900px (same as coach AppHeader), so this
+            section gives mobile players a visible Sign Out. */}
+        <section className="profile-section">
+          <h2 className="profile-section-title">Sign Out</h2>
+          <p className="profile-section-help">
+            End your session on this device. You can sign back in anytime
+            from your invite email or the login page.
+          </p>
+          <div style={{ paddingTop: 4 }}>
+            <LogoutButton />
+          </div>
         </section>
       </main>
     </>
