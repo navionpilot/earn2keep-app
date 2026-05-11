@@ -23,6 +23,11 @@ import {
   insertSubmission,
   MAX_VIDEO_BYTES,
 } from "@/lib/submissions";
+import {
+  isTimeBasedChallenge,
+  durationInSeconds,
+} from "@/lib/timeChallenge";
+import TimedRecorder from "@/components/TimedRecorder";
 
 interface Props {
   playerId: string;
@@ -57,6 +62,18 @@ export default function RecordingForm({
   const [playerNote, setPlayerNote] = useState<string>("");
   const [uploadStep, setUploadStep] = useState<string>("");
 
+  // Slice 8.1: when true, render <TimedRecorder> instead of the idle
+  // record/upload buttons. Set by tapping the in-browser-record CTA on
+  // time-based challenges. Reset on cancel.
+  const [showTimedRecorder, setShowTimedRecorder] = useState(false);
+
+  // Slice 8.1: derived once per render — does this challenge call for the
+  // in-browser timed flow? Drives the idle-state button rendering.
+  const isTimed = isTimeBasedChallenge(challengeUnit);
+  const targetDurationSec = isTimed
+    ? durationInSeconds(repTarget, challengeUnit)
+    : 0;
+
   // Two hidden file inputs — one for camera capture, one for plain picker.
   const recordInputRef = useRef<HTMLInputElement | null>(null);
   const galleryInputRef = useRef<HTMLInputElement | null>(null);
@@ -64,7 +81,13 @@ export default function RecordingForm({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
+    acceptFile(f);
+  };
 
+  // Slice 8.1: shared file-acceptor used by BOTH the file-picker path and the
+  // in-browser TimedRecorder path. Picks up after we have a valid File and
+  // sets up the preview/edit stage.
+  const acceptFile = (f: File) => {
     // Defense: clamp obviously-wrong files before we even build the
     // preview. Specific size error message is in the upload helper.
     if (f.size > MAX_VIDEO_BYTES) {
@@ -82,6 +105,7 @@ export default function RecordingForm({
     setPreviewUrl(url);
     setStage("previewing");
     setError(null);
+    setShowTimedRecorder(false);
   };
 
   const resetToIdle = () => {
@@ -140,22 +164,6 @@ export default function RecordingForm({
       return;
     }
 
-    // Slice 7.9: fire-and-forget email to the coach so they see "New
-    // submission from <player>" in their inbox in addition to the in-app
-    // bell (which the slice 7.1 DB trigger creates automatically). We
-    // intentionally do NOT await — if the email API is slow or fails,
-    // the player's success screen shouldn't be held up. The in-app
-    // notification fires either way.
-    if (insertRes.submissionId) {
-      void fetch("/api/notify/submission-created", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ submissionId: insertRes.submissionId }),
-      }).catch(() => {
-        /* email is best-effort — silent fail */
-      });
-    }
-
     // Free the preview URL — we're done with it.
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
@@ -202,28 +210,50 @@ export default function RecordingForm({
         style={{ display: "none" }}
       />
 
+      {/* ---------- TIMED RECORDER (in-browser flow for time-based challenges) ---------- */}
+      {showTimedRecorder && targetDurationSec > 0 && (
+        <TimedRecorder
+          challengeName={challengeName}
+          durationSeconds={targetDurationSec}
+          onComplete={(f) => acceptFile(f)}
+          onCancel={() => setShowTimedRecorder(false)}
+        />
+      )}
+
       {/* ---------- IDLE / PRE-FILE STATE ---------- */}
-      {stage === "idle" && (
+      {stage === "idle" && !showTimedRecorder && (
         <>
           <div className="recording-prompt">
             <div className="recording-prompt-icon">📹</div>
             <p className="recording-prompt-text">
-              Record yourself doing this challenge, then submit it for review.
+              {isTimed
+                ? `This is a timed challenge — ${targetDurationSec}s. Use the in-browser recorder for a voice countdown so you don't have to watch your phone.`
+                : "Record yourself doing this challenge, then submit it for review."}
             </p>
             <p className="recording-prompt-hint">
-              Tip: prop your phone up so the camera can see your full body or
-              the rep clearly. Coach can&apos;t approve what they can&apos;t
-              see.
+              {isTimed
+                ? "Tip: prop your phone up where it can see your full body, and make sure your volume is up so you can hear the countdown."
+                : "Tip: prop your phone up so the camera can see your full body or the rep clearly. Coach can't approve what they can't see."}
             </p>
           </div>
 
-          <button
-            type="button"
-            className="recording-btn-primary"
-            onClick={() => recordInputRef.current?.click()}
-          >
-            📹 Record now
-          </button>
+          {isTimed ? (
+            <button
+              type="button"
+              className="recording-btn-primary"
+              onClick={() => setShowTimedRecorder(true)}
+            >
+              ⏱ Start timed challenge
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="recording-btn-primary"
+              onClick={() => recordInputRef.current?.click()}
+            >
+              📹 Record now
+            </button>
+          )}
           <button
             type="button"
             className="recording-btn-secondary"

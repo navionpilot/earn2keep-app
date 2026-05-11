@@ -7528,98 +7528,6 @@ a:hover {
   overflow: hidden;
   isolation: isolate;
 }
-
-/* ============================================
-   Slice 7.4 — Coach welcome hero (first-run experience for new coaches)
-   Reuses the same gradient backdrop as .e2k-hero so the visual treatment
-   stays consistent, but with a single-column content layout (intro +
-   how-it-works + CTA) instead of HeroCard's headline-plus-ring grid.
-   ============================================ */
-.e2k-welcome-hero {
-  position: relative;
-  border-radius: var(--e2k-r-xl);
-  border: 1px solid var(--e2k-border-strong);
-  padding: 26px 28px;
-  overflow: hidden;
-  isolation: isolate;
-}
-.e2k-welcome-hero-bg {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background:
-    linear-gradient(180deg, rgba(4, 20, 24, 0.30) 0%, rgba(4, 20, 24, 0.65) 100%),
-    linear-gradient(135deg, #1a3a48 0%, #2d4555 25%, #6b4358 55%, #d4795c 95%);
-}
-.e2k-welcome-hero-content { position: relative; }
-.e2k-welcome-eyebrow {
-  font-size: 11px;
-  letter-spacing: 2px;
-  font-weight: 700;
-  color: var(--e2k-cyan);
-  margin-bottom: 10px;
-}
-.e2k-welcome-title {
-  font-family: var(--e2k-display, "Sora", sans-serif);
-  font-size: 30px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  color: #fff;
-  margin: 0 0 12px;
-  line-height: 1.1;
-}
-.e2k-welcome-intro {
-  font-size: 15px;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.88);
-  margin: 0 0 22px;
-  max-width: 720px;
-}
-.e2k-welcome-emph {
-  color: var(--e2k-coral);
-  font-weight: 600;
-}
-.e2k-welcome-howit {
-  background: rgba(0, 0, 0, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--e2k-r-md);
-  padding: 16px 18px;
-  margin: 0 0 22px;
-}
-.e2k-welcome-howit-title {
-  font-size: 10px;
-  letter-spacing: 1.8px;
-  font-weight: 700;
-  color: var(--e2k-cyan);
-  margin-bottom: 10px;
-}
-.e2k-welcome-howit-list {
-  margin: 0;
-  padding-left: 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.e2k-welcome-howit-list li {
-  font-size: 14px;
-  line-height: 1.55;
-  color: rgba(255, 255, 255, 0.88);
-}
-.e2k-welcome-howit-list li strong { color: #fff; font-weight: 700; }
-.e2k-welcome-cta-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 16px;
-}
-@media (max-width: 600px) {
-  .e2k-welcome-hero { padding: 22px 20px; }
-  .e2k-welcome-title { font-size: 24px; }
-  .e2k-welcome-intro { font-size: 14px; }
-  .e2k-welcome-cta-row { flex-direction: column; align-items: stretch; }
-  .e2k-welcome-cta-row .e2k-btn-coral { width: 100%; text-align: center; }
-}
-
 .e2k-hero-bg {
   position: absolute;
   inset: 0;
@@ -13903,6 +13811,204 @@ input.form-input-with-prefix {
   background: #000;
   display: block;
 }
+
+
+/* ============================================
+   Slice 8.1 — TimedRecorder (in-browser recording flow for time-based challenges)
+   ============================================ */
+
+.timed-recorder {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+/* Idle (introductory) and error variants — center-aligned card-style */
+.timed-recorder-idle,
+.timed-recorder-error {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--e2k-border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--e2k-r-lg, 14px);
+  padding: 22px 20px;
+  text-align: center;
+  align-items: center;
+}
+.timed-recorder-icon {
+  font-size: 38px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.timed-recorder-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 6px;
+  color: var(--e2k-text, #f7fbfb);
+}
+.timed-recorder-blurb {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--e2k-text-muted);
+  margin: 0 0 14px;
+  max-width: 480px;
+}
+.timed-recorder-hint {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--e2k-text-muted);
+  margin: 0 0 14px;
+  max-width: 480px;
+}
+.timed-recorder-error-msg {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--e2k-coral, #ff755f);
+  margin: 0 0 16px;
+  max-width: 480px;
+}
+
+/* Camera-active stage */
+.timed-recorder-active {
+  align-items: stretch;
+}
+.timed-recorder-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  max-height: 70vh;
+  background: #000;
+  border-radius: var(--e2k-r-lg, 14px);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.timed-recorder-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Shared overlay positioning */
+.timed-recorder-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Lead-in countdown (5, 4, 3, 2, 1, GO!) */
+.timed-recorder-leadin {
+  background: rgba(0, 0, 0, 0.45);
+}
+.timed-recorder-leadin-number {
+  font-family: var(--e2k-display, "Sora", sans-serif);
+  font-size: clamp(80px, 28vw, 180px);
+  font-weight: 900;
+  color: var(--e2k-coral, #ff755f);
+  line-height: 1;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+  animation: timedrec-pulse 1s ease-out;
+}
+@keyframes timedrec-pulse {
+  0%   { transform: scale(1.6); opacity: 0; }
+  30%  { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Recording-active timer overlay (top-center) */
+.timed-recorder-timer {
+  justify-content: flex-start;
+  padding-top: 18px;
+}
+.timed-recorder-rec-dot {
+  width: 12px;
+  height: 12px;
+  background: #ff3b30;
+  border-radius: 50%;
+  box-shadow: 0 0 12px rgba(255, 59, 48, 0.6);
+  margin-bottom: 12px;
+  animation: timedrec-blink 1s steps(2, end) infinite;
+}
+@keyframes timedrec-blink {
+  50% { opacity: 0.3; }
+}
+.timed-recorder-time-remaining {
+  font-family: var(--e2k-display, "Sora", sans-serif);
+  font-size: clamp(48px, 14vw, 84px);
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+  letter-spacing: -1px;
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.35);
+  padding: 6px 18px;
+  border-radius: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.timed-recorder-time-label {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Action row below video stage */
+.timed-recorder-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+  text-align: center;
+}
+.timed-recorder-status {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--e2k-text, #f7fbfb);
+  margin: 0;
+}
+.timed-recorder-ready-text {
+  font-size: 1rem;
+  margin: 0;
+  color: var(--e2k-text, #f7fbfb);
+}
+
+/* Buttons — match the existing recording-btn-primary visual but
+   shared name since TimedRecorder is its own surface */
+.btn-record-primary {
+  background: var(--e2k-coral, #ff755f);
+  color: #fff;
+  border: none;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  padding: 14px 24px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.1s ease, filter 0.15s ease;
+  margin-top: 4px;
+}
+.btn-record-primary:hover { filter: brightness(1.05); }
+.btn-record-primary:active { transform: scale(0.98); }
+
+.btn-cancel-link {
+  background: transparent;
+  border: none;
+  color: var(--e2k-text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 8px 12px;
+  font-family: inherit;
+}
+.btn-cancel-link:hover { color: var(--e2k-text, #f7fbfb); text-decoration: underline; }
 
 
 /* --- Form rows: reps + note --- */
