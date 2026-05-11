@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 // =============================================================================
@@ -61,7 +62,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        {/* Slice L3 — Vercel Web Analytics. Tracks pageviews + navigation
+            on the App Router. Auto-respects route changes, so navigating
+            between /dashboard, /events, etc. all get counted correctly. */}
+        <Analytics />
+      </body>
     </html>
   );
 }
