@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import ImpactCard from "@/components/ImpactCard";
+import LogoutButton from "@/components/LogoutButton";
 
 export type NavKey =
   | "overview"
@@ -221,6 +222,13 @@ export default function AppSidebar({ active, open, onClose }: AppSidebarProps) {
         </nav>
         <div className="e2k-sidebar-footer">
           <ImpactCard />
+          {/* Slice 7.7: mobile users had no way to log out — the
+              .e2k-header-logout in AppHeader is display:none below 900px,
+              and Settings page had no logout either. Adding it here so
+              tapping the hamburger menu always exposes a sign-out option. */}
+          <div className="e2k-sidebar-logout">
+            <LogoutButton />
+          </div>
         </div>
       </aside>
     </>

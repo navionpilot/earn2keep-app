@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase-server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
+import LogoutButton from "@/components/LogoutButton";
 
 const ROLE_LABELS: Record<string, string> = {
   coach: "Coach",
@@ -89,6 +90,18 @@ export default async function SettingsPage() {
             <div className="e2k-settings-link-title">Back to Dashboard</div>
             <div className="e2k-settings-link-desc">Return to the main overview.</div>
           </Link>
+        </div>
+      </section>
+
+      <section className="e2k-panel">
+        <div className="e2k-panel-head">
+          <h2 className="e2k-panel-title">Sign Out</h2>
+          <p className="e2k-panel-sub">
+            End your session on this device. You can sign back in anytime.
+          </p>
+        </div>
+        <div style={{ paddingTop: 4 }}>
+          <LogoutButton />
         </div>
       </section>
 
