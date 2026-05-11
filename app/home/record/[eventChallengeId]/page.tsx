@@ -43,6 +43,10 @@ interface ChallengeRel {
   recording_instructions: string | null;
   reference_photo_url: string | null;
   reference_photo_caption: string | null;
+  // Slice 8.3: AI verification strategy assigned to this challenge.
+  // Passed to RecordingForm so the client can decide whether to extract
+  // frames + fire the AI call.
+  ai_verification_strategy: string | null;
 }
 
 interface EventRel {
@@ -113,7 +117,7 @@ export default async function RecordPage({
     .from("event_challenges")
     .select(
       `id, event_id, day_index, rep_target, points_value, notes,
-       challenges(id, name, description, category, unit, setup_template_key, recording_instructions, reference_photo_url, reference_photo_caption),
+       challenges(id, name, description, category, unit, setup_template_key, recording_instructions, reference_photo_url, reference_photo_caption, ai_verification_strategy),
        events(id, name, status, start_date, end_date)`
     )
     .eq("id", eventChallengeId)
@@ -258,6 +262,16 @@ export default async function RecordPage({
           challengeName={challenge.name}
           repTarget={ec.rep_target}
           challengeUnit={challenge.unit}
+          aiVerificationStrategy={
+            (challenge.ai_verification_strategy as
+              | "rep_count"
+              | "time_hold"
+              | "photo_completion"
+              | "performance"
+              | "audio_match"
+              | "none"
+              | null) ?? null
+          }
         />
       </main>
     </>

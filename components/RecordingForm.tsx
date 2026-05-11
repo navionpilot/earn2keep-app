@@ -29,7 +29,8 @@ import {
 } from "@/lib/timeChallenge";
 import TimedRecorder from "@/components/TimedRecorder";
 import { extractFramesFromVideo } from "@/lib/frameExtraction";
-import { isAIEligibleChallenge } from "@/lib/aiVerification";
+import { isAIStrategyClientEligible } from "@/lib/aiStrategies/dispatcher";
+import type { AIStrategy } from "@/lib/aiStrategies/types";
 
 interface Props {
   playerId: string;
@@ -38,6 +39,9 @@ interface Props {
   challengeName: string;
   repTarget: number | null;
   challengeUnit: string | null;
+  // Slice 8.3 — strategy framework: challenge declares which AI strategy
+  // (if any) applies. Null means "no AI verification for this challenge."
+  aiVerificationStrategy?: AIStrategy | null;
 }
 
 type Stage = "idle" | "previewing" | "uploading" | "success";
@@ -49,6 +53,7 @@ export default function RecordingForm({
   challengeName,
   repTarget,
   challengeUnit,
+  aiVerificationStrategy = null,
 }: Props) {
   const [stage, setStage] = useState<Stage>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -166,11 +171,15 @@ export default function RecordingForm({
       return;
     }
 
-    // Slice 8.2: AI verification fire-and-forget. Only runs for challenges
-    // currently covered by AI (push-ups in the MVP). Failures here NEVER
-    // affect the player's experience — the success screen shows regardless.
-    // Coach review still works whether or not AI completes.
-    if (insertRes.submissionId && isAIEligibleChallenge(challengeName)) {
+    // Slice 8.3 — AI verification fire-and-forget. Runs only when the
+    // challenge declares an AI strategy the client can extract frames for
+    // (rep_count or time_hold today; photo_completion/audio_match in future
+    // slices will use different client payloads). Failures here NEVER affect
+    // the player's experience — the success screen shows regardless.
+    if (
+      insertRes.submissionId &&
+      isAIStrategyClientEligible(aiVerificationStrategy)
+    ) {
       const submissionId = insertRes.submissionId;
       const videoFile = file;
       // Run async without awaiting — player gets the success screen immediately

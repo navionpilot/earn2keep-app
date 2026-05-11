@@ -1,32 +1,30 @@
 // =============================================================================
-// app/api/ai/verify-submission/route.ts (Slice 8.2)
+// app/api/ai/verify-submission/route.ts (Slice 8.3 refactor)
 // =============================================================================
 // POST endpoint hit by RecordingForm after a successful submission upload.
-// Receives an array of base64-encoded frames extracted client-side, sends
-// them to Claude vision API, stores the result on the submission row, and
-// returns success/error.
+// Refactored from the slice 8.2 push-up-only implementation into a strategy
+// dispatcher: looks up the challenge's ai_verification_strategy and delegates
+// to the appropriate strategy module in lib/aiStrategies/.
 //
 // Auth + ownership:
 //   - Caller must be the authenticated participant
 //   - Caller must own the submission (player.linked_user_id check)
 //
 // Eligibility:
-//   - Challenge must pass isAIEligibleChallenge() (currently push-ups only)
+//   - Challenge must have ai_verification_strategy that is implemented
 //   - Submission must not already have ai_status='completed' (idempotent)
 //
 // Failure mode:
-//   - Soft fail — never returns 5xx for AI-related issues (network, API,
-//     parse). Updates ai_status to 'failed' or 'skipped' and returns 200
-//     with details. Coach review still works without AI.
+//   - Soft fail — never returns 5xx for AI-related issues. Updates ai_status
+//     to 'failed' or 'skipped' and returns 200 with details. Coach review
+//     still works without AI.
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-admin";
-import {
-  verifyWithClaude,
-  isAIEligibleChallenge,
-} from "@/lib/aiVerification";
+import { dispatchByStrategy } from "@/lib/aiStrategies/dispatcher";
+import type { AIStrategy } from "@/lib/aiStrategies/types";
 
 export const runtime = "nodejs";
 export const maxDuration = 60; // AI call can take 30-60s for image-heavy requests
@@ -56,8 +54,7 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
-  // Defensive cap — even if the client tries to send 100 frames, only
-  // process up to 12 to control cost. 10 is the default; 12 leaves headroom.
+  // Defensive frame cap — see lib/aiVerification MAX_FRAMES
   const frames = framesBase64.slice(0, 12);
 
   const supabase = await createClient();
@@ -68,12 +65,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  // Fetch submission + chain to get challenge info and verify ownership.
-  // RLS limits visibility, but we add an explicit ownership check too.
+  // Fetch submission + challenge with the new ai_verification_strategy field
   const { data: subRow, error: subErr } = await supabase
     .from("submissions")
     .select(
-      "id, reps_claimed, ai_status, player_id, event_challenge_id, players!inner(id, linked_user_id), event_challenges!inner(id, rep_target, challenges(id, name))"
+      "id, reps_claimed, ai_status, player_id, event_challenge_id, players!inner(id, linked_user_id), event_challenges!inner(id, rep_target, challenges(id, name, unit, ai_verification_strategy))"
     )
     .eq("id", submissionId)
     .maybeSingle();
@@ -85,8 +81,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Submission not found" }, { status: 404 });
   }
 
-  // Coalesce relations (Supabase returns objects or single-element arrays
-  // depending on the join shape)
   function single<T>(rel: T | T[] | null | undefined): T | null {
     if (!rel) return null;
     return Array.isArray(rel) ? rel[0] ?? null : rel;
@@ -102,7 +96,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Idempotency — don't re-run if already completed
+  // Idempotency
   if (subRow.ai_status === "completed") {
     return NextResponse.json({
       ok: true,
@@ -115,39 +109,38 @@ export async function POST(req: NextRequest) {
     id: string;
     rep_target: number | null;
     challenges:
-      | { id: string; name: string }
-      | { id: string; name: string }[]
+      | {
+          id: string;
+          name: string;
+          unit: string | null;
+          ai_verification_strategy: AIStrategy | null;
+        }
+      | {
+          id: string;
+          name: string;
+          unit: string | null;
+          ai_verification_strategy: AIStrategy | null;
+        }[]
       | null;
   };
   const ec = single(subRow.event_challenges) as EcShape | null;
-  const challenge = single(ec?.challenges) as { id: string; name: string } | null;
-  const challengeName = challenge?.name ?? null;
-  const repTarget = ec?.rep_target ?? null;
+  const challenge = single(ec?.challenges) as
+    | {
+        id: string;
+        name: string;
+        unit: string | null;
+        ai_verification_strategy: AIStrategy | null;
+      }
+    | null;
 
-  // Eligibility check — only push-ups for the MVP. Skip with explicit
-  // ai_status so the UI can show "AI doesn't cover this challenge yet."
-  if (!isAIEligibleChallenge(challengeName)) {
-    // Use admin client to update — RLS may not allow player to modify
-    // the row after insert. Same pattern as the notify routes.
-    const admin = createAdminClient();
-    if (admin) {
-      await admin
-        .from("submissions")
-        .update({
-          ai_status: "skipped",
-          ai_error: "Challenge type not yet covered by AI verification.",
-          ai_verified_at: new Date().toISOString(),
-        })
-        .eq("id", submissionId);
-    }
-    return NextResponse.json({
-      ok: true,
-      skipped: true,
-      reason: "Challenge not eligible for AI verification yet",
-    });
+  if (!challenge) {
+    return NextResponse.json(
+      { error: "Challenge metadata missing" },
+      { status: 500 }
+    );
   }
 
-  // Mark pending so the UI can show "AI is reviewing..."
+  const strategy = challenge.ai_verification_strategy ?? null;
   const admin = createAdminClient();
   if (!admin) {
     return NextResponse.json(
@@ -155,35 +148,39 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   }
+
+  // Mark pending + strategy used (so UI knows what's running)
   await admin
     .from("submissions")
-    .update({ ai_status: "pending" })
+    .update({ ai_status: "pending", ai_strategy_used: strategy ?? null })
     .eq("id", submissionId);
 
-  // Call Claude
-  const result = await verifyWithClaude({
-    framesBase64: frames,
-    challengeName: challengeName as string,
+  // Dispatch
+  const result = await dispatchByStrategy(strategy, {
+    challengeName: challenge.name,
+    unit: challenge.unit,
+    repTarget: ec?.rep_target ?? null,
     repsClaimed: subRow.reps_claimed,
-    repTarget,
+    framesBase64: frames,
   });
 
   if (!result.ok) {
+    const status = result.skipped ? "skipped" : "failed";
     await admin
       .from("submissions")
       .update({
-        ai_status: "failed",
-        ai_error: result.error.slice(0, 500),
+        ai_status: status,
+        ai_error: (result.error || "Unknown").slice(0, 500),
         ai_verified_at: new Date().toISOString(),
       })
       .eq("id", submissionId);
     return NextResponse.json(
-      { ok: false, error: result.error },
-      { status: 200 } // soft fail — don't 500 to the client
+      { ok: false, skipped: result.skipped === true, error: result.error },
+      { status: 200 }
     );
   }
 
-  // Store results
+  // Success — store the result
   await admin
     .from("submissions")
     .update({
@@ -199,6 +196,7 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     ok: true,
+    strategy,
     count: result.count,
     confidence: result.confidence,
     reasoning: result.reasoning,

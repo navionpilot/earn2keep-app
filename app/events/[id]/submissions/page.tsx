@@ -109,7 +109,7 @@ export default function SubmissionsQueuePage() {
           `id, status, reps_claimed, reps_approved, rejection_reason, coach_note, player_note,
            video_url, photo_url, submitted_at, reviewed_at,
            event_challenge_id,
-           ai_status, ai_rep_count, ai_confidence, ai_reasoning, ai_error,
+           ai_status, ai_rep_count, ai_confidence, ai_reasoning, ai_error, ai_strategy_used,
            players(id, first_name, last_name, team_id, teams(id, name)),
            event_challenges(id, rep_target, points_value, challenges(name, unit, difficulty))`
         )
@@ -142,6 +142,8 @@ export default function SubmissionsQueuePage() {
         ai_confidence: s.ai_confidence ?? null,
         ai_reasoning: s.ai_reasoning ?? null,
         ai_error: s.ai_error ?? null,
+        // Slice 8.3 — strategy used
+        ai_strategy_used: s.ai_strategy_used ?? null,
       }));
       setSubmissions(rows);
     } catch (err: any) {

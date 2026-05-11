@@ -34,6 +34,8 @@ export type SubmissionForReview = {
   ai_confidence: "high" | "medium" | "low" | "unable_to_verify" | null;
   ai_reasoning: string | null;
   ai_error: string | null;
+  // Slice 8.3 — which strategy ran (drives display wording)
+  ai_strategy_used: string | null;
 };
 
 interface SubmissionReviewModalProps {
@@ -282,11 +284,24 @@ export default function SubmissionReviewModal({
             </div>
             <div className="ai-verify-body">
               <div className="ai-verify-headline">
-                AI counted{" "}
-                <strong>
-                  {submission.ai_rep_count ?? 0}
-                  {submission.challenge_unit ? ` ${submission.challenge_unit}` : ""}
-                </strong>{" "}
+                {submission.ai_strategy_used === "time_hold" ? (
+                  <>
+                    AI verified{" "}
+                    <strong>
+                      {submission.ai_rep_count ?? 0}
+                      {submission.challenge_unit ? ` ${submission.challenge_unit}` : ""}
+                    </strong>{" "}
+                    of activity{" "}
+                  </>
+                ) : (
+                  <>
+                    AI counted{" "}
+                    <strong>
+                      {submission.ai_rep_count ?? 0}
+                      {submission.challenge_unit ? ` ${submission.challenge_unit}` : ""}
+                    </strong>{" "}
+                  </>
+                )}
                 <span className={`ai-confidence-badge ai-confidence-${submission.ai_confidence}`}>
                   {submission.ai_confidence === "unable_to_verify"
                     ? "couldn't verify"
