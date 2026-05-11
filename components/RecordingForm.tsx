@@ -176,6 +176,8 @@ export default function RecordingForm({
     // (rep_count or time_hold today; photo_completion/audio_match in future
     // slices will use different client payloads). Failures here NEVER affect
     // the player's experience — the success screen shows regardless.
+    // Slice 8.4a — surfaces errors to the browser console (not silently
+    // swallowed) so future debugging is possible.
     if (
       insertRes.submissionId &&
       isAIStrategyClientEligible(aiVerificationStrategy)
@@ -186,13 +188,20 @@ export default function RecordingForm({
       (async () => {
         try {
           const frames = await extractFramesFromVideo(videoFile, { frameCount: 10 });
-          await fetch("/api/ai/verify-submission", {
+          const res = await fetch("/api/ai/verify-submission", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ submissionId, framesBase64: frames }),
           });
-        } catch {
-          // Soft fail — AI verification just won't run. Coach reviews manually.
+          if (!res.ok) {
+            console.error(
+              "[ai-verify] route returned non-OK",
+              res.status,
+              await res.text().catch(() => "")
+            );
+          }
+        } catch (err) {
+          console.error("[ai-verify] client-side failure", err);
         }
       })();
     }

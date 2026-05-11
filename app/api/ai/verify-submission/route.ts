@@ -66,22 +66,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  // Fetch submission + challenge with the new ai_verification_strategy field
-  // Slice 8.4 — also pull players.ai_verification_opt_out and the coach's
-  // ai_auto_approve_enabled flag via the player's owner_id → profile.
-  // Also pull the player's email + name for the auto-approval notification.
+  // Fetch submission + player + challenge + event. The known-working
+  // pattern from /api/notify/submission-reviewed: do NOT try to join the
+  // coach's profile via Supabase relationship syntax here. That syntax
+  // (`profiles:owner_id(...)`) requires a detectable FK + RLS access,
+  // and one or both fails for this path — it errored the whole SELECT
+  // silently in our first 8.4 deploy. We fetch the coach profile in a
+  // separate admin-client query below.
   const { data: subRow, error: subErr } = await supabase
     .from("submissions")
     .select(
-      "id, reps_claimed, ai_status, player_id, event_challenge_id, players!inner(id, linked_user_id, owner_id, first_name, parent_email, notification_prefs, ai_verification_opt_out, profiles:owner_id(id, full_name, ai_auto_approve_enabled)), event_challenges!inner(id, rep_target, points_value, challenges(id, name, unit, ai_verification_strategy), events(id, name))"
+      "id, reps_claimed, ai_status, player_id, event_challenge_id, players!inner(id, linked_user_id, owner_id, first_name, parent_email, notification_prefs, ai_verification_opt_out), event_challenges!inner(id, rep_target, points_value, challenges(id, name, unit, ai_verification_strategy), events(id, name))"
     )
     .eq("id", submissionId)
     .maybeSingle();
 
   if (subErr) {
+    console.error("[ai-verify] submission SELECT failed", subErr);
     return NextResponse.json({ error: subErr.message }, { status: 500 });
   }
   if (!subRow) {
+    console.error("[ai-verify] submission not found", { submissionId });
     return NextResponse.json({ error: "Submission not found" }, { status: 404 });
   }
 
@@ -99,21 +104,15 @@ export async function POST(req: NextRequest) {
         parent_email: string | null;
         notification_prefs: Record<string, unknown> | null;
         ai_verification_opt_out: boolean | null;
-        profiles?:
-          | {
-              id: string;
-              full_name: string | null;
-              ai_auto_approve_enabled: boolean | null;
-            }
-          | {
-              id: string;
-              full_name: string | null;
-              ai_auto_approve_enabled: boolean | null;
-            }[]
-          | null;
       }
     | null;
   if (!player || player.linked_user_id !== user.id) {
+    console.error("[ai-verify] ownership check failed", {
+      submissionId,
+      hasPlayer: !!player,
+      playerLinkedUserId: player?.linked_user_id,
+      callerUserId: user.id,
+    });
     return NextResponse.json(
       { error: "Forbidden — submission belongs to another player" },
       { status: 403 }
@@ -216,6 +215,13 @@ export async function POST(req: NextRequest) {
 
   if (!result.ok) {
     const status = result.skipped ? "skipped" : "failed";
+    if (!result.skipped) {
+      console.error("[ai-verify] strategy returned error", {
+        submissionId,
+        strategy,
+        error: result.error,
+      });
+    }
     await admin
       .from("submissions")
       .update({
@@ -244,10 +250,27 @@ export async function POST(req: NextRequest) {
     })
     .eq("id", submissionId);
 
-  // Slice 8.4 — evaluate auto-approval
-  const coachProfile = single(player.profiles) as
-    | { id: string; full_name: string | null; ai_auto_approve_enabled: boolean | null }
-    | null;
+  // Slice 8.4a — evaluate auto-approval
+  // Use the admin client to fetch the coach's profile. This bypasses RLS
+  // (the player can't read their coach's profile under typical RLS rules)
+  // AND avoids the Supabase relationship-detection that broke our first
+  // 8.4 attempt. Two cheap queries beats one fragile join.
+  let coachProfile: {
+    id: string;
+    full_name: string | null;
+    ai_auto_approve_enabled: boolean | null;
+  } | null = null;
+  if (player.owner_id) {
+    const { data: coachData, error: coachErr } = await admin
+      .from("profiles")
+      .select("id, full_name, ai_auto_approve_enabled")
+      .eq("id", player.owner_id)
+      .maybeSingle();
+    if (coachErr) {
+      console.error("[ai-verify] coach profile fetch failed", coachErr);
+    }
+    coachProfile = coachData ?? null;
+  }
 
   const decision = decideAutoApproval({
     aiCount: result.count ?? null,
@@ -279,6 +302,7 @@ export async function POST(req: NextRequest) {
 
     if (!approveErr) {
       autoApproved = true;
+      console.log("[ai-verify] auto-approved", { submissionId, reps: decision.approvedReps });
       // DB trigger fires the in-app notification when status changes to
       // 'approved'. We just need to fire the email (fire-and-forget so
       // we don't block the API response on email delivery latency).
@@ -292,7 +316,20 @@ export async function POST(req: NextRequest) {
         repsApproved: decision.approvedReps,
         coachOwnerId: coachProfile?.id ?? null,
       });
+    } else {
+      console.error("[ai-verify] auto-approve UPDATE failed", approveErr);
     }
+  } else if (decision.shouldAutoApprove) {
+    console.warn("[ai-verify] auto-approve eligible but challenge/event missing", {
+      submissionId,
+      hasChallenge: !!challenge,
+      hasEvent: !!eventRel,
+    });
+  } else {
+    console.log("[ai-verify] auto-approval skipped", {
+      submissionId,
+      reason: decision.reason,
+    });
   }
 
   return NextResponse.json({
