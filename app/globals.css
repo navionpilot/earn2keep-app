@@ -7185,7 +7185,12 @@ a:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 28px;
+  /* Slice 7.1.3: top padding includes env(safe-area-inset-top) so on
+     iPhones with a notch / Dynamic Island, the iOS status bar (time,
+     battery, signal) doesn't overlap the earn²keep logo. Works because
+     layout.tsx sets viewport-fit=cover; falls back to 14px when no
+     safe area is reported (Android, desktop, older iOS). */
+  padding: calc(14px + env(safe-area-inset-top, 0px)) 28px 14px;
   background: rgba(4, 20, 24, 0.6);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -10883,6 +10888,31 @@ select.form-input { font-size: 15px !important; padding: 14px 16px !important; }
 }
 .prize-text { font-size: 13px !important; color: var(--e2k-text-muted) !important; flex: 1; }
 .prize-text strong { color: var(--e2k-text) !important; }
+
+
+/* ============================================
+   Slice 7.1.3 — Leaderboard mini rows on the event detail page
+   were rendering with hardcoded #fff background (light theme) against
+   the rest of the dark Variation F page. Add dark theme overrides
+   matching the prize-row pattern just above.
+   ============================================ */
+.leaderboard-mini-row {
+  background: rgba(255, 255, 255, 0.025) !important;
+  border: 1px solid var(--e2k-border) !important;
+  border-radius: var(--e2k-r-md) !important;
+}
+.leaderboard-mini-name {
+  color: var(--e2k-text) !important;
+}
+.leaderboard-mini-team {
+  color: var(--e2k-text-muted) !important;
+}
+.leaderboard-mini-points {
+  color: var(--e2k-cyan) !important;
+}
+.leaderboard-mini-points-label {
+  color: var(--e2k-text-muted) !important;
+}
 
 
 /* ---- Small layout density tweaks for event detail ---- */
