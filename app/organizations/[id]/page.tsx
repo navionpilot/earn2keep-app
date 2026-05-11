@@ -3,6 +3,7 @@ import LogoutButton from "@/components/LogoutButton";
 import Tooltip from "@/components/Tooltip";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import DeleteButton from "@/components/DeleteButton";
 
 import AppShell from "@/components/AppShell";
 export default async function OrganizationDetailPage({
@@ -42,6 +43,14 @@ export default async function OrganizationDetailPage({
     .order("created_at", { ascending: false });
 
   const teamCount = teams?.length || 0;
+
+  // Slice 8.7 — org-scoped event count for the delete button's consequences.
+  // Different from totalEventCount (which counts ALL the user's events across
+  // every org); we want what cascades when THIS org is deleted.
+  const { count: orgEventCount } = await supabase
+    .from("events")
+    .select("*", { count: "exact", head: true })
+    .eq("organization_id", id);
 
   // For sidebar
   const { count: totalTeamCount } = await supabase
@@ -157,6 +166,22 @@ export default async function OrganizationDetailPage({
               </div>
             </>
           )}
+
+          {/* Slice 8.7 — hard delete for the organization. Cascades through
+              teams, events, players, submissions via the FK constraints. */}
+          <DeleteButton
+            table="organizations"
+            recordId={org.id}
+            recordName={org.name}
+            redirectTo="/dashboard"
+            consequences={[
+              `${teamCount} team${teamCount === 1 ? "" : "s"} in this organization`,
+              `${orgEventCount || 0} event${orgEventCount === 1 ? "" : "s"} scheduled under it`,
+              `All players on those teams + every submission they've made`,
+              `Custom challenges you created stay (they aren't tied to this org)`,
+            ]}
+            buttonLabel="Delete this organization"
+          />
     </AppShell>
   );
 }

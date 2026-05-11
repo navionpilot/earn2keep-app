@@ -4,8 +4,12 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase-browser";
 
+// Tables this button can delete from. Slice 8.7 adds "organizations".
+// If you add another table here, also add a DELETE RLS policy for it.
+type DeletableTable = "events" | "teams" | "organizations";
+
 interface DeleteButtonProps {
-  table: "events" | "teams";
+  table: DeletableTable;
   recordId: string;
   recordName: string;
   redirectTo: string;
@@ -13,6 +17,13 @@ interface DeleteButtonProps {
   consequences: string[];
   buttonLabel?: string;
 }
+
+// User-friendly singular label for messaging
+const SINGULAR_LABEL: Record<DeletableTable, string> = {
+  events: "event",
+  teams: "team",
+  organizations: "organization",
+};
 
 export default function DeleteButton({
   table,
@@ -27,18 +38,41 @@ export default function DeleteButton({
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
+  const singular = SINGULAR_LABEL[table];
+
   const handleDelete = async () => {
     setError(null);
     setStage("deleting");
 
     const supabase = createClient();
-    const { error: deleteError } = await supabase
+    // Slice 8.7 — chain .select() so we get back the rows actually deleted.
+    // Without this, Supabase reports success even when RLS filters out the
+    // delete (zero rows affected, no error). We need to detect that case
+    // and tell the user clearly instead of redirecting them away from
+    // a record that's still in the database.
+    const { data, error: deleteError } = await supabase
       .from(table)
       .delete()
-      .eq("id", recordId);
+      .eq("id", recordId)
+      .select("id");
 
     if (deleteError) {
-      setError(deleteError.message);
+      // Surface the raw Supabase error. Often this is a foreign-key
+      // constraint violation, which tells the user they need to remove
+      // dependent records (events, players, etc.) before deleting.
+      setError(humanizeDeleteError(deleteError.message, singular));
+      setStage("confirming");
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      // No rows affected → almost always RLS silently filtering the delete.
+      // The DB call succeeded but did nothing. Tell the user explicitly.
+      setError(
+        `Couldn't delete this ${singular}. The database accepted the request but no row was removed. ` +
+          `Usually this means the security rule for deleting ${table} hasn't been added yet — ` +
+          `tell the developer to run the latest migration.`
+      );
       setStage("confirming");
       return;
     }
@@ -54,8 +88,7 @@ export default function DeleteButton({
       <div className="delete-section">
         <h3 className="delete-section-title">Danger Zone</h3>
         <p className="delete-section-text">
-          Permanently delete this {table === "events" ? "event" : "team"}. This
-          action cannot be undone.
+          Permanently delete this {singular}. This action cannot be undone.
         </p>
         <button
           type="button"
@@ -74,8 +107,8 @@ export default function DeleteButton({
         ⚠ Are you sure?
       </h3>
       <p className="delete-section-text">
-        You're about to permanently delete{" "}
-        <strong>"{recordName}"</strong>. This cannot be undone.
+        You&apos;re about to permanently delete{" "}
+        <strong>&quot;{recordName}&quot;</strong>. This cannot be undone.
       </p>
       {consequences.length > 0 && (
         <div className="delete-consequences">
@@ -117,4 +150,22 @@ export default function DeleteButton({
       </div>
     </div>
   );
+}
+
+// Slice 8.7 — convert raw Supabase/Postgres error messages into something
+// a non-technical coach can actually act on. Falls back to the raw message
+// for anything we don't recognize.
+function humanizeDeleteError(rawMsg: string, singular: string): string {
+  const msg = rawMsg.toLowerCase();
+  if (msg.includes("foreign key") || msg.includes("violates foreign key constraint")) {
+    return (
+      `This ${singular} has dependent records that need to be removed first ` +
+      `(teams, events, players, or submissions). Open this ${singular} and ` +
+      `delete its child records before trying again.`
+    );
+  }
+  if (msg.includes("permission denied") || msg.includes("policy")) {
+    return `You don't have permission to delete this ${singular}.`;
+  }
+  return rawMsg;
 }
