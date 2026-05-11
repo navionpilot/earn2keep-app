@@ -7716,102 +7716,6 @@ a:hover {
   color: var(--e2k-cyan);
 }
 
-/* =============================================================================
-   Slice 8.9 — Live Challenge Tracker
-   ============================================================================= */
-
-/* Sits inside the same .e2k-impact-card shell so the sidebar layout stays
-   put. Slightly different alignment though — left-aligned and with a
-   pulsing dot at the top. */
-.e2k-impact-card.e2k-live-tracker {
-  text-align: left;
-  padding: 12px 12px 14px;
-}
-
-.e2k-live-tracker-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--e2k-text-muted);
-  margin-bottom: 8px;
-}
-
-/* Pulsing coral dot — the "live indicator" cue */
-.e2k-live-dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--e2k-coral);
-  box-shadow: 0 0 0 0 rgba(255, 117, 95, 0.5);
-  animation: e2k-live-dot-pulse 1.8s ease-in-out infinite;
-  flex-shrink: 0;
-}
-
-@keyframes e2k-live-dot-pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(255, 117, 95, 0.5);
-    transform: scale(1);
-  }
-  70% {
-    box-shadow: 0 0 0 6px rgba(255, 117, 95, 0);
-    transform: scale(1.1);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 117, 95, 0);
-    transform: scale(1);
-  }
-}
-
-/* The activity message itself. Keyed in React by item.id so React unmounts
-   and remounts on rotation, replaying this animation each time. */
-.e2k-live-tracker-message {
-  font-size: 11px;
-  line-height: 1.45;
-  color: var(--e2k-text);
-  margin: 0;
-  animation: e2k-live-fade-in 450ms ease-out;
-  /* Reserve enough vertical space for ~3 lines so the sidebar layout
-     doesn't jump as messages rotate between short and long ones */
-  min-height: 48px;
-}
-
-.e2k-live-tracker-message strong {
-  color: var(--e2k-text);
-  font-weight: 700;
-}
-
-.e2k-live-tracker-message-muted {
-  color: var(--e2k-text-muted);
-  font-style: italic;
-}
-
-@keyframes e2k-live-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Honor reduced-motion preference — kill the pulse and the fade if the user
-   has prefers-reduced-motion set */
-@media (prefers-reduced-motion: reduce) {
-  .e2k-live-dot {
-    animation: none;
-  }
-  .e2k-live-tracker-message {
-    animation: none;
-  }
-}
-
 
 /* ---- Mobile bottom nav ---- */
 
@@ -8086,6 +7990,21 @@ a:hover {
 }
 .e2k-link-cyan:hover {
   text-decoration: underline;
+}
+
+/* Slice 8.8 — Welcome hero CTA row.
+   Previously the component used this class but no CSS existed, so the
+   button and the "Or read the Setup Guide first" link sat inline with
+   no gap and visually overlapped each other. Flex + gap + wrap fixes it
+   cleanly and lets the link drop below the button on narrow viewports.
+   Slice 8.11 — bumped gap from 16px → 28px and top margin from 20px →
+   28px so the link doesn't visually cling to the button. */
+.e2k-welcome-cta-row {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+  margin-top: 28px;
 }
 
 
