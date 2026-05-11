@@ -6854,19 +6854,11 @@ a:hover {
   border-radius: 6px;
   margin-top: 10px;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
-.ai-verify-use-btn:hover:not(:disabled) {
+.ai-verify-use-btn:hover {
   background: rgba(53, 213, 223, 0.1);
   border-color: rgba(53, 213, 223, 0.7);
-}
-/* Slice 8.4d — applied state (input already equals AI count) */
-.ai-verify-use-btn-applied,
-.ai-verify-use-btn:disabled {
-  background: rgba(53, 213, 223, 0.08);
-  border-color: rgba(53, 213, 223, 0.25);
-  color: rgba(53, 213, 223, 0.7);
-  cursor: default;
 }
 
 /* Pending state — softer/dimmer styling */
@@ -17024,11 +17016,21 @@ input.form-input-with-prefix {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
   margin-bottom: 12px;
   padding: 10px 14px;
   background: rgba(255, 117, 95, 0.06);
   border: 1px solid rgba(255, 117, 95, 0.30);
   border-radius: var(--e2k-r-sm);
+}
+
+/* Slice 8.5 — container for the action buttons (mark-all-read + clear-read) */
+.notif-list-actions-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-left: auto;
 }
 
 .notif-list-unread-count {
@@ -17063,6 +17065,32 @@ input.form-input-with-prefix {
   cursor: wait;
 }
 
+/* Slice 8.5 — Clear read button. Muted styling vs. mark-all-read so the
+   destructive-ish action stands out a little less. Coral-tinted to hint
+   at "removal" without being alarming. */
+.notif-clear-read-btn {
+  background: transparent;
+  color: var(--e2k-coral);
+  border: 1px solid rgba(255, 117, 95, 0.35);
+  padding: 6px 12px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.notif-clear-read-btn:hover:not(:disabled) {
+  background: rgba(255, 117, 95, 0.10);
+  border-color: var(--e2k-coral);
+}
+
+.notif-clear-read-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 
 .notif-items {
   list-style: none;
@@ -17071,6 +17099,55 @@ input.form-input-with-prefix {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+/* Slice 8.5 — relative wrapper so the delete button can absolute-position
+   over the top-right of each card */
+.notif-item-wrap {
+  position: relative;
+}
+
+/* Slice 8.5 — small "✕" delete button in the top-right of each card.
+   On desktop, only shows on hover (less visual noise); on touch devices
+   (no :hover), always visible. */
+.notif-delete-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--e2k-text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+  padding: 0;
+  opacity: 0;
+  transition: opacity 120ms ease, background 120ms ease, color 120ms ease, border-color 120ms ease;
+  z-index: 2;
+}
+
+.notif-item-wrap:hover .notif-delete-btn,
+.notif-delete-btn:focus-visible {
+  opacity: 1;
+}
+
+.notif-delete-btn:hover {
+  background: rgba(255, 117, 95, 0.15);
+  color: var(--e2k-coral);
+  border-color: rgba(255, 117, 95, 0.4);
+}
+
+/* Touch devices have no hover — always show the delete button */
+@media (hover: none) {
+  .notif-delete-btn {
+    opacity: 0.7;
+  }
 }
 
 .notif-item-link {
@@ -17093,7 +17170,8 @@ input.form-input-with-prefix {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 14px 14px 12px;
+  /* Slice 8.5 — extra right padding so the ✕ delete button doesn't overlap the title */
+  padding: 14px 44px 12px 14px;
   background: rgba(10, 47, 55, 0.55);
   border: 1px solid var(--e2k-border);
   border-radius: var(--e2k-r-md);
