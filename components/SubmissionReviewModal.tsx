@@ -36,6 +36,8 @@ export type SubmissionForReview = {
   ai_error: string | null;
   // Slice 8.3 — which strategy ran (drives display wording)
   ai_strategy_used: string | null;
+  // Slice 8.4 — was this submission auto-approved by AI?
+  approved_by_ai: boolean;
 };
 
 interface SubmissionReviewModalProps {
@@ -180,7 +182,18 @@ export default function SubmissionReviewModal({
           ×
         </button>
 
-        <div className="submission-modal-eyebrow">REVIEW SUBMISSION</div>
+        <div className="submission-modal-eyebrow">
+          {submission.approved_by_ai && submission.status === "approved" ? (
+            <>
+              REVIEW SUBMISSION
+              <span className="ai-autoapprove-badge" title="This submission was approved automatically by AI verification.">
+                ✓ Auto-approved by AI
+              </span>
+            </>
+          ) : (
+            "REVIEW SUBMISSION"
+          )}
+        </div>
         <h2 className="submission-modal-title">
           {playerName} — {submission.challenge_name}
         </h2>

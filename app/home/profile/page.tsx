@@ -19,6 +19,7 @@ import PlayerTopBar from "@/components/PlayerTopBar";
 import LogoutButton from "@/components/LogoutButton";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import PlayerProfileForm from "@/components/PlayerProfileForm";
+import PlayerAIOptOutToggle from "@/components/PlayerAIOptOutToggle";
 import PlayerBadges from "@/components/PlayerBadges";
 import { computeBadges } from "@/lib/badges";
 import {
@@ -44,7 +45,7 @@ export default async function ProfilePage() {
   const { data: playerRow } = await supabase
     .from("players")
     .select(
-      "id, first_name, last_name, jersey_number, parent_email, avatar_url, pronouns, bio, notification_prefs, team_id, teams(id, name, organizations(id, name))"
+      "id, first_name, last_name, jersey_number, parent_email, avatar_url, pronouns, bio, notification_prefs, ai_verification_opt_out, team_id, teams(id, name, organizations(id, name))"
     )
     .eq("linked_user_id", user.id)
     .maybeSingle();
@@ -213,6 +214,21 @@ export default async function ProfilePage() {
           authEmail={user.email ?? null}
           joinedDate={joinedDate}
         />
+
+        {/* Slice 8.4 — Parent-controlled AI opt-out for this player. Lives
+            in its own section so the parent sees it as a distinct choice. */}
+        <section className="profile-section">
+          <h2 className="profile-section-title">AI Verification</h2>
+          <p className="profile-section-help">
+            Controls whether AI is used to automatically count reps and verify
+            challenge completion for this player&apos;s submissions. Parent
+            decision — flip to opted out if you prefer manual coach review only.
+          </p>
+          <PlayerAIOptOutToggle
+            playerId={playerRow.id}
+            initialOptedOut={playerRow.ai_verification_opt_out === true}
+          />
+        </section>
 
         {/* Slice 5.3.2: Achievement badge collection. The #badges anchor
             lets the "View all →" link from /home jump straight here. */}

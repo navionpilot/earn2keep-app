@@ -110,6 +110,7 @@ export default function SubmissionsQueuePage() {
            video_url, photo_url, submitted_at, reviewed_at,
            event_challenge_id,
            ai_status, ai_rep_count, ai_confidence, ai_reasoning, ai_error, ai_strategy_used,
+           approved_by_ai,
            players(id, first_name, last_name, team_id, teams(id, name)),
            event_challenges(id, rep_target, points_value, challenges(name, unit, difficulty))`
         )
@@ -144,6 +145,8 @@ export default function SubmissionsQueuePage() {
         ai_error: s.ai_error ?? null,
         // Slice 8.3 — strategy used
         ai_strategy_used: s.ai_strategy_used ?? null,
+        // Slice 8.4 — auto-approval flag
+        approved_by_ai: s.approved_by_ai === true,
       }));
       setSubmissions(rows);
     } catch (err: any) {

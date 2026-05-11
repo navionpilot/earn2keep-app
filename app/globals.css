@@ -6930,6 +6930,113 @@ a:hover {
   color: var(--e2k-text-muted);
 }
 
+/* ============================================
+   Slice 8.4 — Auto-approved-by-AI badge in the review modal eyebrow
+   ============================================ */
+.ai-autoapprove-badge {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: none;
+  color: var(--e2k-cyan);
+  background: rgba(53, 213, 223, 0.12);
+  border: 1px solid rgba(53, 213, 223, 0.35);
+}
+
+/* ============================================
+   Slice 8.4 — Settings/profile toggle rows (coach AI auto-approve, player AI opt-out)
+   ============================================ */
+.e2k-settings-toggle-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+}
+.e2k-settings-toggle-info {
+  flex: 1;
+  min-width: 0;
+}
+.e2k-settings-toggle-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--e2k-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.e2k-toggle-status {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.e2k-toggle-status.on {
+  background: rgba(53, 213, 223, 0.15);
+  color: var(--e2k-cyan);
+}
+.e2k-toggle-status.off {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--e2k-text-muted);
+}
+.e2k-settings-toggle-desc {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--e2k-text-muted);
+  max-width: 560px;
+}
+.e2k-settings-toggle-desc strong {
+  color: var(--e2k-text);
+  font-weight: 700;
+}
+.e2k-settings-toggle-error {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--e2k-coral);
+}
+
+/* The visual switch — pill with sliding thumb */
+.e2k-toggle-switch {
+  flex-shrink: 0;
+  position: relative;
+  width: 48px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid var(--e2k-border);
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  padding: 0;
+}
+.e2k-toggle-switch.on {
+  background: var(--e2k-cyan);
+  border-color: var(--e2k-cyan);
+}
+.e2k-toggle-switch:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.e2k-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  transition: left 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+.e2k-toggle-switch.on .e2k-toggle-thumb {
+  left: 24px;
+}
+
 
 .submission-reps-block {
   margin-bottom: 16px;

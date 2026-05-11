@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import LogoutButton from "@/components/LogoutButton";
+import CoachAIAutoApproveToggle from "@/components/CoachAIAutoApproveToggle";
 
 const ROLE_LABELS: Record<string, string> = {
   coach: "Coach",
@@ -27,7 +28,7 @@ export default async function SettingsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, primary_role")
+    .select("full_name, primary_role, ai_auto_approve_enabled")
     .eq("id", user.id)
     .single();
 
@@ -91,6 +92,19 @@ export default async function SettingsPage() {
             <div className="e2k-settings-link-desc">Return to the main overview.</div>
           </Link>
         </div>
+      </section>
+
+      <section className="e2k-panel">
+        <div className="e2k-panel-head">
+          <h2 className="e2k-panel-title">AI Verification</h2>
+          <p className="e2k-panel-sub">
+            Control how AI assists with reviewing submissions for the players you organize.
+          </p>
+        </div>
+        <CoachAIAutoApproveToggle
+          userId={user.id}
+          initialEnabled={profile?.ai_auto_approve_enabled === true}
+        />
       </section>
 
       <section className="e2k-panel">
