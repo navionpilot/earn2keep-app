@@ -6790,6 +6790,147 @@ a:hover {
   font-weight: 800;
 }
 
+/* ============================================
+   Slice 8.2 — AI verification block in SubmissionReviewModal
+   ============================================ */
+
+.ai-verify-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  background: rgba(53, 213, 223, 0.06);
+  border: 1px solid rgba(53, 213, 223, 0.18);
+}
+
+.ai-verify-icon {
+  font-size: 22px;
+  line-height: 1.2;
+  flex-shrink: 0;
+}
+
+.ai-verify-body { flex: 1; min-width: 0; }
+
+.ai-verify-headline {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--e2k-text);
+  margin-bottom: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.ai-verify-headline strong {
+  color: var(--e2k-cyan);
+  font-weight: 700;
+}
+
+.ai-verify-sub {
+  font-size: 12px;
+  color: var(--e2k-text-muted);
+  line-height: 1.45;
+}
+
+.ai-verify-reasoning {
+  font-size: 12.5px;
+  color: var(--e2k-text-muted);
+  line-height: 1.5;
+  margin-top: 6px;
+  font-style: italic;
+}
+
+.ai-verify-use-btn {
+  background: transparent;
+  border: 1px solid rgba(53, 213, 223, 0.4);
+  color: var(--e2k-cyan);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.ai-verify-use-btn:hover {
+  background: rgba(53, 213, 223, 0.1);
+  border-color: rgba(53, 213, 223, 0.7);
+}
+
+/* Pending state — softer/dimmer styling */
+.ai-verify-pending {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.ai-verify-pending .ai-verify-icon {
+  color: var(--e2k-text-muted);
+  animation: ai-verify-spin 1.8s linear infinite;
+}
+@keyframes ai-verify-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Failed state — coral/warning */
+.ai-verify-failed {
+  background: rgba(255, 117, 95, 0.05);
+  border-color: rgba(255, 117, 95, 0.25);
+}
+.ai-verify-failed .ai-verify-icon {
+  color: var(--e2k-coral);
+}
+
+/* Confidence-colored variants on the parent block */
+.ai-verify-completed.ai-confidence-high {
+  background: rgba(53, 213, 223, 0.08);
+  border-color: rgba(53, 213, 223, 0.3);
+}
+.ai-verify-completed.ai-confidence-medium {
+  background: rgba(255, 200, 80, 0.05);
+  border-color: rgba(255, 200, 80, 0.22);
+}
+.ai-verify-completed.ai-confidence-low {
+  background: rgba(255, 117, 95, 0.04);
+  border-color: rgba(255, 117, 95, 0.18);
+}
+.ai-verify-completed.ai-confidence-unable_to_verify {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Inline confidence badge inside the headline */
+.ai-confidence-badge {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.ai-confidence-badge.ai-confidence-high {
+  background: rgba(53, 213, 223, 0.15);
+  color: var(--e2k-cyan);
+}
+.ai-confidence-badge.ai-confidence-medium {
+  background: rgba(255, 200, 80, 0.15);
+  color: #ffc850;
+}
+.ai-confidence-badge.ai-confidence-low {
+  background: rgba(255, 117, 95, 0.12);
+  color: var(--e2k-coral);
+}
+.ai-confidence-badge.ai-confidence-unable_to_verify {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--e2k-text-muted);
+}
+
+
 .submission-reps-block {
   margin-bottom: 16px;
 }

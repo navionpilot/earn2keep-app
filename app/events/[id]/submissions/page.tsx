@@ -109,6 +109,7 @@ export default function SubmissionsQueuePage() {
           `id, status, reps_claimed, reps_approved, rejection_reason, coach_note, player_note,
            video_url, photo_url, submitted_at, reviewed_at,
            event_challenge_id,
+           ai_status, ai_rep_count, ai_confidence, ai_reasoning, ai_error,
            players(id, first_name, last_name, team_id, teams(id, name)),
            event_challenges(id, rep_target, points_value, challenges(name, unit, difficulty))`
         )
@@ -135,6 +136,12 @@ export default function SubmissionsQueuePage() {
         photo_url: s.photo_url,
         submitted_at: s.submitted_at,
         reviewed_at: s.reviewed_at,
+        // Slice 8.2 — AI verification fields
+        ai_status: s.ai_status ?? null,
+        ai_rep_count: s.ai_rep_count ?? null,
+        ai_confidence: s.ai_confidence ?? null,
+        ai_reasoning: s.ai_reasoning ?? null,
+        ai_error: s.ai_error ?? null,
       }));
       setSubmissions(rows);
     } catch (err: any) {
@@ -249,9 +256,29 @@ export default function SubmissionsQueuePage() {
 
           {submissions.length === 0 && (
             <div className="alert alert-info" style={{ marginBottom: "20px" }}>
-              <strong>No submissions yet.</strong> Submissions appear here when players/participants
-              upload videos or photos of completed challenges. Player upload UI ships
-              in Phase 5; for now this queue is set up and waiting.
+              {event.status === "draft" ? (
+                <>
+                  <strong>This event is still a draft.</strong> Activate it on
+                  the event page so players can see their scheduled challenges
+                  and start recording. Submissions will appear here for you to
+                  review as soon as they come in.
+                </>
+              ) : event.status === "completed" ? (
+                <>
+                  <strong>This event has ended.</strong> No new submissions
+                  will arrive. Anything submitted before the end date is shown
+                  below; you can still review and adjust historical entries.
+                </>
+              ) : (
+                <>
+                  <strong>No submissions yet.</strong> Players record videos
+                  from their dashboard for the challenges you&apos;ve
+                  scheduled. When they submit, you&apos;ll review here —
+                  approve, reject, or adjust the rep count with one tap. Plus
+                  you&apos;ll get a bell notification and an email so you
+                  don&apos;t miss any.
+                </>
+              )}
             </div>
           )}
 
@@ -298,13 +325,17 @@ export default function SubmissionsQueuePage() {
 
           {/* Submissions list */}
           {filtered.length === 0 ? (
-            <div className="dashboard-card" style={{ marginTop: "20px" }}>
-              <p className="dashboard-card-text" style={{ textAlign: "center" }}>
-                {submissions.length === 0
-                  ? "Player upload arrives in Phase 5."
-                  : "No submissions match your filters."}
-              </p>
-            </div>
+            submissions.length === 0 ? (
+              // Top alert already covers the no-submissions case. Render
+              // nothing here so we don't duplicate empty-state messaging.
+              null
+            ) : (
+              <div className="dashboard-card" style={{ marginTop: "20px" }}>
+                <p className="dashboard-card-text" style={{ textAlign: "center" }}>
+                  No submissions match your filters.
+                </p>
+              </div>
+            )
           ) : (
             <ul className="submissions-list">
               {filtered.map((s) => {

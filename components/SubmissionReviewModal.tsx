@@ -28,6 +28,12 @@ export type SubmissionForReview = {
   photo_url: string | null;
   submitted_at: string;
   reviewed_at: string | null;
+  // Slice 8.2 — AI verification fields
+  ai_status: "pending" | "completed" | "failed" | "skipped" | null;
+  ai_rep_count: number | null;
+  ai_confidence: "high" | "medium" | "low" | "unable_to_verify" | null;
+  ai_reasoning: string | null;
+  ai_error: string | null;
 };
 
 interface SubmissionReviewModalProps {
@@ -239,6 +245,73 @@ export default function SubmissionReviewModal({
           </strong>
         </div>
 
+        {/* Slice 8.2 — AI verification result block. Renders only when AI
+            actually attempted verification (status is one of pending/
+            completed/failed). Skipped submissions (challenges not yet
+            covered by AI) show nothing — no need to clutter the UI. */}
+        {submission.ai_status === "pending" && (
+          <div className="ai-verify-block ai-verify-pending">
+            <div className="ai-verify-icon" aria-hidden="true">⟳</div>
+            <div className="ai-verify-body">
+              <div className="ai-verify-headline">AI is reviewing…</div>
+              <div className="ai-verify-sub">
+                Refresh in a few seconds to see the AI&apos;s count.
+              </div>
+            </div>
+          </div>
+        )}
+
+        {submission.ai_status === "failed" && (
+          <div className="ai-verify-block ai-verify-failed">
+            <div className="ai-verify-icon" aria-hidden="true">⚠</div>
+            <div className="ai-verify-body">
+              <div className="ai-verify-headline">AI verification didn&apos;t complete</div>
+              <div className="ai-verify-sub">
+                {submission.ai_error || "Review manually."}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {submission.ai_status === "completed" && submission.ai_confidence !== null && (
+          <div
+            className={`ai-verify-block ai-verify-completed ai-confidence-${submission.ai_confidence}`}
+          >
+            <div className="ai-verify-icon" aria-hidden="true">
+              {submission.ai_confidence === "unable_to_verify" ? "?" : "🤖"}
+            </div>
+            <div className="ai-verify-body">
+              <div className="ai-verify-headline">
+                AI counted{" "}
+                <strong>
+                  {submission.ai_rep_count ?? 0}
+                  {submission.challenge_unit ? ` ${submission.challenge_unit}` : ""}
+                </strong>{" "}
+                <span className={`ai-confidence-badge ai-confidence-${submission.ai_confidence}`}>
+                  {submission.ai_confidence === "unable_to_verify"
+                    ? "couldn't verify"
+                    : `${submission.ai_confidence} confidence`}
+                </span>
+              </div>
+              {submission.ai_reasoning && (
+                <div className="ai-verify-reasoning">{submission.ai_reasoning}</div>
+              )}
+              {submission.ai_rep_count !== null &&
+                submission.ai_confidence !== "unable_to_verify" && (
+                  <button
+                    type="button"
+                    className="ai-verify-use-btn"
+                    onClick={() =>
+                      setRepsApproved(String(submission.ai_rep_count ?? 0))
+                    }
+                  >
+                    Use this count →
+                  </button>
+                )}
+            </div>
+          </div>
+        )}
+
         {/* Reps adjustment */}
         <div className="submission-reps-block">
           <label htmlFor="reps_approved" className="form-label">
@@ -261,10 +334,10 @@ export default function SubmissionReviewModal({
           </div>
         </div>
 
-        {/* Note for player (optional) */}
+        {/* Coach note (optional) */}
         <div className="submission-note-block">
           <label htmlFor="coach_note" className="form-label">
-            Note for player <span className="form-optional">(optional)</span>
+            Coach note <span className="form-optional">(optional)</span>
           </label>
           <input
             id="coach_note"

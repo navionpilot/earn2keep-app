@@ -28,6 +28,8 @@ import {
   durationInSeconds,
 } from "@/lib/timeChallenge";
 import TimedRecorder from "@/components/TimedRecorder";
+import { extractFramesFromVideo } from "@/lib/frameExtraction";
+import { isAIEligibleChallenge } from "@/lib/aiVerification";
 
 interface Props {
   playerId: string;
@@ -162,6 +164,28 @@ export default function RecordingForm({
         `Saved your video, but couldn't record the submission: ${insertRes.error}. Please try again.`
       );
       return;
+    }
+
+    // Slice 8.2: AI verification fire-and-forget. Only runs for challenges
+    // currently covered by AI (push-ups in the MVP). Failures here NEVER
+    // affect the player's experience — the success screen shows regardless.
+    // Coach review still works whether or not AI completes.
+    if (insertRes.submissionId && isAIEligibleChallenge(challengeName)) {
+      const submissionId = insertRes.submissionId;
+      const videoFile = file;
+      // Run async without awaiting — player gets the success screen immediately
+      (async () => {
+        try {
+          const frames = await extractFramesFromVideo(videoFile, { frameCount: 10 });
+          await fetch("/api/ai/verify-submission", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ submissionId, framesBase64: frames }),
+          });
+        } catch {
+          // Soft fail — AI verification just won't run. Coach reviews manually.
+        }
+      })();
     }
 
     // Free the preview URL — we're done with it.
