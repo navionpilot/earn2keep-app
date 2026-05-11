@@ -49,7 +49,7 @@ export default async function SetupGuidePage() {
     nextStepLabel = "Add your first team →";
   } else if (hasOrg && hasTeam && !hasPlayers) {
     nextStepHref = `/teams/${firstTeamId}/players/new`;
-    nextStepLabel = "Add players to your team →";
+    nextStepLabel = "Add players/participants to your team →";
   } else if (allReady) {
     nextStepHref = `/organizations/${firstOrgId}/events/new`;
     nextStepLabel = "Create your first event →";
@@ -87,13 +87,13 @@ export default async function SetupGuidePage() {
             </svg>
           </div>
           <div className="e2k-compare-name">CAMP</div>
-          <div className="e2k-compare-tag">One team. Players compete internally.</div>
+          <div className="e2k-compare-tag">One team or group. Players/participants compete internally.</div>
 
           <div className="e2k-compare-section">
             <div className="e2k-compare-label">Money model</div>
-            <div className="e2k-compare-value">Per-player fundraising goal</div>
+            <div className="e2k-compare-value">Per-person fundraising goal</div>
             <div className="e2k-compare-detail">
-              Each player has a personal $X minimum. Sponsors fund their effort.
+              Each participant has a personal $X minimum. Sponsors fund their effort.
               Anything raised over the minimum becomes bonus points + extra prize money.
             </div>
           </div>
@@ -111,7 +111,7 @@ export default async function SetupGuidePage() {
           <div className="e2k-compare-section">
             <div className="e2k-compare-label">Typical numbers</div>
             <div className="e2k-compare-formula">
-              <strong>$250</strong> per-player goal &nbsp;×&nbsp; <strong>20</strong> players
+              <strong>$250</strong> per-person goal &nbsp;×&nbsp; <strong>20</strong> participants
               &nbsp;=&nbsp; <strong className="accent">$5,000</strong> raised
             </div>
           </div>
@@ -138,11 +138,11 @@ export default async function SetupGuidePage() {
 
           <div className="e2k-compare-section">
             <div className="e2k-compare-label">Money model</div>
-            <div className="e2k-compare-value">Flat registration fee per player</div>
+            <div className="e2k-compare-value">Flat registration fee per person</div>
             <div className="e2k-compare-detail">
-              Sponsors pay a flat entry fee per player. Teams compete on points
-              over the season. Top teams win the prize pot, organization keeps
-              the rest.
+              Sponsors pay a flat entry fee per participant. Teams compete on
+              points over the season. Top teams win the prize pot, organization
+              keeps the rest.
             </div>
           </div>
 
@@ -159,7 +159,7 @@ export default async function SetupGuidePage() {
           <div className="e2k-compare-section">
             <div className="e2k-compare-label">Typical numbers</div>
             <div className="e2k-compare-formula">
-              <strong>$50</strong> reg fee &nbsp;×&nbsp; <strong>60</strong> players
+              <strong>$50</strong> reg fee &nbsp;×&nbsp; <strong>60</strong> participants
               &nbsp;=&nbsp; <strong className="accent">$3,000</strong> raised
             </div>
           </div>
@@ -180,8 +180,8 @@ export default async function SetupGuidePage() {
       {/* SETUP CHECKLIST */}
       <h2 className="e2k-guide-h2">Step 2 — Before you create an event</h2>
       <p className="e2k-guide-h2-sub">
-        You need an organization, at least one team, and players on the roster.
-        Here&apos;s where you stand right now:
+        You need an organization, at least one team, and players/participants
+        on the roster. Here&apos;s where you stand right now:
       </p>
 
       <div className="e2k-checklist">
@@ -224,15 +224,16 @@ export default async function SetupGuidePage() {
         <div className={`e2k-check-row ${hasPlayers ? "done" : hasTeam ? "todo" : "locked"}`}>
           <div className="e2k-check-mark">{hasPlayers ? "✓" : "3"}</div>
           <div className="e2k-check-body">
-            <div className="e2k-check-title">Players added</div>
+            <div className="e2k-check-title">Players/participants added</div>
             <div className="e2k-check-text">
-              Add each player&apos;s name and jersey number. You can add them
-              one at a time or import a CSV from TeamSnap, GameChanger, or SportsEngine.
+              Add each person&apos;s name and jersey number (optional). You can
+              add them one at a time or import a CSV from TeamSnap, GameChanger,
+              or SportsEngine.
             </div>
           </div>
           {!hasPlayers && hasTeam && firstTeamId && (
             <Link href={`/teams/${firstTeamId}/players/new`} className="e2k-check-action">
-              Add players →
+              Add players/participants →
             </Link>
           )}
           {hasPlayers && <span className="e2k-check-status">Done</span>}
@@ -299,8 +300,9 @@ export default async function SetupGuidePage() {
                 your start and end dates.
               </p>
               <div className="e2k-walk-tip">
-                <strong>Recommended:</strong> 4–6 weeks. Shorter than 4 weeks rushes
-                the players and limits sponsor reach. Longer than 6 weeks loses momentum.
+                <strong>Recommended:</strong> 4–6 weeks. Shorter than 4 weeks
+                rushes the group and limits sponsor reach. Longer than 6 weeks
+                loses momentum.
               </div>
             </div>
           </div>
@@ -308,19 +310,19 @@ export default async function SetupGuidePage() {
           <div className="e2k-walk-step">
             <div className="e2k-walk-num">4</div>
             <div>
-              <h4 className="e2k-walk-title">Set the per-player fundraising goal</h4>
+              <h4 className="e2k-walk-title">Set the per-person fundraising goal</h4>
               <p className="e2k-walk-text">
-                This is the <strong>minimum each player needs to raise</strong> to
-                fully participate. Common targets: $150, $250, $500. The total
-                Camp goal is calculated automatically: per-player goal × number
-                of players on the team.
+                This is the <strong>minimum each participant needs to raise</strong>
+                to fully participate. Common targets: $150, $250, $500. The
+                total Camp goal is calculated automatically: per-person goal ×
+                number of participants on the roster.
               </p>
               <div className="e2k-walk-tip">
-                <strong>How extra money works:</strong> If a player raises more
-                than their minimum, the overage becomes <em>bonus points</em> on
-                the leaderboard plus extra prize money for that player. This is
-                the &ldquo;earn it / keep it&rdquo; magic — players who hustle harder
-                actually win more.
+                <strong>How extra money works:</strong> If a participant raises
+                more than their minimum, the overage becomes <em>bonus points</em>
+                on the leaderboard plus extra prize money for that participant.
+                This is the &ldquo;earn it / keep it&rdquo; magic — those who
+                hustle harder actually win more.
               </div>
             </div>
           </div>
@@ -331,15 +333,24 @@ export default async function SetupGuidePage() {
               <h4 className="e2k-walk-title">Pick your weekly challenges</h4>
               <p className="e2k-walk-text">
                 Open the Schedule tab and use the calendar to assign challenges
-                to specific days. The library has 8 starter challenges across
-                Sports, Faith, Fitness, Academic, Scouts, and Service categories
-                — or click <strong>+ Custom</strong> to make your own. You can
-                also bulk-import a CSV.
+                to specific days. The starter library has{" "}
+                <strong>51 challenges</strong> across Sports, Faith, Fitness,
+                Academic, Scouts, and Service categories — or click{" "}
+                <strong>+ Custom</strong> to make your own. You can also
+                bulk-import a CSV.
               </p>
               <div className="e2k-walk-tip">
                 <strong>Tip:</strong> Start with 2–3 challenges per week. Use
                 &ldquo;Apply this day to other days&rdquo; to copy a day&apos;s
                 plan to all weekdays in one click.
+              </div>
+              <div className="e2k-walk-tip">
+                <strong>How submissions get verified:</strong> participants
+                record video of their attempts on their phone. AI verifies the
+                videos automatically — counting reps, confirming timed
+                activities, etc. You only step in for anything AI can&apos;t
+                confirm or to override its call. No reviewing every push-up
+                by hand.
               </div>
             </div>
           </div>
@@ -351,8 +362,8 @@ export default async function SetupGuidePage() {
               <p className="e2k-walk-text">
                 Decide how prizes get awarded. Common setup: top 3 fundraisers
                 get extra prize money, top 1 also gets a special prize (gift
-                card, gear, etc.). Players who don&apos;t hit minimum still
-                participate, but bonus prizes go to the top performers.
+                card, gear, etc.). Participants who don&apos;t hit minimum
+                still take part, but bonus prizes go to the top performers.
               </p>
             </div>
           </div>
@@ -363,9 +374,9 @@ export default async function SetupGuidePage() {
               <h4 className="e2k-walk-title">Generate QR codes &amp; launch</h4>
               <p className="e2k-walk-text">
                 Once the event is created, open <strong>QR Codes</strong> from
-                the event page. Each player gets a unique QR — print, share, or
-                download. Players hand them to family, friends, and local
-                sponsors. Sponsors scan, see the player&apos;s real verified
+                the event page. Each participant gets a unique QR — print,
+                share, or download. Participants hand them to family, friends,
+                and local sponsors. Sponsors scan, see the real verified
                 effort, and contribute. You&apos;re live.
               </p>
             </div>
@@ -429,11 +440,12 @@ export default async function SetupGuidePage() {
           <div className="e2k-walk-step">
             <div className="e2k-walk-num">4</div>
             <div>
-              <h4 className="e2k-walk-title">Set the registration fee per player</h4>
+              <h4 className="e2k-walk-title">Set the registration fee per person</h4>
               <p className="e2k-walk-text">
-                This is a <strong>flat fee per player</strong>, paid by their
-                sponsor when they scan the QR code. Common: $25, $50, $100. The
-                total tournament pot equals: registration fee × players entered.
+                This is a <strong>flat fee per participant</strong>, paid by
+                their sponsor when they scan the QR code. Common: $25, $50,
+                $100. The total tournament pot equals: registration fee ×
+                participants entered.
               </p>
               <div className="e2k-walk-tip">
                 <strong>Different from Camp:</strong> there&apos;s no &ldquo;over
@@ -472,8 +484,8 @@ export default async function SetupGuidePage() {
             <div>
               <h4 className="e2k-walk-title">Generate QR codes &amp; launch</h4>
               <p className="e2k-walk-text">
-                Each player still gets a personal QR for sponsors to scan. The
-                difference: each scan adds the registration fee to the pot
+                Each participant still gets a personal QR for sponsors to scan.
+                The difference: each scan adds the registration fee to the pot
                 rather than progressing toward an individual minimum.
               </p>
             </div>
@@ -507,23 +519,40 @@ export default async function SetupGuidePage() {
           <h4 className="help-faq-q">What if I don&apos;t hit my fundraising goal?</h4>
           <p className="help-faq-a">
             Camp: that&apos;s OK — the goal is a target, not a contract. Whatever
-            actually gets raised is what your organization keeps. Players who
-            didn&apos;t hit individual minimum still participate; they just
+            actually gets raised is what your organization keeps. Participants
+            who didn&apos;t hit individual minimum still take part; they just
             don&apos;t get bonus points/prizes.
             <br /><br />
-            Tournament: registration fees are paid up front per player, so the
-            pot is the pot. The competition still runs whether sponsors fund 5
-            players or 50.
+            Tournament: registration fees are paid up front per participant,
+            so the pot is the pot. The competition still runs whether sponsors
+            fund 5 participants or 50.
           </p>
         </div>
 
         <div className="help-faq">
-          <h4 className="help-faq-q">Do players need accounts?</h4>
+          <h4 className="help-faq-q">Do players/participants need accounts?</h4>
           <p className="help-faq-a">
-            Not yet. Right now you (the organizer) manage everything: roster, challenge
-            verification, QR distribution. Player-facing accounts are coming soon —
-            each kid will get a magic-link login and upload their own challenge
-            videos.
+            Yes — each participant gets their own login (a magic link sent to
+            their phone or email). They sign in, view today&apos;s challenges,
+            record video of their attempts, and submit them. AI verifies most
+            submissions automatically; you step in only for anything AI
+            can&apos;t confirm. Participants also see their progress on the
+            leaderboard, get notifications when you review a submission, and
+            can share their sponsor QR code from inside the app.
+          </p>
+        </div>
+
+        <div className="help-faq">
+          <h4 className="help-faq-q">How does AI verification work?</h4>
+          <p className="help-faq-a">
+            When a participant submits a challenge video, AI analyzes the
+            footage and tries to verify it — counting reps for push-ups,
+            confirming the duration of a plank hold, etc. If AI is confident,
+            you can have submissions auto-approved (turn it on in Settings).
+            If AI isn&apos;t confident or the challenge isn&apos;t the type AI
+            can verify, the submission lands in your review queue for you to
+            approve or reject manually. You stay in control without having to
+            review every single video by hand.
           </p>
         </div>
 
@@ -531,9 +560,9 @@ export default async function SetupGuidePage() {
           <h4 className="help-faq-q">When does payment processing go live?</h4>
           <p className="help-faq-a">
             Sponsor payments are coming soon. Right now you can run the entire
-            flow — set up everything, generate QR codes, track player progress,
-            run challenges — and payments will be live before your first real
-            fundraiser launches.
+            flow — set up everything, generate QR codes, track participant
+            progress, run challenges — and payments will be live before your
+            first real fundraiser launches.
           </p>
         </div>
 

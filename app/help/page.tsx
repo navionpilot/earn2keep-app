@@ -59,16 +59,26 @@ export default async function HelpPage() {
           <div className="help-section">
             <h2 className="help-section-title">The Basics</h2>
             <p className="help-paragraph">
-              <strong>earn²keep</strong> is a fundraising platform where your team
-              actually <em>earns</em> the money — through verified challenges and
-              real effort, not by selling cookie dough or knocking on doors.
+              <strong>earn²keep</strong> is a fundraising platform where your
+              players/participants actually <em>earn</em> the money — through
+              verified challenges and real effort, not by selling cookie dough
+              or knocking on doors.
             </p>
             <p className="help-paragraph">
-              Here's the core idea: players sign up for a 4-6 week Camp or
-              Tournament. Each week, they complete real challenges (push-ups,
-              free throws, Bible verses, service hours — whatever fits your group).
-              Their family, friends, and local businesses sponsor them by scanning
-              a QR code. The team keeps what they earn.
+              Here&apos;s the core idea: players/participants sign up for a
+              4–6 week Camp or Tournament. Each week, they complete real
+              challenges (push-ups, free throws, Bible verses, service hours
+              — whatever fits your group). Their family, friends, and local
+              businesses sponsor them by scanning a QR code. The organization
+              keeps what they earn.
+            </p>
+            <p className="help-paragraph">
+              <strong>How verification works:</strong> participants record
+              video of their attempts on their phone. AI verifies the videos
+              automatically — counting reps, confirming timed activities, etc.
+              You only step in for anything AI can&apos;t confirm or to override
+              its call. You stay in control without having to review every
+              single push-up.
             </p>
           </div>
 
@@ -102,11 +112,11 @@ export default async function HelpPage() {
             <div className="help-step">
               <div className="help-step-num">3</div>
               <div>
-                <h3 className="help-step-title">Add players to your roster</h3>
+                <h3 className="help-step-title">Add players/participants to your roster</h3>
                 <p className="help-step-text">
-                  Add each player's name, jersey number, and (optionally) a
-                  verification photo. The photo helps confirm it's the right
-                  player in submitted challenge videos.
+                  Add each person&apos;s name, jersey number (optional), and a
+                  profile photo (optional). You can add them one at a time or
+                  import a CSV from TeamSnap, GameChanger, or SportsEngine.
                 </p>
               </div>
             </div>
@@ -116,9 +126,10 @@ export default async function HelpPage() {
               <div>
                 <h3 className="help-step-title">Create your event</h3>
                 <p className="help-step-text">
-                  Pick Camp (your single team competing internally) or Tournament
-                  (multiple teams competing against each other). Set dates,
-                  pick weekly challenges, set fundraising goals.
+                  Pick Camp (your single team/group competing internally) or
+                  Tournament (multiple teams competing against each other).
+                  Set dates, pick challenges from the 51-challenge starter
+                  library (or create your own), and set door prizes.
                 </p>
               </div>
             </div>
@@ -128,9 +139,10 @@ export default async function HelpPage() {
               <div>
                 <h3 className="help-step-title">Generate sponsor QR codes</h3>
                 <p className="help-step-text">
-                  Each player gets a unique QR code. They share it with family,
-                  friends, and local businesses. Sponsors scan, see the real
-                  effort, and fund the player's entry. Your team keeps the rest.
+                  Each player/participant gets a unique QR code. They share
+                  it with family, friends, and local businesses. Sponsors
+                  scan, see the real effort and progress, and contribute.
+                  Your organization keeps what&apos;s raised.
                 </p>
               </div>
             </div>
@@ -145,16 +157,16 @@ export default async function HelpPage() {
             </div>
 
             <div className="help-faq">
-              <h4 className="help-faq-q">What's the difference between a Camp and a Tournament?</h4>
+              <h4 className="help-faq-q">What&apos;s the difference between a Camp and a Tournament?</h4>
               <p className="help-faq-a">
-                A <strong>Camp</strong> is one team competing internally — players compete against each other for prizes. A <strong>Tournament</strong> is multiple teams competing against each other for the team-level prize.
+                A <strong>Camp</strong> is one team or group competing internally — players/participants compete against each other for door prizes you set. A <strong>Tournament</strong> is multiple teams competing against each other for team-level prizes.
               </p>
             </div>
 
             <div className="help-faq">
               <h4 className="help-faq-q">How does sponsorship work?</h4>
               <p className="help-faq-a">
-                Each player gets a personalized QR code. They share it with their network. Sponsors scan, see the player's progress, and contribute. Sponsorships are processed securely and the funds go to your organization at the end of the season.
+                Each participant gets a personalized QR code. They share it with their network. Sponsors scan, see the participant&apos;s progress, and contribute. Sponsorships are processed securely and the funds go to your organization at the end of the season.
               </p>
             </div>
 
