@@ -34,12 +34,14 @@ export default function CoachWelcomeHero({ firstName }: CoachWelcomeHeroProps) {
         <p className="e2k-welcome-intro">
           earn²keep turns fundraising on its head.{" "}
           <span className="e2k-welcome-emph">
-            Your players earn money for completing challenges
+            Your players earn prizes by completing challenges
           </span>{" "}
           — push-ups, scripture memorization, books read, miles run, whatever
           fits your group — instead of selling candy bars door-to-door.
-          Sponsors pledge a per-rep amount. The kids do the work. You raise
-          more than you ever did with traditional fundraisers.
+          Sponsors back your players with pledged donations to your cause;
+          the kids compete for the door prizes you set by completing daily
+          challenges. You raise more than you ever did with traditional
+          fundraisers.
         </p>
 
         <div className="e2k-welcome-howit">
