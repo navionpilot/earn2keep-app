@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase-browser";
-import ImpactCard from "@/components/ImpactCard";
+import LiveChallengeTracker from "@/components/LiveChallengeTracker";
 import LogoutButton from "@/components/LogoutButton";
 
 export type NavKey =
@@ -221,7 +221,7 @@ export default function AppSidebar({ active, open, onClose }: AppSidebarProps) {
           })}
         </nav>
         <div className="e2k-sidebar-footer">
-          <ImpactCard />
+          <LiveChallengeTracker />
           {/* Slice 7.7: mobile users had no way to log out — the
               .e2k-header-logout in AppHeader is display:none below 900px,
               and Settings page had no logout either. Adding it here so
