@@ -6854,11 +6854,19 @@ a:hover {
   border-radius: 6px;
   margin-top: 10px;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
-.ai-verify-use-btn:hover {
+.ai-verify-use-btn:hover:not(:disabled) {
   background: rgba(53, 213, 223, 0.1);
   border-color: rgba(53, 213, 223, 0.7);
+}
+/* Slice 8.4d — applied state (input already equals AI count) */
+.ai-verify-use-btn-applied,
+.ai-verify-use-btn:disabled {
+  background: rgba(53, 213, 223, 0.08);
+  border-color: rgba(53, 213, 223, 0.25);
+  color: rgba(53, 213, 223, 0.7);
+  cursor: default;
 }
 
 /* Pending state — softer/dimmer styling */

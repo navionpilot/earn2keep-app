@@ -325,17 +325,34 @@ export default function SubmissionReviewModal({
                 <div className="ai-verify-reasoning">{submission.ai_reasoning}</div>
               )}
               {submission.ai_rep_count !== null &&
-                submission.ai_confidence !== "unable_to_verify" && (
-                  <button
-                    type="button"
-                    className="ai-verify-use-btn"
-                    onClick={() =>
-                      setRepsApproved(String(submission.ai_rep_count ?? 0))
-                    }
-                  >
-                    Use this count →
-                  </button>
-                )}
+                submission.ai_confidence !== "unable_to_verify" &&
+                (() => {
+                  // Slice 8.4d — give the button real visual feedback. If
+                  // the input already matches the AI count (either because
+                  // the user clicked the button already, or because the
+                  // player's claim happened to equal the AI count), show
+                  // an applied state instead of a button that appears to
+                  // do nothing.
+                  const aiCountStr = String(submission.ai_rep_count ?? 0);
+                  const alreadyApplied = repsApproved === aiCountStr;
+                  return (
+                    <button
+                      type="button"
+                      className={`ai-verify-use-btn${alreadyApplied ? " ai-verify-use-btn-applied" : ""}`}
+                      onClick={() => setRepsApproved(aiCountStr)}
+                      disabled={alreadyApplied}
+                      aria-label={
+                        alreadyApplied
+                          ? `Approved reps already set to ${aiCountStr}`
+                          : `Use AI's count of ${aiCountStr}`
+                      }
+                    >
+                      {alreadyApplied
+                        ? `✓ Using AI's count (${aiCountStr})`
+                        : "Use this count →"}
+                    </button>
+                  );
+                })()}
             </div>
           </div>
         )}

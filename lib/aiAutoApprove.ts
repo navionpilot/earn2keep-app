@@ -4,9 +4,11 @@
 // Centralizes the "should this AI result trigger auto-approval?" decision
 // so the rules are clear, testable, and one place to evolve.
 //
-// Current rules (MVP):
+// Current rules (slice 8.4d):
 //   1. AI returned a result (ok=true, count and confidence present)
-//   2. AI confidence is 'high'
+//   2. AI confidence is 'high' OR 'medium' (slice 8.4d relaxed from 'high' only
+//      after real-world testing — Claude often cites "sparse frame sampling"
+//      as a reason for medium even when the count is obviously correct)
 //   3. AI count >= player's claimed count (AI confirms at least what was claimed)
 //   4. Coach has opted in (profiles.ai_auto_approve_enabled = true)
 //   5. Player has not opted out (players.ai_verification_opt_out = false)
@@ -68,12 +70,16 @@ export function decideAutoApproval(
     };
   }
 
-  // Check 2 — confidence threshold (MVP: 'high' only)
-  if (input.aiConfidence !== "high") {
+  // Check 2 — confidence threshold. Slice 8.4 originally required 'high';
+  // slice 8.4d relaxed to 'high' OR 'medium' after real-world testing showed
+  // Claude often returns 'medium' for legitimate clear videos (cites things
+  // like "sparse frame sampling" in its reasoning even when the count is
+  // obviously correct). 'low' and 'unable_to_verify' still route to coach.
+  if (input.aiConfidence !== "high" && input.aiConfidence !== "medium") {
     return {
       shouldAutoApprove: false,
       approvedReps: 0,
-      reason: `Confidence is ${input.aiConfidence}, not high`,
+      reason: `Confidence is ${input.aiConfidence}, below auto-approve threshold`,
     };
   }
 
