@@ -34,14 +34,14 @@ export default function CoachWelcomeHero({ firstName }: CoachWelcomeHeroProps) {
         <p className="e2k-welcome-intro">
           earn²keep turns fundraising on its head.{" "}
           <span className="e2k-welcome-emph">
-            Your players earn prizes by completing challenges
+            Your players/participants earn prizes by completing challenges
           </span>{" "}
           — push-ups, scripture memorization, books read, miles run, whatever
           fits your group — instead of selling candy bars door-to-door.
-          Sponsors back your players with pledged donations to your cause;
-          the kids compete for the door prizes you set by completing daily
-          challenges. You raise more than you ever did with traditional
-          fundraisers.
+          Sponsors back your participants with pledged donations to your cause,
+          and they compete for the door prizes you set by completing daily
+          challenges. A modern fundraising approach your participants will
+          actually enjoy.
         </p>
 
         <div className="e2k-welcome-howit">
@@ -50,17 +50,18 @@ export default function CoachWelcomeHero({ firstName }: CoachWelcomeHeroProps) {
             <li>
               <strong>Set up your roster.</strong> Create your organization
               (school, club, church, troop, gym), add your team(s), and add
-              the players who&apos;ll be competing.
+              the players/participants who&apos;ll be competing.
             </li>
             <li>
               <strong>Launch a fundraiser.</strong> Pick challenges, set goals
-              and prizes, and generate sponsor QR codes that your players hand
-              out to friends and family.
+              and prizes, and generate sponsor QR codes that your participants
+              hand out to friends and family.
             </li>
             <li>
-              <strong>Track progress.</strong> Players record videos of their
-              attempts, you approve them, points add up on the leaderboard,
-              and sponsors get charged automatically.
+              <strong>Track progress.</strong> Participants record videos of
+              their attempts. AI verifies them automatically, and you step in
+              for anything AI can&apos;t confirm. Points add up on the
+              leaderboard.
             </li>
           </ol>
         </div>
