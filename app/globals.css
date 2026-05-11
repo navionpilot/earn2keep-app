@@ -9906,7 +9906,9 @@ input[type="date"].form-input {
    ============================================================ */
 
 /* ---- Header logo (significantly bigger) ---- */
-.e2k-header { padding: 22px 36px !important; }
+/* Slice 7.1.4: this !important override was killing 7.1.3's safe-area fix.
+   Now includes env(safe-area-inset-top) so it stacks correctly on iOS. */
+.e2k-header { padding: calc(22px + env(safe-area-inset-top, 0px)) 36px 22px !important; }
 .e2k-header-brand-name { font-size: 36px !important; letter-spacing: -0.8px !important; }
 .e2k-header-brand-sup { font-size: 20px !important; }
 .e2k-header-brand-tag { font-size: 11px !important; letter-spacing: 1.8px !important; }
@@ -9915,7 +9917,10 @@ input[type="date"].form-input {
 .e2k-header-avatar { width: 44px !important; height: 44px !important; font-size: 16px !important; }
 
 @media (max-width: 900px) {
-  .e2k-header { padding: 16px 18px !important; }
+  /* Slice 7.1.4: mobile override — must also include env(safe-area-inset-top)
+     since this is the rule that actually applies on phones (where the
+     iOS Dynamic Island lives). */
+  .e2k-header { padding: calc(16px + env(safe-area-inset-top, 0px)) 18px 16px !important; }
   .e2k-header-brand-name { font-size: 28px !important; }
   .e2k-header-brand-sup { font-size: 16px !important; }
   .e2k-header-brand-tag { font-size: 10px !important; }
