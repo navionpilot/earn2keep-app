@@ -111,7 +111,23 @@ export default async function EventsIndexPage() {
         ) : (
           <div className="e2k-empty">
             <p>Your first event is just a few clicks away.</p>
-            <Link href={newEventHref} className="e2k-link-cyan">
+            <p style={{ marginTop: "8px", fontSize: "13px", color: "var(--e2k-text-muted)" }}>
+              An event is the actual fundraiser. You pick challenges (push-ups,
+              books read, scripture memorized, whatever fits), set goals and
+              prizes, generate QR codes for sponsors to pledge with, and your
+              players go to work earning points.
+            </p>
+            <p style={{ marginTop: "8px", fontSize: "13px", color: "var(--e2k-text-muted)" }}>
+              <strong style={{ color: "var(--e2k-text)" }}>Camp</strong> = one
+              team, focused fundraising. {" "}
+              <strong style={{ color: "var(--e2k-text)" }}>Tournament</strong> =
+              multiple teams competing. Both run up to 30 days.
+            </p>
+            <p style={{ marginTop: "8px", fontSize: "13px", color: "var(--e2k-text-muted)" }}>
+              You&apos;ll need an organization, a team, and at least one player
+              before you can launch an event.
+            </p>
+            <Link href={newEventHref} className="e2k-link-cyan" style={{ marginTop: "16px", display: "inline-block" }}>
               Create your first event →
             </Link>
           </div>

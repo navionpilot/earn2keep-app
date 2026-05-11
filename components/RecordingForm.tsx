@@ -140,6 +140,22 @@ export default function RecordingForm({
       return;
     }
 
+    // Slice 7.9: fire-and-forget email to the coach so they see "New
+    // submission from <player>" in their inbox in addition to the in-app
+    // bell (which the slice 7.1 DB trigger creates automatically). We
+    // intentionally do NOT await — if the email API is slow or fails,
+    // the player's success screen shouldn't be held up. The in-app
+    // notification fires either way.
+    if (insertRes.submissionId) {
+      void fetch("/api/notify/submission-created", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ submissionId: insertRes.submissionId }),
+      }).catch(() => {
+        /* email is best-effort — silent fail */
+      });
+    }
+
     // Free the preview URL — we're done with it.
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);

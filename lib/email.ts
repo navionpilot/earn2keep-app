@@ -593,3 +593,165 @@ function buildSubmissionReviewedText(opts: SubmissionReviewedEmailOptions): stri
   lines.push("earn²keep — Earn it. Keep it.");
   return lines.join("\n");
 }
+
+
+// =============================================================================
+// Slice 7.9 (7.3 + 7.5 combined wrap) —
+// sendSubmissionCreatedEmail — coach-facing notification
+// =============================================================================
+// Sent to the coach when one of their players records and submits a video.
+// Brings parity with the player-side sendSubmissionReviewedEmail flow:
+// in-app notification fires via DB trigger (slice 7.1's
+// trg_notify_coach_of_submission), email is best-effort from app code.
+//
+// Coach-facing — does NOT use the role-aware ownerLabel (the coach IS the
+// organizer, so there's nothing to translate).
+// =============================================================================
+
+export interface SubmissionCreatedEmailOptions {
+  to: string;
+  coachFirstName: string;
+  playerFullName: string;
+  challengeName: string;
+  eventName: string | null;
+  repsClaimed: number | null;
+  playerNote: string | null;
+  /** Deep link straight to the event submissions queue */
+  reviewUrl: string;
+}
+
+export async function sendSubmissionCreatedEmail(
+  opts: SubmissionCreatedEmailOptions
+): Promise<SendResult> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    return { ok: false, error: "RESEND_API_KEY is not set on the server." };
+  }
+
+  const subject = `New submission from ${opts.playerFullName}`;
+  const html = buildSubmissionCreatedHtml(opts, subject);
+  const text = buildSubmissionCreatedText(opts);
+
+  try {
+    const response = await fetch(RESEND_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        from: FROM_ADDRESS,
+        to: [opts.to],
+        subject,
+        html,
+        text,
+      }),
+    });
+
+    if (!response.ok) {
+      const errBody = await response.text().catch(() => "");
+      let parsed: { message?: string } = {};
+      try { parsed = JSON.parse(errBody); } catch { /* not json */ }
+      return {
+        ok: false,
+        error: parsed.message || `Resend ${response.status}`,
+      };
+    }
+
+    const json: { id?: string } = await response.json().catch(() => ({}));
+    return { ok: true, resendId: json.id };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Network error reaching Resend.";
+    return { ok: false, error: msg };
+  }
+}
+
+
+function buildSubmissionCreatedHtml(
+  opts: SubmissionCreatedEmailOptions,
+  subj: string
+): string {
+  const safeName = escape(opts.coachFirstName);
+  const safePlayer = escape(opts.playerFullName);
+  const safeChallenge = escape(opts.challengeName);
+  const safeEvent = opts.eventName ? escape(opts.eventName) : "";
+  const safeUrl = escape(opts.reviewUrl);
+  const accent = "#35d5df";
+
+  const repsBlock = opts.repsClaimed != null
+    ? `<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#0a2f37;">
+         Claimed <strong>${opts.repsClaimed}</strong> reps.
+       </p>`
+    : "";
+
+  const noteBlock = opts.playerNote
+    ? `<table cellpadding="14" cellspacing="0" style="background:#f0fafb;border-left:3px solid ${accent};border-radius:6px;margin:0 0 18px;">
+         <tr><td>
+           <div style="font-size:11px;font-weight:700;color:${accent};letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px;">Player's note</div>
+           <div style="font-size:14px;color:#0a2f37;line-height:1.5;font-style:italic;">"${escape(opts.playerNote)}"</div>
+         </td></tr>
+       </table>`
+    : "";
+
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>${escape(subj)}</title></head>
+<body style="margin:0;padding:0;background:#f4f7f8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0a2f37;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7f8;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:14px;overflow:hidden;max-width:560px;width:100%;">
+        <tr><td style="background:#041418;padding:28px 32px 24px;color:#ffffff;text-align:center;">
+          <div style="font-size:26px;font-weight:800;letter-spacing:-0.5px;">earn<sup style="font-size:14px;color:#ff755f;">2</sup>keep</div>
+          <div style="margin-top:4px;font-size:10px;font-weight:700;letter-spacing:1.6px;color:#35d5df;">EARN IT. KEEP IT.</div>
+        </td></tr>
+        <tr><td style="padding:28px 32px 8px;text-align:center;">
+          <div style="font-size:36px;line-height:1;margin-bottom:8px;">📝</div>
+          <h1 style="margin:0 0 8px;font-size:22px;font-weight:800;color:#0a2f37;">${safeName ? `Hi ${safeName},` : "New submission!"}</h1>
+          <p style="margin:0;font-size:15px;color:#5b6e75;">A new submission needs your review.</p>
+        </td></tr>
+        <tr><td style="padding:8px 32px 24px;">
+          <p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#0a2f37;">
+            <strong>${safePlayer}</strong> submitted <strong>${safeChallenge}</strong>${safeEvent ? ` for <strong>${safeEvent}</strong>` : ""}.
+          </p>
+          ${repsBlock}
+          ${noteBlock}
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 0;">
+            <tr><td align="center">
+              <a href="${safeUrl}" style="display:inline-block;background:${accent};color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:99px;font-weight:800;font-size:15px;letter-spacing:0.4px;">
+                Review submission →
+              </a>
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="background:#fafafa;padding:16px 32px;text-align:center;font-size:11px;color:#6b7280;border-top:1px solid #eaecef;">
+          You're getting this because you're the coach on this player's roster.<br>
+          Reviewing one submission takes about 30 seconds.
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+function buildSubmissionCreatedText(opts: SubmissionCreatedEmailOptions): string {
+  const lines: string[] = [];
+  lines.push(opts.coachFirstName ? `Hi ${opts.coachFirstName},` : "New submission!");
+  lines.push("");
+  lines.push(
+    `${opts.playerFullName} submitted ${opts.challengeName}${opts.eventName ? ` for ${opts.eventName}` : ""}.`
+  );
+  if (opts.repsClaimed != null) {
+    lines.push(`Claimed ${opts.repsClaimed} reps.`);
+  }
+  if (opts.playerNote) {
+    lines.push("");
+    lines.push(`Player's note: "${opts.playerNote}"`);
+  }
+  lines.push("");
+  lines.push(`Review on earn²keep: ${opts.reviewUrl}`);
+  lines.push("");
+  lines.push("--");
+  lines.push("earn²keep — Earn it. Keep it.");
+  return lines.join("\n");
+}

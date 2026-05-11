@@ -77,7 +77,17 @@ export default async function TeamsIndexPage() {
         <section className="e2k-panel">
           <div className="e2k-empty">
             <p>You don&apos;t have any teams yet.</p>
-            <Link href={newTeamHref} className="e2k-link-cyan">
+            <p style={{ marginTop: "8px", fontSize: "13px", color: "var(--e2k-text-muted)" }}>
+              A team is the group of players who&apos;ll compete together in an
+              event. Most coaches create one team per age group or skill level.
+              Examples: &ldquo;Lincoln Lions U14,&rdquo; &ldquo;MS Rush O9B
+              ECNL,&rdquo; &ldquo;Wednesday Night Youth Group.&rdquo;
+            </p>
+            <p style={{ marginTop: "8px", fontSize: "13px", color: "var(--e2k-text-muted)" }}>
+              You&apos;ll need an organization first — teams live under an org.
+              If you haven&apos;t made one yet, that&apos;s the place to start.
+            </p>
+            <Link href={newTeamHref} className="e2k-link-cyan" style={{ marginTop: "16px", display: "inline-block" }}>
               Create your first team →
             </Link>
           </div>
