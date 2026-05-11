@@ -7528,6 +7528,98 @@ a:hover {
   overflow: hidden;
   isolation: isolate;
 }
+
+/* ============================================
+   Slice 7.4 — Coach welcome hero (first-run experience for new coaches)
+   Reuses the same gradient backdrop as .e2k-hero so the visual treatment
+   stays consistent, but with a single-column content layout (intro +
+   how-it-works + CTA) instead of HeroCard's headline-plus-ring grid.
+   ============================================ */
+.e2k-welcome-hero {
+  position: relative;
+  border-radius: var(--e2k-r-xl);
+  border: 1px solid var(--e2k-border-strong);
+  padding: 26px 28px;
+  overflow: hidden;
+  isolation: isolate;
+}
+.e2k-welcome-hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(4, 20, 24, 0.30) 0%, rgba(4, 20, 24, 0.65) 100%),
+    linear-gradient(135deg, #1a3a48 0%, #2d4555 25%, #6b4358 55%, #d4795c 95%);
+}
+.e2k-welcome-hero-content { position: relative; }
+.e2k-welcome-eyebrow {
+  font-size: 11px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  color: var(--e2k-cyan);
+  margin-bottom: 10px;
+}
+.e2k-welcome-title {
+  font-family: var(--e2k-display, "Sora", sans-serif);
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #fff;
+  margin: 0 0 12px;
+  line-height: 1.1;
+}
+.e2k-welcome-intro {
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.88);
+  margin: 0 0 22px;
+  max-width: 720px;
+}
+.e2k-welcome-emph {
+  color: var(--e2k-coral);
+  font-weight: 600;
+}
+.e2k-welcome-howit {
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--e2k-r-md);
+  padding: 16px 18px;
+  margin: 0 0 22px;
+}
+.e2k-welcome-howit-title {
+  font-size: 10px;
+  letter-spacing: 1.8px;
+  font-weight: 700;
+  color: var(--e2k-cyan);
+  margin-bottom: 10px;
+}
+.e2k-welcome-howit-list {
+  margin: 0;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.e2k-welcome-howit-list li {
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.88);
+}
+.e2k-welcome-howit-list li strong { color: #fff; font-weight: 700; }
+.e2k-welcome-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+@media (max-width: 600px) {
+  .e2k-welcome-hero { padding: 22px 20px; }
+  .e2k-welcome-title { font-size: 24px; }
+  .e2k-welcome-intro { font-size: 14px; }
+  .e2k-welcome-cta-row { flex-direction: column; align-items: stretch; }
+  .e2k-welcome-cta-row .e2k-btn-coral { width: 100%; text-align: center; }
+}
+
 .e2k-hero-bg {
   position: absolute;
   inset: 0;

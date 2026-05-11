@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import HeroCard from "@/components/HeroCard";
+import CoachWelcomeHero from "@/components/CoachWelcomeHero";
 import DashboardGuide from "@/components/DashboardGuide";
 import StatRow, { type Stat } from "@/components/StatRow";
 import EventTypeCard from "@/components/EventTypeCard";
@@ -201,20 +202,53 @@ export default async function DashboardPage() {
     ? "Your roster is ready — create your first event."
     : "Keep the momentum going!";
 
+  // Slice 7.4: hero CTA adapts to whatever the coach actually needs next,
+  // so the button label always matches their state. Previously this was
+  // hardcoded "Create Event" — confusing when a new coach clicks it and
+  // lands on org creation instead.
+  const heroCta = !hasTeams
+    ? {
+        label: "Add your first team",
+        href: hasOrganization
+          ? `/organizations/${organizations![0].id}`
+          : "/organizations/new",
+      }
+    : !hasPlayers
+    ? {
+        label: "Add players to your roster",
+        href: firstTeamId
+          ? `/teams/${firstTeamId}`
+          : `/organizations/${organizations![0].id}`,
+      }
+    : !hasEvent
+    ? { label: "Create your first event", href: newEventHref }
+    : { label: "Create Event", href: newEventHref };
+
+  // Slice 7.4: brand-new coaches (zero orgs) get a dedicated welcome
+  // experience instead of the achievement-framed HeroCard. Captures the
+  // first-name from profile.full_name; defensive fallback to empty string.
+  const firstName = (profile.full_name || "").trim().split(/\s+/)[0] || "";
+  const isBrandNewCoach = !hasOrganization;
+
   return (
     <AppShell active="overview" userDisplayName={profile.full_name}>
       <div className="e2k-dash-2col">
         <div className="e2k-dash-main">
-          <HeroCard
-        subtitle={heroSubtitle}
-        progressPct={overallProgressPct}
-        cta={{ label: "Create Event", href: newEventHref }}
-      />
+          {isBrandNewCoach ? (
+            <CoachWelcomeHero firstName={firstName} />
+          ) : (
+            <HeroCard
+              subtitle={heroSubtitle}
+              progressPct={overallProgressPct}
+              cta={heroCta}
+            />
+          )}
 
       <StatRow stats={stats} />
 
-      {/* Setup nudge — only when not fully set up */}
-      {(!hasOrganization || !hasTeams || !hasPlayers) && (
+      {/* Setup nudge — only when not fully set up AND the welcome hero
+          isn't already covering Step 1. */}
+      {!isBrandNewCoach && (!hasOrganization || !hasTeams || !hasPlayers) && (
         <SetupBanner
           hasOrganization={hasOrganization}
           hasTeams={hasTeams}
