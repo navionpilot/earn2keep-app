@@ -6,7 +6,9 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 import Tooltip from "@/components/Tooltip";
 import CategoryHierarchyPicker, { type Subcategory } from "@/components/CategoryHierarchyPicker";
-import RecordingSetupSection from "@/components/RecordingSetupSection";
+import RecordingSetupSection, {
+  type AIStrategyValue,
+} from "@/components/RecordingSetupSection";
 import ReferencePhotoUpload from "@/components/ReferencePhotoUpload";
 
 import AppShell from "@/components/AppShell";
@@ -64,6 +66,7 @@ function EditChallengeForm() {
   const [setupTemplateKey, setSetupTemplateKey] = useState<string>("");
   const [recordingInstructions, setRecordingInstructions] = useState<string>("");
   const [verificationMode, setVerificationMode] = useState<"ai_only" | "coach_only" | "ai_and_coach" | "">("");
+  const [aiVerificationStrategy, setAiVerificationStrategy] = useState<AIStrategyValue>("");
 
   // Reference photo fields (Slice 4.5.4)
   const [referencePhotoUrl, setReferencePhotoUrl] = useState<string | null>(null);
@@ -134,6 +137,7 @@ function EditChallengeForm() {
       setSetupTemplateKey(challenge.setup_template_key || "");
       setRecordingInstructions(challenge.recording_instructions || "");
       setVerificationMode((challenge.verification_mode as any) || "");
+      setAiVerificationStrategy((challenge.ai_verification_strategy as AIStrategyValue) || "");
       setReferencePhotoUrl(challenge.reference_photo_url || null);
       setReferencePhotoCaption(challenge.reference_photo_caption || "");
       setIsPublicChallenge(!!challenge.is_public);
@@ -255,6 +259,7 @@ function EditChallengeForm() {
         setup_template_key: setupTemplateKey || null,
         recording_instructions: recordingInstructions.trim() || null,
         verification_mode: verificationMode || "coach_only",
+        ai_verification_strategy: aiVerificationStrategy || null,
         reference_photo_url: referencePhotoUrl || null,
         reference_photo_caption: referencePhotoCaption.trim() || null,
       })
@@ -455,6 +460,8 @@ function EditChallengeForm() {
               setRecordingInstructions={setRecordingInstructions}
               verificationMode={verificationMode}
               setVerificationMode={setVerificationMode}
+              aiVerificationStrategy={aiVerificationStrategy}
+              setAiVerificationStrategy={setAiVerificationStrategy}
             />
 
             <ReferencePhotoUpload

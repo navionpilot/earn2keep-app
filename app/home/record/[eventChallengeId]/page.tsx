@@ -81,6 +81,14 @@ interface PriorSubmission {
   rejection_reason: string | null;
   submitted_at: string;
   reviewed_at: string | null;
+  // Slice 8.9 — surface AI verification state to the player so they get
+  // faster feedback than waiting for the coach. Null = AI didn't run for
+  // this challenge type.
+  ai_status: "pending" | "completed" | "failed" | "skipped" | null;
+  ai_rep_count: number | null;
+  ai_confidence: "high" | "medium" | "low" | "unable_to_verify" | null;
+  ai_strategy_used: string | null;
+  approved_by_ai: boolean;
 }
 
 export default async function RecordPage({
@@ -181,10 +189,12 @@ export default async function RecordPage({
   //    We show the most recent one as a status pill above the form so
   //    the player knows whether they're already pending review or got
   //    rejected and need to retry.
+  //    Slice 8.9 — include AI fields so the pill can show what AI saw
+  //    even before the coach reviews.
   const { data: priorSubs } = await supabase
     .from("submissions")
     .select(
-      "id, status, reps_claimed, reps_approved, rejection_reason, submitted_at, reviewed_at"
+      "id, status, reps_claimed, reps_approved, rejection_reason, submitted_at, reviewed_at, ai_status, ai_rep_count, ai_confidence, ai_strategy_used, approved_by_ai"
     )
     .eq("player_id", player.id)
     .eq("event_challenge_id", eventChallengeId)
@@ -253,7 +263,7 @@ export default async function RecordPage({
         {/* If the player has a prior submission for THIS challenge, show
             its status above the form so they have context. They can
             still submit a new attempt below. */}
-        {lastSub && <PriorSubmissionPill sub={lastSub} />}
+        {lastSub && <PriorSubmissionPill sub={lastSub} unit={challenge.unit} />}
 
         <RecordingForm
           playerId={player.id}
@@ -417,7 +427,13 @@ function RecordingInstructions({
 // A small panel that summarizes the player's most recent submission for
 // this challenge — what the status is, what reps they claimed/got
 // approved for, and any rejection reason. Doesn't block re-submission.
-function PriorSubmissionPill({ sub }: { sub: PriorSubmission }) {
+function PriorSubmissionPill({
+  sub,
+  unit,
+}: {
+  sub: PriorSubmission;
+  unit: string | null;
+}) {
   let pillClass = "recording-prior-pill";
   let pillLabel = sub.status.toUpperCase();
   let intro = "Your last submission for this challenge:";
@@ -427,13 +443,51 @@ function PriorSubmissionPill({ sub }: { sub: PriorSubmission }) {
     pillLabel = "⏳ PENDING REVIEW";
   } else if (sub.status === "approved") {
     pillClass += " recording-prior-pill-approved";
-    pillLabel = "✓ APPROVED";
-    intro = "You already nailed this challenge:";
+    pillLabel = sub.approved_by_ai ? "✓ APPROVED BY AI" : "✓ APPROVED";
+    intro = sub.approved_by_ai
+      ? "AI auto-approved this submission:"
+      : "You already nailed this challenge:";
   } else if (sub.status === "rejected") {
     pillClass += " recording-prior-pill-rejected";
     pillLabel = "❌ REJECTED";
     intro = "Your last attempt was rejected. Submit a new one below:";
   }
+
+  // Slice 8.9 — sub-line showing AI verification state. Only renders for
+  // pending submissions where AI ran. We don't show AI info on approved
+  // submissions (the approval is what matters at that point) or on
+  // rejected submissions (the rejection reason is what matters).
+  let aiNote: React.ReactNode = null;
+  if (sub.status === "pending" && sub.ai_status === "completed" && sub.ai_rep_count !== null) {
+    const unitTxt = unit ? ` ${unit}` : "";
+    const isTimeHold = sub.ai_strategy_used === "time_hold";
+    aiNote = (
+      <p className="recording-prior-ai-note">
+        <span className="recording-prior-ai-icon" aria-hidden="true">🤖</span>{" "}
+        {isTimeHold ? (
+          <>AI verified <strong>{sub.ai_rep_count}{unitTxt}</strong> of activity</>
+        ) : (
+          <>AI counted <strong>{sub.ai_rep_count}{unitTxt}</strong></>
+        )}
+        {sub.ai_confidence && sub.ai_confidence !== "unable_to_verify" && (
+          <span className={`recording-prior-ai-confidence ai-confidence-${sub.ai_confidence}`}>
+            {sub.ai_confidence} confidence
+          </span>
+        )}
+        <span className="recording-prior-ai-hint">
+          — your coach will give the final word
+        </span>
+      </p>
+    );
+  } else if (sub.status === "pending" && sub.ai_status === "pending") {
+    aiNote = (
+      <p className="recording-prior-ai-note">
+        <span className="recording-prior-ai-icon" aria-hidden="true">🤖</span>{" "}
+        AI is reviewing your video…
+      </p>
+    );
+  }
+  // ai_status of "failed" or "skipped" → no note. Don't worry the player.
 
   return (
     <div className="recording-prior">
@@ -451,6 +505,7 @@ function PriorSubmissionPill({ sub }: { sub: PriorSubmission }) {
           </span>
         )}
       </div>
+      {aiNote}
       {sub.status === "rejected" && sub.rejection_reason && (
         <p className="recording-prior-reason">
           <strong>Reason:</strong> {sub.rejection_reason}

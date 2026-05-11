@@ -6,7 +6,10 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 import Tooltip from "@/components/Tooltip";
 import CategoryHierarchyPicker, { type Subcategory } from "@/components/CategoryHierarchyPicker";
-import RecordingSetupSection from "@/components/RecordingSetupSection";
+import RecordingSetupSection, {
+  type AIStrategyValue,
+  suggestStrategyFromUnit,
+} from "@/components/RecordingSetupSection";
 import ReferencePhotoUpload from "@/components/ReferencePhotoUpload";
 
 import AppShell from "@/components/AppShell";
@@ -61,6 +64,9 @@ function NewChallengeForm() {
   const [setupTemplateKey, setSetupTemplateKey] = useState<string>("");
   const [recordingInstructions, setRecordingInstructions] = useState<string>("");
   const [verificationMode, setVerificationMode] = useState<"ai_only" | "coach_only" | "ai_and_coach" | "">("");
+  // Slice 8.6 — AI verification strategy. Auto-suggested from unit when
+  // unit changes (see useEffect below). Coach can override anytime.
+  const [aiVerificationStrategy, setAiVerificationStrategy] = useState<AIStrategyValue>("");
 
   // Reference photo fields (Slice 4.5.4)
   const [referencePhotoUrl, setReferencePhotoUrl] = useState<string | null>(null);
@@ -69,6 +75,20 @@ function NewChallengeForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+
+  // Slice 8.6 — auto-suggest AI strategy from unit whenever unit changes,
+  // BUT only if the coach hasn't picked a strategy yet. This lets the
+  // coach trust the auto-fill on new challenges and prevents us from
+  // clobbering their explicit choice if they go back and edit the unit.
+  useEffect(() => {
+    if (!aiVerificationStrategy && unit) {
+      const suggested = suggestStrategyFromUnit(unit);
+      if (suggested) setAiVerificationStrategy(suggested);
+    }
+    // Intentionally NOT including aiVerificationStrategy in deps — we only
+    // want to react to unit changes, not re-suggest when the coach picks.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unit]);
 
   // Fetch the org context (from the event if returnTo exists, otherwise user's first org)
   useEffect(() => {
@@ -185,6 +205,10 @@ function NewChallengeForm() {
       setup_template_key: setupTemplateKey || null,
       recording_instructions: recordingInstructions.trim() || null,
       verification_mode: verificationMode || "coach_only",
+      // Slice 8.6 — store the AI strategy on the challenge so future
+      // submissions for it run through the right verification path. Null
+      // when the coach hasn't picked one (falls back to manual review).
+      ai_verification_strategy: aiVerificationStrategy || null,
       reference_photo_url: referencePhotoUrl || null,
       reference_photo_caption: referencePhotoCaption.trim() || null,
       owner_id: user.id,
@@ -386,6 +410,8 @@ function NewChallengeForm() {
               setRecordingInstructions={setRecordingInstructions}
               verificationMode={verificationMode}
               setVerificationMode={setVerificationMode}
+              aiVerificationStrategy={aiVerificationStrategy}
+              setAiVerificationStrategy={setAiVerificationStrategy}
             />
 
             <ReferencePhotoUpload

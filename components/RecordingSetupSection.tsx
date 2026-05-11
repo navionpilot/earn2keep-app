@@ -22,6 +22,40 @@ interface RecordingSetupSectionProps {
   setRecordingInstructions: (text: string) => void;
   verificationMode: "ai_only" | "coach_only" | "ai_and_coach" | "";
   setVerificationMode: (mode: "ai_only" | "coach_only" | "ai_and_coach" | "") => void;
+  // Slice 8.6 — which AI strategy to use when this challenge is AI-verified.
+  // Auto-suggested from the unit but coach can override.
+  aiVerificationStrategy: AIStrategyValue;
+  setAiVerificationStrategy: (s: AIStrategyValue) => void;
+}
+
+export type AIStrategyValue =
+  | "rep_count"
+  | "time_hold"
+  | "photo_completion"
+  | "performance"
+  | "audio_match"
+  | "none"
+  | "";
+
+/**
+ * Suggest a default AI strategy from the challenge's unit string. Returns
+ * "" when the unit is empty (so the coach must pick something). Used by the
+ * parent form to auto-fill the strategy dropdown when the coach edits the
+ * unit field. They can always change it after.
+ */
+export function suggestStrategyFromUnit(unit: string | null | undefined): AIStrategyValue {
+  if (!unit) return "";
+  const u = unit.toLowerCase().trim();
+  // Time-based units → time_hold (matches lib/timeChallenge.ts logic)
+  if (["second", "seconds", "sec", "secs", "s", "minute", "minutes", "min", "mins"].includes(u)) {
+    return "time_hold";
+  }
+  // Units that aren't AI-verifiable with the current strategy set
+  if (["book", "books", "page", "pages", "chapter", "chapters"].includes(u)) return "none";
+  if (["hour", "hours", "hr", "hrs"].includes(u)) return "none";
+  if (["mile", "miles", "km", "kilometer", "kilometers", "meter", "meters"].includes(u)) return "none";
+  // Everything else countable → rep_count is the safe default
+  return "rep_count";
 }
 
 export default function RecordingSetupSection({
@@ -35,6 +69,8 @@ export default function RecordingSetupSection({
   setRecordingInstructions,
   verificationMode,
   setVerificationMode,
+  aiVerificationStrategy,
+  setAiVerificationStrategy,
 }: RecordingSetupSectionProps) {
   // Track whether the coach has accepted the recommendation
   const [accepted, setAccepted] = useState(false);
@@ -227,15 +263,57 @@ export default function RecordingSetupSection({
                 👤 Coach manual review only
               </option>
               <option value="ai_only">
-                🤖 AI verification only (Phase 7+)
+                🤖 AI verification only
               </option>
               <option value="ai_and_coach">
                 🤖 + 👤 AI suggests, coach confirms (recommended)
               </option>
             </select>
             <p className="form-hint">
-              Right now AI verification isn't live yet — but pick how this challenge
-              <em> will</em> be verified once it ships. AI verification arrives in Phase 7.
+              Choose how this challenge gets verified. &ldquo;AI suggests, coach
+              confirms&rdquo; is the safest default: AI counts reps automatically,
+              the coach gets a one-click approve.
+            </p>
+          </div>
+
+          {/* Slice 8.6 — AI verification strategy. Tells the AI route HOW to
+              analyze submissions for this challenge. Auto-suggested from the
+              unit field (e.g. "seconds" → time_hold) when not yet set. */}
+          <div>
+            <label htmlFor="aiVerificationStrategy" className="form-label">
+              AI verification strategy
+            </label>
+            <select
+              id="aiVerificationStrategy"
+              className="form-input"
+              value={aiVerificationStrategy}
+              onChange={(e) =>
+                setAiVerificationStrategy(e.target.value as AIStrategyValue)
+              }
+            >
+              <option value="">Select...</option>
+              <option value="rep_count">
+                🔢 Count repetitions (push-ups, juggling, throws, etc.)
+              </option>
+              <option value="time_hold">
+                ⏱️ Verify timed activity (plank holds, sprints, dribbles)
+              </option>
+              <option value="none">
+                — Not AI-verifiable (manual review only)
+              </option>
+              <option value="photo_completion" disabled>
+                📷 Photo completion (coming soon)
+              </option>
+              <option value="audio_match" disabled>
+                🎤 Audio / verse match (coming soon)
+              </option>
+            </select>
+            <p className="form-hint">
+              Pick how AI should analyze submissions. Rep counting works for
+              anything where you count completed reps. Time-hold works for
+              challenges measured in seconds or minutes. Choose &ldquo;Not
+              AI-verifiable&rdquo; for things AI can&apos;t reliably check
+              (books read, miles run, hours volunteered).
             </p>
           </div>
         </>
