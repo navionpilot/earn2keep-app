@@ -339,7 +339,7 @@ export default function NewEventPage() {
                       <div className="radio-card-title">Mini-Camp <span style={{ fontWeight: 600, opacity: 0.7, fontSize: "0.85em" }}>· $99</span></div>
                       <div className="radio-card-text">
                         <strong>One team. Smaller fundraiser.</strong> Same as
-                        Camp but priced for events targeting under $3,000.
+                        Camp but priced for events targeting under $2,000.
                         Best for smaller groups or first-time fundraisers.
                       </div>
                     </div>

@@ -26,9 +26,9 @@ export const TRANSACTION_FEE_FLAT_CENTS = 40; // $0.40 per donation
 // Soft threshold used by the tier recommender and auto-upgrade logic.
 // A single-team event whose total goal is AT OR BELOW this amount is
 // suggested as Mini-Camp; anything strictly above this amount is auto-
-// upgraded to Camp at payment time. ($3,000 — set deliberately so that
+// upgraded to Camp at payment time. ($2,000 — set deliberately so that
 // Mini-Camp targets genuinely small/first-time fundraisers.)
-export const MINI_CAMP_GOAL_THRESHOLD_USD = 3000;
+export const MINI_CAMP_GOAL_THRESHOLD_USD = 2000;
 
 export const MAX_EVENT_DAYS = 30;
 
