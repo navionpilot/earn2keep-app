@@ -3,7 +3,12 @@
 import Link from "next/link";
 
 interface HeroCardProps {
-  /** First line of headline. Highlighted word(s) get coral accent. */
+  /** First line of headline. Default: "You're making". */
+  headlineLine1?: string;
+  /** Lead text on the second line, before the highlighted word.
+   *  Default: "a real". */
+  headlineLine2Lead?: string;
+  /** Highlighted word at the end of the headline (coral accent). Default: "impact." */
   highlightWord?: string;
   /** Subtitle below the headline. */
   subtitle: string;
@@ -14,6 +19,8 @@ interface HeroCardProps {
 }
 
 export default function HeroCard({
+  headlineLine1 = "You're making",
+  headlineLine2Lead = "a real",
   highlightWord = "impact.",
   subtitle,
   progressPct,
@@ -33,8 +40,8 @@ export default function HeroCard({
       <div className="e2k-hero-grid">
         <div className="e2k-hero-text">
           <h1 className="e2k-hero-title">
-            You&apos;re making
-            <br />a real <span className="e2k-hero-highlight">{highlightWord}</span>
+            {headlineLine1}
+            <br />{headlineLine2Lead} <span className="e2k-hero-highlight">{highlightWord}</span>
           </h1>
           <p className="e2k-hero-sub">{subtitle}</p>
           {cta && (

@@ -206,6 +206,21 @@ export default async function DashboardPage() {
     ? "Your roster is ready — create your first event."
     : "Keep the momentum going!";
 
+  // Hero headline also adapts. The default "You're making a real impact"
+  // is only used once the coach has actually launched an event — before
+  // that it's tone-deaf for an empty account ($0 raised, 0 events). For
+  // every earlier state we lead with the next concrete action.
+  const heroHeadline: { line1: string; line2Lead: string; highlight: string } =
+    !hasOrganization
+      ? { line1: "Let's set up", line2Lead: "your", highlight: "organization." }
+      : !hasTeams
+      ? { line1: "Let's build", line2Lead: "your first", highlight: "team." }
+      : !hasPlayers
+      ? { line1: "Time to add", line2Lead: "some", highlight: "participants." }
+      : !hasEvent
+      ? { line1: "Ready to launch", line2Lead: "your first", highlight: "event?" }
+      : { line1: "You're making", line2Lead: "a real", highlight: "impact." };
+
   // Slice 7.4: hero CTA adapts to whatever the coach actually needs next,
   // so the button label always matches their state. Previously this was
   // hardcoded "Create Event" — confusing when a new coach clicks it and
@@ -242,6 +257,9 @@ export default async function DashboardPage() {
             <CoachWelcomeHero firstName={firstName} />
           ) : (
             <HeroCard
+              headlineLine1={heroHeadline.line1}
+              headlineLine2Lead={heroHeadline.line2Lead}
+              highlightWord={heroHeadline.highlight}
               subtitle={heroSubtitle}
               progressPct={overallProgressPct}
               cta={heroCta}
