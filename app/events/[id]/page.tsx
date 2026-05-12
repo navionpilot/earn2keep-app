@@ -7,6 +7,7 @@ import TournamentHostInfoBlock from "@/components/TournamentHostInfoBlock";
 import TournamentInvitationsPanel from "@/components/TournamentInvitationsPanel";
 import TournamentStandings from "@/components/TournamentStandings";
 import TournamentTeamRosterStatus from "@/components/TournamentTeamRosterStatus";
+import TournamentTiebreakerBlock from "@/components/TournamentTiebreakerBlock";
 import EventStatusButton from "@/components/EventStatusButton";
 import DeleteButton from "@/components/DeleteButton";
 import LeaderboardCard from "@/components/LeaderboardCard";
@@ -146,6 +147,84 @@ export default async function EventDetailPage({
       }
       return { team_id: row.team_id, team_name: teamName };
     });
+  }
+
+  // L35 — Process tournament tiebreaker state. Idempotent state-machine RPC.
+  // Auto-activates the sudden-death tiebreaker on the first view after end
+  // date when prize-position teams are tied, and resolves it when the
+  // deadline passes. Side effect: may mutate event row.
+  type TiebreakerStateRow = {
+    state: string;
+    activated_at: string | null;
+    deadline_at: string | null;
+    winner_team_id: string | null;
+    resolved_at: string | null;
+    tied_team_ids: string[] | null;
+  };
+  let tiebreakerState: TiebreakerStateRow | null = null;
+  let tiedTeamsDetail: { team_id: string; team_name: string; org_name: string | null }[] = [];
+  let tiebreakerChallengeMeta: {
+    name: string;
+    target_value: number | null;
+    target_unit: string | null;
+  } | null = null;
+  if (event.event_type === "tournament") {
+    const { data: stateRows } = await supabase.rpc("process_tournament_tiebreaker", {
+      p_event_id: event.id,
+    });
+    if (Array.isArray(stateRows) && stateRows.length > 0) {
+      tiebreakerState = stateRows[0] as TiebreakerStateRow;
+    }
+
+    // If the tiebreaker is in any state past not_evaluated, fetch tied
+    // team display names + the tiebreaker challenge name for UI.
+    if (
+      tiebreakerState &&
+      tiebreakerState.tied_team_ids &&
+      tiebreakerState.tied_team_ids.length > 0
+    ) {
+      const { data: teamRows } = await supabase
+        .from("teams")
+        .select("id, name, organizations(name)")
+        .in("id", tiebreakerState.tied_team_ids);
+      tiedTeamsDetail = (teamRows || []).map((r) => {
+        const rel = r.organizations;
+        let orgName: string | null = null;
+        if (rel) {
+          if (Array.isArray(rel)) orgName = rel[0]?.name ?? null;
+          else if (typeof rel === "object" && "name" in rel)
+            orgName = (rel as { name?: string }).name ?? null;
+        }
+        return { team_id: r.id, team_name: r.name, org_name: orgName };
+      });
+    }
+
+    if (event.tournament_tiebreaker_challenge_id) {
+      const { data: tbCh } = await supabase
+        .from("event_challenges")
+        .select("rep_target, challenges(name, unit)")
+        .eq("id", event.tournament_tiebreaker_challenge_id)
+        .maybeSingle();
+      if (tbCh) {
+        const ch = tbCh.challenges;
+        let name: string | null = null;
+        let unit: string | null = null;
+        if (ch) {
+          if (Array.isArray(ch)) {
+            name = ch[0]?.name ?? null;
+            unit = ch[0]?.unit ?? null;
+          } else if (typeof ch === "object" && "name" in ch) {
+            name = (ch as { name?: string; unit?: string }).name ?? null;
+            unit = (ch as { name?: string; unit?: string }).unit ?? null;
+          }
+        }
+        tiebreakerChallengeMeta = {
+          name: name ?? "Tiebreaker challenge",
+          target_value: tbCh.rep_target ?? null,
+          target_unit: unit,
+        };
+      }
+    }
   }
 
   // Date calculations
@@ -328,6 +407,26 @@ export default async function EventDetailPage({
               tournament invitation email to other team organizers. */}
           {event.event_type === "tournament" && event.tournament_join_code && (
             <TournamentInvitationsPanel tournamentId={event.id} />
+          )}
+
+          {/* L35 — Sudden-death tiebreaker block. Renders nothing when
+              state is not_evaluated/not_needed. Shows live countdown when
+              active. Shows winner when resolved. Shows manual picker UI
+              when host_decision_needed AND viewer is host. */}
+          {event.event_type === "tournament" && tiebreakerState && (
+            <TournamentTiebreakerBlock
+              state={tiebreakerState.state}
+              activatedAt={tiebreakerState.activated_at}
+              deadlineAt={tiebreakerState.deadline_at}
+              winnerTeamId={tiebreakerState.winner_team_id}
+              tiedTeamIds={tiebreakerState.tied_team_ids ?? []}
+              tiedTeams={tiedTeamsDetail}
+              tiebreakerChallengeName={tiebreakerChallengeMeta?.name ?? null}
+              tiebreakerChallengeTargetValue={tiebreakerChallengeMeta?.target_value ?? null}
+              tiebreakerChallengeTargetUnit={tiebreakerChallengeMeta?.target_unit ?? null}
+              isCurrentUserHost={event.owner_id === user?.id}
+              eventId={event.id}
+            />
           )}
 
           {/* L34 — Strict-scored standings for the tournament. */}

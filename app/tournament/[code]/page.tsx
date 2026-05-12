@@ -28,6 +28,7 @@ import { notFound } from "next/navigation";
 import { formatJoinCodeForDisplay } from "@/lib/tournamentJoinCode";
 import TournamentStandings from "@/components/TournamentStandings";
 import TournamentTeamRosterStatus from "@/components/TournamentTeamRosterStatus";
+import TournamentTiebreakerBlock from "@/components/TournamentTiebreakerBlock";
 
 interface PageProps {
   params: Promise<{ code: string }>;
@@ -168,6 +169,60 @@ export default async function PublicTournamentInfoPage({ params }: PageProps) {
     }
   }
   const isParticipant = participantTeams.length > 0;
+
+  // L35 — Process tiebreaker state on this page load. Idempotent.
+  type TiebreakerStateRow = {
+    state: string;
+    activated_at: string | null;
+    deadline_at: string | null;
+    winner_team_id: string | null;
+    resolved_at: string | null;
+    tied_team_ids: string[] | null;
+  };
+  let tiebreakerState: TiebreakerStateRow | null = null;
+  let tiedTeamsDetail: { team_id: string; team_name: string; org_name: string | null }[] = [];
+  let tiebreakerChallengeMeta: {
+    name: string;
+    target_value: number | null;
+    target_unit: string | null;
+  } | null = null;
+
+  // Only process and show tiebreaker UI to participants (or anyone after
+  // resolution — the winner announcement is fine to surface publicly).
+  // For non-participants pre-resolution we keep things clean.
+  if (isLoggedIn) {
+    const { data: stateRows } = await supabase.rpc("process_tournament_tiebreaker", {
+      p_event_id: tournament.id,
+    });
+    if (Array.isArray(stateRows) && stateRows.length > 0) {
+      tiebreakerState = stateRows[0] as TiebreakerStateRow;
+    }
+    if (tiebreakerState?.tied_team_ids && tiebreakerState.tied_team_ids.length > 0) {
+      const { data: teamRows } = await supabase
+        .from("teams")
+        .select("id, name, organizations(name)")
+        .in("id", tiebreakerState.tied_team_ids);
+      tiedTeamsDetail = (teamRows || []).map((r) => {
+        const rel = r.organizations;
+        let orgName: string | null = null;
+        if (rel) {
+          if (Array.isArray(rel)) orgName = rel[0]?.name ?? null;
+          else if (typeof rel === "object" && "name" in rel)
+            orgName = (rel as { name?: string }).name ?? null;
+        }
+        return { team_id: r.id, team_name: r.name, org_name: orgName };
+      });
+    }
+    // tiebreakerChallenge already shown on the page as a separate block —
+    // we pull metadata for the active-state countdown UI.
+    if (tiebreakerChallenge) {
+      tiebreakerChallengeMeta = {
+        name: tiebreakerChallenge.name,
+        target_value: tiebreakerChallenge.target_value,
+        target_unit: tiebreakerChallenge.target_unit,
+      };
+    }
+  }
 
   // Build deep link based on auth state
   const joinPath = `/join-tournament?code=${encodeURIComponent(
@@ -641,6 +696,23 @@ export default async function PublicTournamentInfoPage({ params }: PageProps) {
                 teamName={t.team_name}
               />
             ))}
+
+            {/* L35 — Tiebreaker block visible to participants */}
+            {tiebreakerState && (
+              <TournamentTiebreakerBlock
+                state={tiebreakerState.state}
+                activatedAt={tiebreakerState.activated_at}
+                deadlineAt={tiebreakerState.deadline_at}
+                winnerTeamId={tiebreakerState.winner_team_id}
+                tiedTeamIds={tiebreakerState.tied_team_ids ?? []}
+                tiedTeams={tiedTeamsDetail}
+                tiebreakerChallengeName={tiebreakerChallengeMeta?.name ?? null}
+                tiebreakerChallengeTargetValue={tiebreakerChallengeMeta?.target_value ?? null}
+                tiebreakerChallengeTargetUnit={tiebreakerChallengeMeta?.target_unit ?? null}
+                isCurrentUserHost={false}
+                eventId={tournament.id}
+              />
+            )}
           </>
         )}
 
