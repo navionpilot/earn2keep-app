@@ -5,6 +5,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import TournamentHostInfoBlock from "@/components/TournamentHostInfoBlock";
 import TournamentInvitationsPanel from "@/components/TournamentInvitationsPanel";
+import TournamentStandings from "@/components/TournamentStandings";
+import TournamentTeamRosterStatus from "@/components/TournamentTeamRosterStatus";
 import EventStatusButton from "@/components/EventStatusButton";
 import DeleteButton from "@/components/DeleteButton";
 import LeaderboardCard from "@/components/LeaderboardCard";
@@ -116,6 +118,10 @@ export default async function EventDetailPage({
   // L32 — For tournament events, count the joining teams so we can display
   // it on the host's view. Returns 0 if event isn't a tournament.
   let joinedTeamsCount = 0;
+  // L34 — For tournament events, also fetch the host's own teams (those
+  // participating via event_participants) so we can render their roster
+  // status. The host has skin in the game — their teams compete too.
+  let hostParticipatingTeams: { team_id: string; team_name: string }[] = [];
   if (event.event_type === "tournament") {
     const { count } = await supabase
       .from("tournament_teams")
@@ -123,6 +129,23 @@ export default async function EventDetailPage({
       .eq("tournament_event_id", event.id)
       .in("status", ["pending_approval", "active"]);
     joinedTeamsCount = count ?? 0;
+
+    const { data: hostTeamRows } = await supabase
+      .from("event_participants")
+      .select("team_id, teams(id, name)")
+      .eq("event_id", event.id);
+    hostParticipatingTeams = (hostTeamRows || []).map((row) => {
+      const rel = row.teams;
+      let teamName = "Team";
+      if (rel) {
+        if (Array.isArray(rel)) {
+          teamName = rel[0]?.name || teamName;
+        } else if (typeof rel === "object" && "name" in rel) {
+          teamName = (rel as { name?: string }).name || teamName;
+        }
+      }
+      return { team_id: row.team_id, team_name: teamName };
+    });
   }
 
   // Date calculations
@@ -306,6 +329,22 @@ export default async function EventDetailPage({
           {event.event_type === "tournament" && event.tournament_join_code && (
             <TournamentInvitationsPanel tournamentId={event.id} />
           )}
+
+          {/* L34 — Strict-scored standings for the tournament. */}
+          {event.event_type === "tournament" && (
+            <TournamentStandings tournamentEventId={event.id} />
+          )}
+
+          {/* L34 — Roster status for each of the host's own teams. */}
+          {event.event_type === "tournament" &&
+            hostParticipatingTeams.map((t) => (
+              <TournamentTeamRosterStatus
+                key={t.team_id}
+                tournamentEventId={event.id}
+                teamId={t.team_id}
+                teamName={t.team_name}
+              />
+            ))}
 
           {/* Event hero - title, type, status */}
           <div className="event-hero">

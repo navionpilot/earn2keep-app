@@ -26,6 +26,8 @@ import { createClient } from "@/lib/supabase-server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatJoinCodeForDisplay } from "@/lib/tournamentJoinCode";
+import TournamentStandings from "@/components/TournamentStandings";
+import TournamentTeamRosterStatus from "@/components/TournamentTeamRosterStatus";
 
 interface PageProps {
   params: Promise<{ code: string }>;
@@ -124,6 +126,48 @@ export default async function PublicTournamentInfoPage({ params }: PageProps) {
   // Determine the visitor's auth state to pick CTAs
   const { data: { user } } = await supabase.auth.getUser();
   const isLoggedIn = !!user;
+
+  // L34 — If the visitor is logged in AND owns one or more teams that are
+  // participating in this tournament (either as the host's teams via
+  // event_participants or as joining teams via tournament_teams), surface
+  // strict-scored standings + per-team roster status panels below the basic
+  // info. This is what turns the public info page into the "participant
+  // home" for the tournament once someone's actually in.
+  let participantTeams: { team_id: string; team_name: string }[] = [];
+  if (isLoggedIn && user) {
+    // All teams the user owns
+    const { data: ownedTeams } = await supabase
+      .from("teams")
+      .select("id, name")
+      .eq("owner_id", user.id);
+    const ownedTeamIds = (ownedTeams || []).map((t) => t.id);
+    if (ownedTeamIds.length > 0) {
+      // Find which of the user's teams are in this tournament (via
+      // event_participants for the host's teams, or tournament_teams for
+      // joining teams). Either way, the team is participating.
+      const [{ data: epRows }, { data: ttRows }] = await Promise.all([
+        supabase
+          .from("event_participants")
+          .select("team_id")
+          .eq("event_id", tournament.id)
+          .in("team_id", ownedTeamIds),
+        supabase
+          .from("tournament_teams")
+          .select("team_id")
+          .eq("tournament_event_id", tournament.id)
+          .in("team_id", ownedTeamIds)
+          .in("status", ["active", "pending_approval"]),
+      ]);
+      const participatingIds = new Set<string>([
+        ...(epRows || []).map((r) => r.team_id),
+        ...(ttRows || []).map((r) => r.team_id),
+      ]);
+      participantTeams = (ownedTeams || [])
+        .filter((t) => participatingIds.has(t.id))
+        .map((t) => ({ team_id: t.id, team_name: t.name }));
+    }
+  }
+  const isParticipant = participantTeams.length > 0;
 
   // Build deep link based on auth state
   const joinPath = `/join-tournament?code=${encodeURIComponent(
@@ -541,7 +585,68 @@ export default async function PublicTournamentInfoPage({ params }: PageProps) {
           </div>
         )}
 
-        {/* CTA */}
+        {/* L34 — When the visitor is a participant, surface strict-scored
+            standings + their team(s)' roster status here. Replaces the
+            join CTA below since they're already in. */}
+        {isParticipant && (
+          <>
+            <div
+              style={{
+                padding: 18,
+                background: "rgba(110, 231, 183, 0.06)",
+                border: "1px solid rgba(110, 231, 183, 0.3)",
+                borderRadius: 12,
+                marginBottom: 20,
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                flexWrap: "wrap",
+              }}
+            >
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  background: "rgba(110, 231, 183, 0.18)",
+                  color: "#6EE7B7",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: 800,
+                  fontSize: 18,
+                  flexShrink: 0,
+                }}
+              >
+                ✓
+              </div>
+              <div style={{ flex: 1, minWidth: 200 }}>
+                <div style={{ fontWeight: 700, fontSize: 15 }}>
+                  You&apos;re in this tournament.
+                </div>
+                <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
+                  Your team{participantTeams.length > 1 ? "s" : ""}:{" "}
+                  {participantTeams.map((t) => t.team_name).join(", ")}
+                </div>
+              </div>
+            </div>
+
+            <TournamentStandings tournamentEventId={tournament.id} />
+
+            {participantTeams.map((t) => (
+              <TournamentTeamRosterStatus
+                key={t.team_id}
+                tournamentEventId={tournament.id}
+                teamId={t.team_id}
+                teamName={t.team_name}
+              />
+            ))}
+          </>
+        )}
+
+        {/* CTA — only shown to non-participants. Participants see the
+            standings + roster status above instead. */}
+        {!isParticipant && (
         <div
           style={{
             padding: 24,
@@ -608,6 +713,7 @@ export default async function PublicTournamentInfoPage({ params }: PageProps) {
             </>
           )}
         </div>
+        )}
 
         {/* Footer */}
         <div
