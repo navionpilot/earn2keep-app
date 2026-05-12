@@ -25,7 +25,7 @@
 // localized to this one file.
 // =============================================================================
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
@@ -74,7 +74,11 @@ const formatDateRange = (start: string, end: string): string => {
   return `${s} – ${e}`;
 };
 
-export default function JoinTournamentPage() {
+// L32 hotfix #2 — Inner component does the actual work. Wrapped below in
+// a <Suspense> boundary because useSearchParams() requires it under Next.js
+// 15's static-rendering rules (the page would otherwise fail to prerender
+// during build).
+function JoinTournamentContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const codeFromUrl = searchParams.get("code") || "";
@@ -610,6 +614,32 @@ export default function JoinTournamentPage() {
             </Link>
           </div>
         )}
+      </div>
+    </AppShell>
+  );
+}
+
+// Default export: wraps JoinTournamentContent in <Suspense>. Required by
+// Next.js 15 — any client component using useSearchParams() must be inside
+// a Suspense boundary or the page fails to prerender. The fallback uses
+// the same AppShell frame so the layout doesn't visibly shift while the
+// content hydrates.
+export default function JoinTournamentPage() {
+  return (
+    <Suspense fallback={<JoinTournamentFallback />}>
+      <JoinTournamentContent />
+    </Suspense>
+  );
+}
+
+function JoinTournamentFallback() {
+  return (
+    <AppShell active="events" userDisplayName="">
+      <div style={{ maxWidth: 720, margin: "0 auto", padding: "32px 16px" }}>
+        <div style={{ textAlign: "center", padding: 48, opacity: 0.6 }}>
+          <div className="invites-spinner" />
+          <p style={{ marginTop: 16 }}>Loading…</p>
+        </div>
       </div>
     </AppShell>
   );
