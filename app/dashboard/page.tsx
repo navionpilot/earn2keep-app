@@ -195,7 +195,12 @@ export default async function DashboardPage() {
   const newCampHref = newEventHref + "?type=camp";
   const newTournamentHref = newEventHref + "?type=tournament";
 
-  // Hero copy adapts to setup state
+  // Hero copy adapts to setup state.
+  // "Has events" is now split into two sub-states: events live but no money
+  // raised yet (event is live, but no actual impact) vs. events live with
+  // money coming in (genuinely making impact). The L13 default "Keep the
+  // momentum going!" / "You're making a real impact" was still tone-deaf
+  // at $0 raised — fixed in L17.
   const heroSubtitle = !hasOrganization
     ? "Create your organization to get started."
     : !hasTeams
@@ -204,12 +209,13 @@ export default async function DashboardPage() {
     ? "Build your roster to launch your first event."
     : !hasEvent
     ? "Your roster is ready — create your first event."
+    : totalRaised <= 0
+    ? "Time to spread the word — share your QR codes."
     : "Keep the momentum going!";
 
   // Hero headline also adapts. The default "You're making a real impact"
-  // is only used once the coach has actually launched an event — before
-  // that it's tone-deaf for an empty account ($0 raised, 0 events). For
-  // every earlier state we lead with the next concrete action.
+  // is only used once impact is actually happening (i.e. money is coming
+  // in). Before that we lead with whatever concrete action makes sense.
   const heroHeadline: { line1: string; line2Lead: string; highlight: string } =
     !hasOrganization
       ? { line1: "Let's set up", line2Lead: "your", highlight: "organization." }
@@ -219,6 +225,8 @@ export default async function DashboardPage() {
       ? { line1: "Time to add", line2Lead: "some", highlight: "participants." }
       : !hasEvent
       ? { line1: "Ready to launch", line2Lead: "your first", highlight: "event?" }
+      : totalRaised <= 0
+      ? { line1: "Your event", line2Lead: "is", highlight: "live." }
       : { line1: "You're making", line2Lead: "a real", highlight: "impact." };
 
   // Slice 7.4: hero CTA adapts to whatever the coach actually needs next,
