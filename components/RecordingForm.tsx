@@ -171,61 +171,85 @@ export default function RecordingForm({
       return;
     }
 
-    // Slice 8.4b — AI verification fire-and-forget. Runs only when the
-    // challenge declares an AI strategy the client can extract frames for
-    // (rep_count or time_hold today). KEY CHANGE FROM 8.4a: we now ALWAYS
-    // POST to the AI route, even when frame extraction fails. This gives
-    // us server-side observability (Vercel logs + the ai_status / ai_error
-    // columns) instead of silently dropping the entire flow when iOS
-    // Safari can't extract frames. Failures here NEVER affect the player's
-    // experience — the success screen still shows.
+    // Slice L20 — AI verification, now AWAITED instead of fire-and-forget.
+    //
+    // Previously the AI block was an IIFE that fired async work and let the
+    // page transition to the success screen immediately. That worked on
+    // desktop (frame extraction is fast, finishes before the user clicks
+    // away) but broke on iPhone: the L18 play-through extraction takes ~19s
+    // on iOS Safari, and the user typically taps "Back to home" well before
+    // that. iOS then kills the in-flight async work, the POST never reaches
+    // the server, and ai_status stays null forever.
+    //
+    // Now we await the whole chain. Trade-off: ~30-50s extra wait on iPhone
+    // before the success screen shows. The user sees progress in the
+    // existing "uploading" spinner UI throughout. AI failures here NEVER
+    // block the success transition — try/catch swallows everything, the
+    // submission is still saved, and the coach can still review manually.
     if (
       insertRes.submissionId &&
       isAIStrategyClientEligible(aiVerificationStrategy)
     ) {
       const submissionId = insertRes.submissionId;
       const videoFile = file;
-      (async () => {
-        let frames: string[] | null = null;
-        let clientError: string | null = null;
-        const traceLog: string[] = [];
-        const log = (msg: string) => {
-          traceLog.push(msg);
-          // Also surface to browser console for desktop debugging
-          // eslint-disable-next-line no-console
-          console.log(msg);
-        };
-        log(`[ai-verify] AI block reached for submission ${submissionId}`);
-        log(`[ai-verify] strategy=${aiVerificationStrategy} file=${videoFile.size}b ${videoFile.type}`);
-
-        try {
-          frames = await extractFramesFromVideo(videoFile, {
-            frameCount: 10,
-            onProgress: log,
-          });
-          log(`[ai-verify] extracted ${frames.length} frames`);
-        } catch (err) {
-          clientError = err instanceof Error ? err.message : String(err);
-          // eslint-disable-next-line no-console
-          console.error("[ai-verify] frame extraction failed:", err);
-          log(`[ai-verify] frame extraction failed: ${clientError}`);
+      let frames: string[] | null = null;
+      let clientError: string | null = null;
+      const traceLog: string[] = [];
+      const log = (msg: string) => {
+        traceLog.push(msg);
+        // eslint-disable-next-line no-console
+        console.log(msg);
+        // Surface frame-capture progress to the spinner UI so the
+        // user can see something is happening during the long iPhone
+        // play-through extraction.
+        const m = msg.match(/capturing frame (\d+)\/(\d+)/);
+        if (m) {
+          setUploadStep(`Extracting video frames (${m[1]}/${m[2]})…`);
         }
+      };
+      log(`[ai-verify] AI block reached for submission ${submissionId}`);
+      log(
+        `[ai-verify] strategy=${aiVerificationStrategy} file=${videoFile.size}b ${videoFile.type}`
+      );
 
-        // ALWAYS POST — even on extraction failure, so the server can
-        // log + record what happened in the submission's ai_error field.
+      setUploadStep("Preparing AI verification…");
+
+      try {
+        frames = await extractFramesFromVideo(videoFile, {
+          frameCount: 10,
+          onProgress: log,
+        });
+        log(`[ai-verify] extracted ${frames.length} frames`);
+      } catch (err) {
+        clientError = err instanceof Error ? err.message : String(err);
+        // eslint-disable-next-line no-console
+        console.error("[ai-verify] frame extraction failed:", err);
+        log(`[ai-verify] frame extraction failed: ${clientError}`);
+      }
+
+      setUploadStep("Running AI verification…");
+
+      // ALWAYS POST — even on extraction failure — so the server can
+      // record what happened in the submission's ai_error field. Wrapped
+      // in a 60s AbortController timeout so a hung route never traps the
+      // user on this spinner forever.
+      try {
+        const body: Record<string, unknown> = { submissionId };
+        if (frames && frames.length > 0) {
+          body.framesBase64 = frames;
+        }
+        if (clientError) {
+          body.clientError = clientError;
+          body.clientTrace = traceLog.slice(-20).join(" | ");
+        }
+        const ac = new AbortController();
+        const timeoutId = window.setTimeout(() => ac.abort(), 60000);
         try {
-          const body: Record<string, unknown> = { submissionId };
-          if (frames && frames.length > 0) {
-            body.framesBase64 = frames;
-          }
-          if (clientError) {
-            body.clientError = clientError;
-            body.clientTrace = traceLog.slice(-20).join(" | ");
-          }
           const res = await fetch("/api/ai/verify-submission", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),
+            signal: ac.signal,
           });
           log(`[ai-verify] POST returned ${res.status}`);
           if (!res.ok) {
@@ -236,11 +260,14 @@ export default function RecordingForm({
               await res.text().catch(() => "")
             );
           }
-        } catch (fetchErr) {
-          // eslint-disable-next-line no-console
-          console.error("[ai-verify] POST failed", fetchErr);
+        } finally {
+          window.clearTimeout(timeoutId);
         }
-      })();
+      } catch (fetchErr) {
+        // Includes AbortError when the 60s timeout fires.
+        // eslint-disable-next-line no-console
+        console.error("[ai-verify] POST failed", fetchErr);
+      }
     }
 
     // Free the preview URL — we're done with it.
