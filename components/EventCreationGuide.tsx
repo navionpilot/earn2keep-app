@@ -139,7 +139,7 @@ export default function EventCreationGuide(props: EventCreationGuideProps) {
                       )}
 
                       {/* Camp-specific guidance */}
-                      {(e(ventType === "camp" || ventType === "mini-camp") || eventType === "mini-camp") && step.campNote && (
+                      {(eventType === "camp" || eventType === "mini-camp") && step.campNote && (
                         <div className="e2k-walk-aside-typetip e2k-walk-aside-camp">
                           <strong>Camp:</strong> {step.campNote}
                         </div>
