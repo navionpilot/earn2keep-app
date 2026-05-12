@@ -23,9 +23,12 @@ export const TOURNAMENT_FEE_USD = 349;
 export const TRANSACTION_FEE_RATE = 0.035; // 3.5% of donation amount
 export const TRANSACTION_FEE_FLAT_CENTS = 40; // $0.40 per donation
 
-// Soft threshold used by the tier recommender: a single-team event with a
-// total goal under this amount is suggested as Mini-Camp.
-export const MINI_CAMP_GOAL_THRESHOLD_USD = 5000;
+// Soft threshold used by the tier recommender and auto-upgrade logic.
+// A single-team event whose total goal is AT OR BELOW this amount is
+// suggested as Mini-Camp; anything strictly above this amount is auto-
+// upgraded to Camp at payment time. ($3,000 — set deliberately so that
+// Mini-Camp targets genuinely small/first-time fundraisers.)
+export const MINI_CAMP_GOAL_THRESHOLD_USD = 3000;
 
 export const MAX_EVENT_DAYS = 30;
 
@@ -98,7 +101,7 @@ export function isCampLike(eventType: EventType): boolean {
  * Tier recommendation logic.
  *
  * - Multi-team event -> Tournament. End of story (structural choice, not goal).
- * - Single-team event with total goal under MINI_CAMP_GOAL_THRESHOLD_USD ->
+ * - Single-team event with total goal AT OR BELOW MINI_CAMP_GOAL_THRESHOLD_USD ->
  *   Mini-Camp recommended.
  * - Otherwise -> Camp recommended.
  *
@@ -111,10 +114,31 @@ export function recommendTier(opts: {
   totalGoalUsd: number;
 }): EventType {
   if (opts.isMultiTeam) return "tournament";
-  if (opts.totalGoalUsd > 0 && opts.totalGoalUsd < MINI_CAMP_GOAL_THRESHOLD_USD) {
+  if (opts.totalGoalUsd > 0 && opts.totalGoalUsd <= MINI_CAMP_GOAL_THRESHOLD_USD) {
     return "mini-camp";
   }
   return "camp";
+}
+
+/**
+ * Auto-upgrade rule: a Mini-Camp event with total goal STRICTLY ABOVE the
+ * threshold gets upgraded to Camp tier. This is enforced both as an inline
+ * warning on the form (where the user can switch manually) and as a
+ * silent upgrade at the payment page (so the user is charged correctly
+ * regardless of how they got there).
+ *
+ * Only Mini-Camp -> Camp upgrades automatically. Camp -> Mini-Camp does
+ * NOT auto-downgrade (paying customers don't get billing changed without
+ * consent).
+ */
+export function shouldAutoUpgradeToCamp(opts: {
+  eventType: EventType;
+  totalGoalUsd: number;
+}): boolean {
+  return (
+    opts.eventType === "mini-camp" &&
+    opts.totalGoalUsd > MINI_CAMP_GOAL_THRESHOLD_USD
+  );
 }
 
 /**
@@ -131,10 +155,10 @@ export function recommendationReason(opts: {
   if (opts.totalGoalUsd <= 0) {
     return "Enter a goal above to see the recommended tier.";
   }
-  if (opts.totalGoalUsd < MINI_CAMP_GOAL_THRESHOLD_USD) {
-    return `Mini-Camp ($${MINI_CAMP_FEE_USD}) \u2014 recommended for total goals under $${MINI_CAMP_GOAL_THRESHOLD_USD.toLocaleString()}.`;
+  if (opts.totalGoalUsd <= MINI_CAMP_GOAL_THRESHOLD_USD) {
+    return `Mini-Camp ($${MINI_CAMP_FEE_USD}) \u2014 recommended for total goals up to $${MINI_CAMP_GOAL_THRESHOLD_USD.toLocaleString()}.`;
   }
-  return `Camp ($${CAMP_FEE_USD}) \u2014 recommended for total goals of $${MINI_CAMP_GOAL_THRESHOLD_USD.toLocaleString()} or more.`;
+  return `Camp ($${CAMP_FEE_USD}) \u2014 recommended for total goals above $${MINI_CAMP_GOAL_THRESHOLD_USD.toLocaleString()}.`;
 }
 
 /**

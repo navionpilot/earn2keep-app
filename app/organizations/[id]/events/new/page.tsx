@@ -12,8 +12,10 @@ import {
   CAMP_FEE_USD,
   TOURNAMENT_FEE_USD,
   MAX_EVENT_DAYS,
+  MINI_CAMP_GOAL_THRESHOLD_USD,
   isWithinMaxDuration,
   eventDurationDays,
+  shouldAutoUpgradeToCamp,
 } from "@/lib/pricing";
 type Team = {
   id: string;
@@ -641,6 +643,30 @@ export default function NewEventPage() {
                     )}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Mini-Camp tier-mismatch warning — fires when the user picked
+                Mini-Camp but their total goal exceeds the threshold. */}
+            {eventType === "mini-camp" && shouldAutoUpgradeToCamp({
+              eventType,
+              totalGoalUsd: totalRaised,
+            }) && (
+              <div className="alert alert-warning" style={{ marginTop: 16, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+                <div style={{ flex: "1 1 320px", minWidth: 0 }}>
+                  <strong>Your goal exceeds the Mini-Camp threshold.</strong>{" "}
+                  Mini-Camp is meant for fundraisers up to ${MINI_CAMP_GOAL_THRESHOLD_USD.toLocaleString()}.
+                  Your total of ${formatMoney(totalRaised)} pushes this into Camp tier territory (${CAMP_FEE_USD}).
+                  If you keep Mini-Camp here, the event will auto-upgrade to Camp pricing at payment.
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleEventTypeChange("camp")}
+                  className="btn-primary btn-inline"
+                  style={{ whiteSpace: "nowrap" }}
+                >
+                  Switch to Camp →
+                </button>
               </div>
             )}
 
