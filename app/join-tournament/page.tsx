@@ -304,7 +304,7 @@ export default function JoinTournamentPage() {
   // ---------------- RENDER ----------------
 
   return (
-    <AppShell>
+    <AppShell active="events" userDisplayName="">
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "32px 16px" }}>
         <Link
           href="/dashboard"
