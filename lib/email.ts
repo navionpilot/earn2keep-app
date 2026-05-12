@@ -755,3 +755,356 @@ function buildSubmissionCreatedText(opts: SubmissionCreatedEmailOptions): string
   lines.push("earn²keep — Earn it. Keep it.");
   return lines.join("\n");
 }
+
+// =============================================================================
+// L33 — Tournament invitation email
+// =============================================================================
+// Sent by the host of a Tournament v2 event to other team organizers to
+// invite their teams to join the tournament. Tone is energetic and
+// competitive — this is one coach inviting another to a head-to-head
+// commitment contest, not the player-onboarding "welcome to the team" vibe
+// of sendInviteEmail.
+//
+// The CTA links to the PUBLIC tournament info page (/tournament/[code]),
+// which works without login. The recipient sees what they're being invited
+// to first, then signs up (or logs in) to actually register their team.
+// =============================================================================
+
+export interface TournamentInvitationEmailOptions {
+  to: string;
+  recipientFirstName: string | null;
+  hostOrgName: string;
+  hostInviterName: string | null;
+  tournamentName: string;
+  tournamentDescription: string | null;
+  startDate: string;
+  endDate: string;
+  entryFeeCents: number;
+  joinCode: string;
+  tournamentUrl: string;
+  prizeDescription: string | null;
+}
+
+export async function sendTournamentInvitationEmail(
+  opts: TournamentInvitationEmailOptions
+): Promise<SendResult> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    return { ok: false, error: "RESEND_API_KEY is not set on the server." };
+  }
+
+  const subject = buildTournamentInvitationSubject(opts);
+  const html = buildTournamentInvitationHtml(opts);
+  const text = buildTournamentInvitationText(opts);
+
+  try {
+    const response = await fetch(RESEND_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        from: FROM_ADDRESS,
+        to: [opts.to],
+        subject,
+        html,
+        text,
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      return { ok: false, error: `Resend ${response.status}: ${errText}` };
+    }
+
+    const data = (await response.json()) as { id?: string };
+    return { ok: true, resendId: data.id };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+function tournamentFormatMoney(cents: number): string {
+  if (cents === 0) return "Free entry";
+  const dollars = cents / 100;
+  return `$${dollars.toLocaleString("en-US", {
+    minimumFractionDigits: dollars % 1 === 0 ? 0 : 2,
+  })}`;
+}
+
+function tournamentFormatDisplayCode(canonical: string): string {
+  const cleaned = canonical.replace(/[^A-Z0-9]/gi, "").toUpperCase();
+  if (cleaned.length !== 6) return canonical;
+  return cleaned.slice(0, 3) + "-" + cleaned.slice(3);
+}
+
+function tournamentFormatDateRange(startISO: string, endISO: string): string {
+  const fmt = (iso: string) => {
+    const d = new Date(iso + "T12:00:00");
+    return d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+  return `${fmt(startISO)} – ${fmt(endISO)}`;
+}
+
+function buildTournamentInvitationSubject(opts: TournamentInvitationEmailOptions): string {
+  return `⚡ Your team is challenged: ${opts.tournamentName}`;
+}
+
+function buildTournamentInvitationHtml(opts: TournamentInvitationEmailOptions): string {
+  const {
+    recipientFirstName,
+    hostOrgName,
+    hostInviterName,
+    tournamentName,
+    tournamentDescription,
+    startDate,
+    endDate,
+    entryFeeCents,
+    joinCode,
+    tournamentUrl,
+    prizeDescription,
+  } = opts;
+
+  const greeting = recipientFirstName
+    ? `Hey ${escape(recipientFirstName)},`
+    : `Hey coach,`;
+
+  const inviterPhrase = hostInviterName
+    ? `<strong style="color:#ffffff;">${escape(hostInviterName)}</strong> at <strong style="color:#ffffff;">${escape(hostOrgName)}</strong>`
+    : `<strong style="color:#ffffff;">${escape(hostOrgName)}</strong>`;
+
+  const dateRange = tournamentFormatDateRange(startDate, endDate);
+  const feeDisplay = tournamentFormatMoney(entryFeeCents);
+  const displayCode = tournamentFormatDisplayCode(joinCode);
+
+  const preheader = `${hostOrgName} invited your team to ${tournamentName}. ${dateRange}. View tournament details and decide if you're in.`;
+
+  // Optional rows
+  const descriptionBlock = tournamentDescription
+    ? `
+        <tr>
+          <td bgcolor="#06242b" style="background-color:#06242b;padding:8px 32px 16px 32px;font-family:Arial,sans-serif;">
+            <p style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:14px;line-height:1.6;color:#cfe7e7;margin:0;font-style:italic;">
+              "${escape(tournamentDescription)}"
+            </p>
+          </td>
+        </tr>`
+    : "";
+
+  const prizeBlock = prizeDescription
+    ? `
+        <tr>
+          <td bgcolor="#06242b" style="background-color:#06242b;padding:0 32px 16px 32px;font-family:Arial,sans-serif;">
+            <div style="background-color:#0a2f37;padding:14px 16px;border-radius:8px;border-left:3px solid #ffd000;">
+              <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:10px;font-weight:800;color:#ffd000;letter-spacing:1.6px;text-transform:uppercase;">
+                🏆 The prize
+              </div>
+              <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:15px;color:#f7fbfb;margin-top:4px;font-weight:700;">
+                ${escape(prizeDescription)}
+              </div>
+            </div>
+          </td>
+        </tr>`
+    : "";
+
+  // Bulletproof CTA. The "See tournament" wording — not "Pay & Join" —
+  // because the recipient is unauthenticated; clicking goes to the public
+  // info page first, decision happens there.
+  const ctaButton = `
+    <!--[if mso]>
+    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escape(tournamentUrl)}" style="height:50px;v-text-anchor:middle;width:300px;" arcsize="100%" stroke="f" fillcolor="#ff755f">
+      <w:anchorlock/>
+      <center style="color:#ffffff;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;letter-spacing:0.3px;">
+        See tournament details →
+      </center>
+    </v:roundrect>
+    <![endif]-->
+    <!--[if !mso]><!-- -->
+    <a href="${escape(tournamentUrl)}"
+       style="background-color:#ff755f;color:#ffffff;display:inline-block;font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;font-weight:800;letter-spacing:0.3px;line-height:50px;text-align:center;text-decoration:none;width:300px;border-radius:999px;-webkit-text-size-adjust:none;mso-hide:all;">
+      See tournament details →
+    </a>
+    <!--<![endif]-->
+  `.trim();
+
+  return `<!doctype html>
+<html lang="en" style="margin:0;padding:0;">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<title>${escape(buildTournamentInvitationSubject(opts))}</title>
+<!--[if mso]>
+<style type="text/css">
+  table {border-collapse:collapse;}
+  body, table, td, p, a {font-family:Arial,sans-serif !important;}
+</style>
+<xml>
+<o:OfficeDocumentSettings xmlns:o="urn:schemas-microsoft-com:office:office">
+  <o:AllowPNG/>
+  <o:PixelsPerInch>96</o:PixelsPerInch>
+</o:OfficeDocumentSettings>
+</xml>
+<![endif]-->
+</head>
+<body bgcolor="#041418" style="margin:0;padding:0;background-color:#041418;color:#f7fbfb;-webkit-font-smoothing:antialiased;">
+
+<!-- preheader -->
+<div style="display:none;font-size:1px;color:#041418;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">
+${escape(preheader)}
+</div>
+
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#041418" style="background-color:#041418;">
+  <tr>
+    <td align="center" bgcolor="#041418" style="background-color:#041418;padding:32px 16px;">
+
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" bgcolor="#06242b" style="max-width:600px;width:100%;background-color:#06242b;border-radius:12px;">
+
+        <!-- Coral header bar -->
+        <tr>
+          <td bgcolor="#ff755f" style="background-color:#ff755f;padding:24px 28px;border-radius:12px 12px 0 0;font-family:Arial,sans-serif;">
+            <div style="font-family:'Sora','Segoe UI',Arial,sans-serif;font-size:26px;font-weight:800;color:#ffffff;letter-spacing:-0.6px;line-height:1;mso-line-height-rule:exactly;">
+              earn<sup style="font-size:14px;vertical-align:super;">2</sup>keep
+            </div>
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;font-weight:700;color:#ffffff;letter-spacing:1.6px;text-transform:uppercase;margin-top:6px;">
+              Earn it. Keep it.
+            </div>
+          </td>
+        </tr>
+
+        <!-- Eyebrow + hero -->
+        <tr>
+          <td bgcolor="#06242b" style="background-color:#06242b;padding:32px 32px 8px 32px;font-family:Arial,sans-serif;">
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;font-weight:800;color:#35d5df;letter-spacing:1.8px;text-transform:uppercase;">
+              ⚡ Tournament Challenge
+            </div>
+            <h1 style="font-family:'Sora','Segoe UI',Arial,sans-serif;font-size:28px;font-weight:800;color:#f7fbfb;letter-spacing:-0.5px;margin:8px 0 12px 0;line-height:1.2;mso-line-height-rule:exactly;">
+              ${greeting} your team is challenged.
+            </h1>
+            <p style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:15px;line-height:1.6;color:#cfe7e7;margin:0 0 6px 0;">
+              ${inviterPhrase} is hosting <strong style="color:#ffffff;">${escape(tournamentName)}</strong> — a head-to-head tournament. Bring your team. Show up. Compete.
+            </p>
+          </td>
+        </tr>
+        ${descriptionBlock}
+
+        <!-- Tournament details grid -->
+        <tr>
+          <td bgcolor="#06242b" style="background-color:#06242b;padding:16px 32px;font-family:Arial,sans-serif;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td style="padding:12px 0;border-top:1px solid #0e3e47;border-bottom:1px solid #0e3e47;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                    <tr>
+                      <td width="50%" style="vertical-align:top;padding-right:12px;">
+                        <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:10px;font-weight:800;color:#9fc3c7;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:4px;">📅 Dates</div>
+                        <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:14px;color:#f7fbfb;font-weight:700;">${escape(dateRange)}</div>
+                      </td>
+                      <td width="50%" style="vertical-align:top;padding-left:12px;">
+                        <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:10px;font-weight:800;color:#9fc3c7;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:4px;">💵 Entry fee</div>
+                        <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:14px;color:#f7fbfb;font-weight:700;">${escape(feeDisplay)}${entryFeeCents > 0 ? ' / team' : ''}</div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        ${prizeBlock}
+
+        <!-- The hook: explain strict scoring so coach knows what they're signing up for -->
+        <tr>
+          <td bgcolor="#06242b" style="background-color:#06242b;padding:8px 32px 24px 32px;font-family:Arial,sans-serif;">
+            <div style="background-color:#0a2f37;padding:16px 18px;border-radius:8px;border-left:3px solid #35d5df;">
+              <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:13px;line-height:1.55;color:#cfe7e7;margin:0;">
+                <strong style="color:#35d5df;">🎯 Heads up — strict scoring.</strong> Your team only earns the points for a challenge when <em>every</em> player on your roster completes it. The whole team is the unit of competition. No backseat warriors. No carry jobs.
+              </div>
+            </div>
+          </td>
+        </tr>
+
+        <!-- CTA -->
+        <tr>
+          <td bgcolor="#06242b" align="center" style="background-color:#06242b;padding:8px 32px 16px 32px;">
+            ${ctaButton}
+          </td>
+        </tr>
+
+        <!-- Join code fallback -->
+        <tr>
+          <td bgcolor="#06242b" align="center" style="background-color:#06242b;padding:0 32px 24px 32px;font-family:Arial,sans-serif;">
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;color:#9fc3c7;margin-top:12px;">
+              Or sign in and enter join code <strong style="color:#35d5df;letter-spacing:2px;font-family:monospace;">${escape(displayCode)}</strong> at earn2keep.com/join-tournament
+            </div>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td bgcolor="#041418" style="background-color:#041418;padding:20px 32px;border-radius:0 0 12px 12px;font-family:Arial,sans-serif;">
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;color:#6b8788;line-height:1.6;text-align:center;">
+              You got this email because someone at <strong style="color:#9fc3c7;">${escape(hostOrgName)}</strong> invited your team to compete on earn²keep. If you weren't expecting this, it's safe to ignore — no team is registered until you act on it.
+            </div>
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;color:#6b8788;text-align:center;margin-top:10px;">
+              earn²keep · Earn it. Keep it.
+            </div>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>`;
+}
+
+function buildTournamentInvitationText(opts: TournamentInvitationEmailOptions): string {
+  const dateRange = tournamentFormatDateRange(opts.startDate, opts.endDate);
+  const feeDisplay = tournamentFormatMoney(opts.entryFeeCents);
+  const displayCode = tournamentFormatDisplayCode(opts.joinCode);
+  const inviterLine = opts.hostInviterName
+    ? `${opts.hostInviterName} at ${opts.hostOrgName}`
+    : opts.hostOrgName;
+
+  const lines: string[] = [];
+  lines.push("⚡ TOURNAMENT CHALLENGE");
+  lines.push("");
+  lines.push(opts.recipientFirstName ? `Hey ${opts.recipientFirstName},` : "Hey coach,");
+  lines.push("");
+  lines.push(`Your team is challenged. ${inviterLine} is hosting a tournament on earn²keep:`);
+  lines.push("");
+  lines.push(`TOURNAMENT: ${opts.tournamentName}`);
+  if (opts.tournamentDescription) {
+    lines.push(`           "${opts.tournamentDescription}"`);
+  }
+  lines.push(`DATES:      ${dateRange}`);
+  lines.push(`ENTRY FEE:  ${feeDisplay}${opts.entryFeeCents > 0 ? " / team" : ""}`);
+  if (opts.prizeDescription) {
+    lines.push(`PRIZE:      ${opts.prizeDescription}`);
+  }
+  lines.push("");
+  lines.push("HEADS UP — STRICT SCORING:");
+  lines.push("Your team only earns the points for a challenge when every player on");
+  lines.push("your roster completes it. The whole team is the unit of competition.");
+  lines.push("");
+  lines.push(`See full details and decide if you're in: ${opts.tournamentUrl}`);
+  lines.push("");
+  lines.push(`Or sign in and enter join code ${displayCode} at earn2keep.com/join-tournament`);
+  lines.push("");
+  lines.push("--");
+  lines.push("earn²keep — Earn it. Keep it.");
+  return lines.join("\n");
+}

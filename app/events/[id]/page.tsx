@@ -4,6 +4,7 @@ import Tooltip from "@/components/Tooltip";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import TournamentHostInfoBlock from "@/components/TournamentHostInfoBlock";
+import TournamentInvitationsPanel from "@/components/TournamentInvitationsPanel";
 import EventStatusButton from "@/components/EventStatusButton";
 import DeleteButton from "@/components/DeleteButton";
 import LeaderboardCard from "@/components/LeaderboardCard";
@@ -298,6 +299,12 @@ export default async function EventDetailPage({
               maxTeams={event.tournament_max_teams ?? null}
               requiresApproval={event.tournament_requires_approval ?? false}
             />
+          )}
+
+          {/* L33 — Invitations panel. Host-side UI for sending the
+              tournament invitation email to other team organizers. */}
+          {event.event_type === "tournament" && event.tournament_join_code && (
+            <TournamentInvitationsPanel tournamentId={event.id} />
           )}
 
           {/* Event hero - title, type, status */}
