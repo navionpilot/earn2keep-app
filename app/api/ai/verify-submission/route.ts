@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
     );
   }
   // Defensive frame cap — see lib/aiVerification MAX_FRAMES
-  const frames = framesBase64.slice(0, 12);
+  const frames = framesBase64.slice(0, 16);
   console.log("[ai-verify] request received", {
     submissionId,
     frameCount: frames.length,

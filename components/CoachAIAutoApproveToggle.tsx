@@ -54,11 +54,11 @@ export default function CoachAIAutoApproveToggle({
           </span>
         </div>
         <div className="e2k-settings-toggle-desc">
-          When enabled, AI auto-approves submissions where verification confidence
-          is <strong>high</strong> and the AI&apos;s count is at least as many reps
-          as the player claimed. Submissions that don&apos;t meet both criteria
-          still come to you for review. Default is OFF — flip on once you trust
-          the AI on your challenges.
+          When enabled, AI auto-approves submissions where verification
+          confidence is <strong>high or medium</strong> and the AI&apos;s count
+          is at least as many reps as the player claimed. Submissions that
+          don&apos;t meet both criteria still come to you for review. Default
+          is OFF — flip on once you trust the AI on your challenges.
         </div>
         {error && (
           <div className="e2k-settings-toggle-error">Couldn&apos;t save: {error}</div>

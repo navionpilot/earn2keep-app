@@ -260,7 +260,7 @@ ${escape(preheader)}
 
         <!-- Three feature rows -->
         ${renderFeatureRow("📹", "Record your challenges.", "Push-ups, free throws, drills — film it from your phone, send it in, get scored.", true)}
-        ${renderFeatureRow("💸", "Get supported. Keep more.", "Your supporters back YOUR effort, not a cookie-dough catalog. Money raised stays with the team.", false)}
+        ${renderFeatureRow("💸", "Find supporters. Keep more.", "Your supporters back YOUR effort, not a cookie-dough catalog. Money raised stays with the team.", false)}
         ${renderFeatureRow("🏆", "Climb the leaderboard.", "Top performers win prize gift cards. Best fundraisers earn bonus points.", false, true)}
 
         <!-- CTA button row -->
@@ -368,7 +368,7 @@ ${heroLine}
 
 What you'll do on earn²keep:
 * Record your challenges — push-ups, free throws, drills.
-* Get supported. Supporters back YOUR effort, not catalogs.
+* Find supporters. Supporters back YOUR effort, not catalogs.
 * Climb the leaderboard — top performers win prizes.
 
 Set up your account:

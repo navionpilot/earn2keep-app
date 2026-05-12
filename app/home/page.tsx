@@ -1250,7 +1250,7 @@ export default async function PlayerHomePage({
             <span className="player-home-section-eyebrow">
               <span className="player-home-hero-prompt">&gt;</span> MY SPONSOR PAGE
             </span>
-            <h2 className="player-home-section-title">Get supported 💸</h2>
+            <h2 className="player-home-section-title">Find supporters 💸</h2>
           </div>
 
           {tokenRow?.token ? (

@@ -216,7 +216,7 @@ export default function RecordingForm({
 
       try {
         frames = await extractFramesFromVideo(videoFile, {
-          frameCount: 10,
+          frameCount: 16,
           onProgress: log,
         });
         log(`[ai-verify] extracted ${frames.length} frames`);

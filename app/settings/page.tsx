@@ -126,8 +126,9 @@ export default async function SettingsPage() {
         </div>
         <div className="e2k-settings-about">
           <p>
-            <strong>earn²keep</strong> — Earn it. Keep it. The fundraising
-            platform where teams compete in verified challenges.
+            <strong>earn²keep</strong> — Earn it. Keep it. Where fundraising
+            meets motivation: teams compete in verified challenges to earn
+            supporter donations.
           </p>
           <p className="e2k-settings-tag">Phase 4 · Coach experience</p>
         </div>

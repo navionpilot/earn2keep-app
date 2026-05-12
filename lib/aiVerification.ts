@@ -19,7 +19,7 @@ import type { AIConfidence } from "@/lib/aiStrategies/types";
 const ANTHROPIC_ENDPOINT = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-sonnet-4-6";
 const ANTHROPIC_API_VERSION = "2023-06-01";
-const MAX_FRAMES = 12;
+const MAX_FRAMES = 16; // L22: bumped 10→16 for better accuracy on quick-rep videos
 
 export interface CallClaudeOptions {
   framesBase64: string[];
