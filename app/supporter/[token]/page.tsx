@@ -13,7 +13,7 @@ export async function generateMetadata(
   const { token } = await params;
   try {
     const supabase = await createClient();
-    const { data } = await supabase.rpc("get_public_sponsor_view", {
+    const { data } = await supabase.rpc("get_public_supporter_view", {
       token_input: token,
     });
     const row: any = Array.isArray(data) ? data[0] : data;
@@ -84,7 +84,7 @@ export default async function SupporterPage({
   const { token } = await params;
 
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("get_public_sponsor_view", {
+  const { data, error } = await supabase.rpc("get_public_supporter_view", {
     token_input: token,
   });
 
@@ -100,7 +100,7 @@ export default async function SupporterPage({
   // this player just hasn't filled out a profile yet), we fall back to
   // initials + no-bio rendering.
   const { data: extrasData } = await supabase.rpc(
-    "get_public_sponsor_player_extras",
+    "get_public_supporter_player_extras",
     { token_input: token }
   );
   const extras = (extrasData || {}) as {
@@ -113,7 +113,7 @@ export default async function SupporterPage({
   // the RPC isn't deployed yet, prizesData will be null and the page
   // gracefully omits the prizes section.
   const { data: prizesData } = await supabase.rpc(
-    "get_public_sponsor_event_prizes",
+    "get_public_supporter_event_prizes",
     { token_input: token }
   );
   const prizes = (prizesData || {}) as {

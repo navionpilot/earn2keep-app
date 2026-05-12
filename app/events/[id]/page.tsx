@@ -216,7 +216,7 @@ export default async function EventDetailPage({
   // any token presence is a fair "has visited QR codes" signal that drives
   // step 3 of the new EventGuide.
   const { count: qrCount } = await supabase
-    .from("sponsor_tokens")
+    .from("supporter_tokens")
     .select("id", { count: "exact", head: true })
     .eq("event_id", id);
   const hasQRCodes = (qrCount || 0) > 0;

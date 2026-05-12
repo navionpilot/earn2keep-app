@@ -642,7 +642,7 @@ export default async function PlayerHomePage({
   // Pull this player's supporter token for this event. May not exist yet —
   // gets lazy-created when the coach opens the QR codes page.
   const { data: tokenRow } = await supabase
-    .from("sponsor_tokens")
+    .from("supporter_tokens")
     .select("token")
     .eq("player_id", player.id)
     .eq("event_id", event.id)

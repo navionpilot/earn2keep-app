@@ -34,7 +34,7 @@ interface EventGuideProps {
   hasChallenges: boolean;
   // Player + invite progress
   hasInvitesSent: boolean;
-  // Slice 5.7: QR-codes-page-visited indicator (sponsor_tokens exist)
+  // Slice 5.7: QR-codes-page-visited indicator (supporter_tokens exist)
   hasQRCodes: boolean;
   // Submission progress
   totalSubmissionCount: number;

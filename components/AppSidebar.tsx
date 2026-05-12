@@ -152,7 +152,7 @@ export default function AppSidebar({ active, open, onClose }: AppSidebarProps) {
             .from("events")
             .select("id", { count: "exact", head: true }),
           supabase
-            .from("sponsor_tokens")
+            .from("supporter_tokens")
             .select("id", { count: "exact", head: true }),
         ]);
 

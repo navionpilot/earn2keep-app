@@ -168,7 +168,7 @@ export default async function DashboardPage() {
       .from("player_invites")
       .select("id", { count: "exact", head: true }),
     supabase
-      .from("sponsor_tokens")
+      .from("supporter_tokens")
       .select("id", { count: "exact", head: true }),
     supabase
       .from("events")

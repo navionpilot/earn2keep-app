@@ -7,7 +7,7 @@
 // lazily when the coach opens the QR codes page.
 //
 // Direct table access is blocked by RLS for anonymous users —
-// the public supporter pages call the get_public_sponsor_view()
+// the public supporter pages call the get_public_supporter_view()
 // Postgres function instead.
 // ============================================================
 
@@ -64,7 +64,7 @@ export function supporterUrlFromToken(token: string): string {
 }
 
 // Ensures every active player on every team participating in this
-// event has a sponsor_tokens row. Returns the full set of tokens
+// event has a supporter_tokens row. Returns the full set of tokens
 // (existing + just-created) so the caller can render them.
 export async function ensureTokensForEvent(
   eventId: string
@@ -109,7 +109,7 @@ export async function ensureTokensForEvent(
 
   // 3. Existing tokens for this event
   const { data: existing, error: existErr } = await supabase
-    .from("sponsor_tokens")
+    .from("supporter_tokens")
     .select("id, player_id, event_id, token")
     .eq("event_id", eventId);
   if (existErr) throw new Error(existErr.message);
@@ -127,7 +127,7 @@ export async function ensureTokensForEvent(
     }));
 
     const { data: inserted, error: insErr } = await supabase
-      .from("sponsor_tokens")
+      .from("supporter_tokens")
       .insert(newRows)
       .select("id, player_id, event_id, token");
     if (insErr) throw new Error(insErr.message);
