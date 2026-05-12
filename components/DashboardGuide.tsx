@@ -259,7 +259,7 @@ export default function DashboardGuide(props: DashboardGuideProps) {
     >
       <div className="e2k-walk-aside-head">
         <div className="e2k-walk-aside-eyebrow-row">
-          <span className="e2k-walk-aside-eyebrow">★ COACH JOURNEY ★</span>
+          <span className="e2k-walk-aside-eyebrow">★ STEP-BY-STEP ★</span>
           <button
             type="button"
             className="e2k-walk-aside-toggle"

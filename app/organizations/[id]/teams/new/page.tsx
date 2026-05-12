@@ -74,7 +74,10 @@ export default function NewTeamPage() {
       return;
     }
 
-    router.push(`/organizations/${orgId}`);
+    // L25 — Redirect to /dashboard (not back to the org detail page) so the
+    // step-by-step guide picks up the new team and advances to step 3.
+    // Matches the redirect pattern that organization creation already uses.
+    router.push("/dashboard");
     router.refresh();
   };
 
