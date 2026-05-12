@@ -3,6 +3,7 @@ import LogoutButton from "@/components/LogoutButton";
 import Tooltip from "@/components/Tooltip";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import TournamentHostInfoBlock from "@/components/TournamentHostInfoBlock";
 import EventStatusButton from "@/components/EventStatusButton";
 import DeleteButton from "@/components/DeleteButton";
 import LeaderboardCard from "@/components/LeaderboardCard";
@@ -110,6 +111,18 @@ export default async function EventDetailPage({
     .from("players").select("*", { count: "exact", head: true }).eq("owner_id", user?.id);
   const { count: totalEventCount } = await supabase
     .from("events").select("*", { count: "exact", head: true }).eq("owner_id", user?.id);
+
+  // L32 — For tournament events, count the joining teams so we can display
+  // it on the host's view. Returns 0 if event isn't a tournament.
+  let joinedTeamsCount = 0;
+  if (event.event_type === "tournament") {
+    const { count } = await supabase
+      .from("tournament_teams")
+      .select("*", { count: "exact", head: true })
+      .eq("tournament_event_id", event.id)
+      .in("status", ["pending_approval", "active"]);
+    joinedTeamsCount = count ?? 0;
+  }
 
   // Date calculations
   const formatLongDate = (dateStr: string) =>
@@ -273,6 +286,18 @@ export default async function EventDetailPage({
                 </p>
               </div>
             </div>
+          )}
+
+          {/* L32 — Tournament info block (host view). Shown for any tournament
+              regardless of status so the host can grab the join code right away. */}
+          {event.event_type === "tournament" && event.tournament_join_code && (
+            <TournamentHostInfoBlock
+              joinCode={event.tournament_join_code}
+              entryFeeCents={event.tournament_entry_fee_cents ?? 0}
+              joinedTeamsCount={joinedTeamsCount}
+              maxTeams={event.tournament_max_teams ?? null}
+              requiresApproval={event.tournament_requires_approval ?? false}
+            />
           )}
 
           {/* Event hero - title, type, status */}

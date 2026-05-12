@@ -303,10 +303,37 @@ export default async function DashboardPage() {
           <EventTypeCard
             variant="tournament"
             title="Tournament"
-            description="Multi-team competition. Flat registration fee. Compete and win amazing prizes."
+            description="Multi-team commitment contest. Set a per-team Entry Fee, recruit other teams, compete with strict scoring."
             href={newTournamentHref}
             ctaLabel="Create Tournament"
           />
+        </div>
+        {/* L32 — Join Existing Tournament CTA. Sub-CTA below the create
+            cards so it's visible but not competing for primary attention. */}
+        <div
+          style={{
+            marginTop: 20,
+            padding: 16,
+            background: "rgba(255, 255, 255, 0.02)",
+            border: "1px dashed rgba(255, 255, 255, 0.15)",
+            borderRadius: 8,
+            textAlign: "center",
+          }}
+        >
+          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", marginBottom: 6 }}>
+            🤝 Got a tournament join code from another organization?
+          </div>
+          <Link
+            href="/join-tournament"
+            style={{
+              color: "var(--e2k-cyan)",
+              fontWeight: 700,
+              fontSize: 14,
+              textDecoration: "none",
+            }}
+          >
+            Join an existing tournament →
+          </Link>
         </div>
       </section>
 

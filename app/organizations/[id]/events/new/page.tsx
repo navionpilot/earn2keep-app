@@ -17,6 +17,7 @@ import {
   eventDurationDays,
   shouldAutoUpgradeToCamp,
 } from "@/lib/pricing";
+import { generateUniqueJoinCode } from "@/lib/tournamentJoinCode";
 type Team = {
   id: string;
   name: string;
@@ -80,6 +81,11 @@ export default function NewEventPage() {
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // L32 — Tournament v2 fields. Only used when event_type === 'tournament'.
+  const [tournamentEntryFeeUsd, setTournamentEntryFeeUsd] = useState<string>("");
+  const [tournamentMaxTeams, setTournamentMaxTeams] = useState<string>("");
+  const [tournamentRequiresApproval, setTournamentRequiresApproval] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchOrgAndTeams = async () => {
@@ -170,18 +176,37 @@ export default function NewEventPage() {
       return;
     }
     if (selectedTeamIds.length === 0) {
-      setError((eventType === "camp" || eventType === "mini-camp") ? "Please pick a team." : "Please pick at least one team.");
+      setError("Please pick at least one team.");
       return;
     }
-    if (eventType === "tournament" && selectedTeamIds.length < 2) {
-      setError("A Tournament needs at least 2 teams.");
-      return;
-    }
-    if (!goalAmount || goalNum <= 0) {
-      setError((eventType === "camp" || eventType === "mini-camp")
-        ? "Please enter a per-player fundraising goal."
-        : "Please enter a per-player registration fee.");
-      return;
+
+    // L32 — Validation forks by event type
+    let tournamentEntryFeeCents: number | null = null;
+    let tournamentMaxTeamsNum: number | null = null;
+    if (eventType === "tournament") {
+      // Tournament v2: Entry Fee replaces per-player goal. Can be 0 (free
+      // friendly tournament). Max teams is optional.
+      const feeNum = Number(tournamentEntryFeeUsd);
+      if (tournamentEntryFeeUsd === "" || isNaN(feeNum) || feeNum < 0) {
+        setError("Please enter the Entry Fee per team (or 0 for a free tournament).");
+        return;
+      }
+      tournamentEntryFeeCents = Math.round(feeNum * 100);
+
+      if (tournamentMaxTeams) {
+        const maxNum = Number(tournamentMaxTeams);
+        if (isNaN(maxNum) || maxNum < 2) {
+          setError("Max teams must be at least 2 if set.");
+          return;
+        }
+        tournamentMaxTeamsNum = Math.floor(maxNum);
+      }
+    } else {
+      // Camp / Mini-Camp: per-player goal is required.
+      if (!goalAmount || goalNum <= 0) {
+        setError("Please enter a per-player fundraising goal.");
+        return;
+      }
     }
 
     setLoading(true);
@@ -194,6 +219,25 @@ export default function NewEventPage() {
     const secondPrize = prizeCount >= 2 ? combineGiftCard(secondPlaceGiftCard, secondPlaceCustom) : null;
     const thirdPrize = prizeCount >= 3 ? combineGiftCard(thirdPlaceGiftCard, thirdPlaceCustom) : null;
 
+    // L32 — For tournaments, generate the unique join code now so other
+    // teams can find this tournament once it's created. (Real activation
+    // flow with Stripe will be wired in Phase 10; until then, the code is
+    // available as soon as the event is saved.)
+    let tournamentJoinCode: string | null = null;
+    if (eventType === "tournament") {
+      try {
+        tournamentJoinCode = await generateUniqueJoinCode(supabase);
+      } catch (codeErr) {
+        setError(
+          `Couldn't generate a join code for this tournament: ${
+            codeErr instanceof Error ? codeErr.message : String(codeErr)
+          }. Please try again.`
+        );
+        setLoading(false);
+        return;
+      }
+    }
+
     const { data: event, error: insertError } = await supabase
       .from("events")
       .insert({
@@ -205,7 +249,7 @@ export default function NewEventPage() {
         start_date: startDate,
         end_date: endDate,
         goal_type: "per_player", // Always per_player now
-        goal_amount: goalNum,
+        goal_amount: eventType === "tournament" ? 0 : goalNum,
         prize_count: prizeCount,
         first_place_prize: firstPrize,
         first_place_amount: firstNum > 0 ? firstNum : null,
@@ -214,6 +258,12 @@ export default function NewEventPage() {
         third_place_prize: thirdPrize,
         third_place_amount: prizeCount >= 3 && thirdNum > 0 ? thirdNum : null,
         status: "draft",
+        // L32 — Tournament-specific fields. Null for non-tournament events.
+        tournament_entry_fee_cents: tournamentEntryFeeCents,
+        tournament_join_code: tournamentJoinCode,
+        tournament_requires_approval:
+          eventType === "tournament" ? tournamentRequiresApproval : false,
+        tournament_max_teams: tournamentMaxTeamsNum,
       })
       .select()
       .single();
@@ -454,7 +504,7 @@ export default function NewEventPage() {
             {eventType && (
               <div className="form-section">
                 <h3 className="form-section-title">
-                  3. {(eventType === "camp" || eventType === "mini-camp") ? "Fundraising Goal" : "Registration Fee"}
+                  3. {(eventType === "camp" || eventType === "mini-camp") ? "Fundraising Goal" : "Tournament Settings"}
                 </h3>
 
                 {/* Type-specific explainer box */}
@@ -471,33 +521,96 @@ export default function NewEventPage() {
                     </>
                   ) : (
                     <>
-                      <strong>How a Tournament works:</strong> Each player
-                      pays a flat registration fee to enter. They can pay it
-                      themselves, or get a supporter (parent, family, business)
-                      to cover it. Once paid, they're registered for the
-                      tournament. Players compete in challenges — winners
-                      take home prizes.
+                      <strong>How a Tournament works:</strong> Set the per-team
+                      Entry Fee that other teams will pay to compete. Each team
+                      that joins pays one flat fee — their coach collects from
+                      players however they want (off-platform). Strict scoring:
+                      a team only earns points on a challenge when every player
+                      on its roster completes it. The team itself is the unit
+                      of competition, not the individual player.
                     </>
                   )}
                 </div>
 
-                <div>
-                  <label htmlFor="goalAmount" className="form-label">
-                    {goalFieldLabel} <span className="required">*</span>
-                    <Tooltip text={goalFieldHint}>
-                      <span className="help-icon">?</span>
-                    </Tooltip>
-                  </label>
-                  <div className="input-prefix-wrap">
-                    <span className="input-prefix">$</span>
-                    <input id="goalAmount" type="number"
-                      className="form-input form-input-with-prefix"
-                      placeholder={goalPlaceholder}
-                      value={goalAmount} onChange={(e) => setGoalAmount(e.target.value)}
-                      min="0" step="0.01" required />
+                {(eventType === "camp" || eventType === "mini-camp") ? (
+                  <div>
+                    <label htmlFor="goalAmount" className="form-label">
+                      {goalFieldLabel} <span className="required">*</span>
+                      <Tooltip text={goalFieldHint}>
+                        <span className="help-icon">?</span>
+                      </Tooltip>
+                    </label>
+                    <div className="input-prefix-wrap">
+                      <span className="input-prefix">$</span>
+                      <input id="goalAmount" type="number"
+                        className="form-input form-input-with-prefix"
+                        placeholder={goalPlaceholder}
+                        value={goalAmount} onChange={(e) => setGoalAmount(e.target.value)}
+                        min="0" step="0.01" required />
+                    </div>
+                    <p className="form-hint">{goalFieldHint}</p>
                   </div>
-                  <p className="form-hint">{goalFieldHint}</p>
-                </div>
+                ) : (
+                  <>
+                    {/* L32 — Tournament v2 fields */}
+                    <div>
+                      <label htmlFor="tournamentEntryFee" className="form-label">
+                        Entry Fee per team <span className="required">*</span>
+                        <Tooltip text="The amount each joining team pays to enter your tournament. Set to $0 for friendly tournaments with no entry fee.">
+                          <span className="help-icon">?</span>
+                        </Tooltip>
+                      </label>
+                      <div className="input-prefix-wrap">
+                        <span className="input-prefix">$</span>
+                        <input id="tournamentEntryFee" type="number"
+                          className="form-input form-input-with-prefix"
+                          placeholder="e.g. 400 (or 0 for free)"
+                          value={tournamentEntryFeeUsd}
+                          onChange={(e) => setTournamentEntryFeeUsd(e.target.value)}
+                          min="0" step="0.01" required />
+                      </div>
+                      <p className="form-hint">
+                        Each joining team pays exactly this amount at checkout. You receive that amount minus the 3.5% + $0.40 payment processing fee. The joining team sees no surcharge — what they see is what they pay.
+                      </p>
+                    </div>
+
+                    <div style={{ marginTop: 24 }}>
+                      <label htmlFor="tournamentMaxTeams" className="form-label">
+                        Maximum teams (optional)
+                        <Tooltip text="If set, the join code stops working once this many teams have registered. Leave blank for unlimited.">
+                          <span className="help-icon">?</span>
+                        </Tooltip>
+                      </label>
+                      <input id="tournamentMaxTeams" type="number"
+                        className="form-input"
+                        placeholder="Leave blank for unlimited"
+                        value={tournamentMaxTeams}
+                        onChange={(e) => setTournamentMaxTeams(e.target.value)}
+                        min="2" step="1" />
+                      <p className="form-hint">
+                        Use this to cap registration (e.g., for a bracketed tournament that needs exactly 8 or 16 teams).
+                      </p>
+                    </div>
+
+                    <div style={{ marginTop: 24 }}>
+                      <label className="form-label" style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
+                        <input
+                          type="checkbox"
+                          checked={tournamentRequiresApproval}
+                          onChange={(e) => setTournamentRequiresApproval(e.target.checked)}
+                          style={{ width: 18, height: 18, cursor: "pointer" }}
+                        />
+                        <span>Require my approval before a team can join</span>
+                        <Tooltip text="By default, any team with the join code can pay and register immediately. Turn this on if you want to manually approve each team after they pay (their Entry Fee is refunded automatically if you decline).">
+                          <span className="help-icon">?</span>
+                        </Tooltip>
+                      </label>
+                      <p className="form-hint" style={{ marginTop: 8 }}>
+                        Recommended OFF unless you specifically want to curate which teams enter.
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
