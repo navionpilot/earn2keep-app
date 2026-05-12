@@ -202,7 +202,7 @@ export default function EventGuide(props: EventGuideProps) {
   const [collapsed, setCollapsed] = useState(false);
   const currentStep = getCurrentStep(props);
   const allDone = props.eventStatus === "completed";
-  const isCamp = (p(rops.(eventType === "camp" || eventType === "mini-camp") || rops.eventType === "mini-camp") || props.eventType === "mini-camp");
+  const isCamp = props.eventType === "camp" || props.eventType === "mini-camp";
 
   return (
     <aside
