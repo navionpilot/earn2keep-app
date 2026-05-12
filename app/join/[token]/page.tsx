@@ -195,7 +195,7 @@ export default async function JoinPage({
           <span className="join-page-feature-icon">💸</span>
           <div>
             <strong>Earn it. Keep it.</strong>
-            <p>Sponsors back YOUR effort, and money raised stays with the team.</p>
+            <p>Supporters back YOUR effort, and money raised stays with the team.</p>
           </div>
         </div>
         <div className="join-page-feature">

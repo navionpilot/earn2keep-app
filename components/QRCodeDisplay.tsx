@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 
 interface QRCodeDisplayProps {
-  // Full URL the QR encodes (what the sponsor lands on when scanned)
+  // Full URL the QR encodes (what the supporter lands on when scanned)
   url: string;
   // Player name shown above the QR (e.g., "Sarah J.")
   publicLabel: string;
@@ -86,7 +86,7 @@ export default function QRCodeDisplay({
     <div className="qr-card">
       <div className="qr-card-public-name">{publicLabel}</div>
       {privateLabel && privateLabel !== publicLabel && (
-        <div className="qr-card-private-name" title="Your view of the player's full name (sponsors only see initials)">
+        <div className="qr-card-private-name" title="Your view of the player's full name (supporters only see initials)">
           {privateLabel}
         </div>
       )}
@@ -99,7 +99,7 @@ export default function QRCodeDisplay({
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={dataUrl}
-            alt={`Sponsor QR for ${publicLabel}`}
+            alt={`Supporter QR for ${publicLabel}`}
             className="qr-card-img"
             width={size}
             height={size}
@@ -116,7 +116,7 @@ export default function QRCodeDisplay({
           className="qr-card-flyer-btn"
           onClick={handleFlyer}
           disabled={flyerBusy || !dataUrl}
-          title={`Download ${publicLabel}'s full-page sponsor flyer (PDF)`}
+          title={`Download ${publicLabel}'s full-page supporter flyer (PDF)`}
         >
           {flyerBusy ? "Building…" : "📄 Flyer (PDF)"}
         </button>
@@ -137,7 +137,7 @@ export default function QRCodeDisplay({
           type="button"
           className="btn-secondary qr-card-btn"
           onClick={handleCopy}
-          title="Copy the sponsor link to share via text, email, or social"
+          title="Copy the supporter link to share via text, email, or social"
         >
           🔗 {copyLabel}
         </button>
@@ -150,5 +150,5 @@ function sanitizeFilename(s: string): string {
   return s
     .replace(/[^a-z0-9 _-]+/gi, "")
     .replace(/\s+/g, "_")
-    .slice(0, 80) || "sponsor_qr";
+    .slice(0, 80) || "supporter_qr";
 }

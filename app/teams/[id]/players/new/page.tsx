@@ -194,7 +194,7 @@ export default function NewPlayerPage() {
               <div style={{ flex: 1 }}>
                 <label htmlFor="parentEmail" className="form-label">
                   Parent / guardian email
-                  <Tooltip text="Used to send sponsor notifications and event updates. Recommended for minors.">
+                  <Tooltip text="Used to send supporter notifications and event updates. Recommended for minors.">
                     <span className="help-icon">?</span>
                   </Tooltip>
                 </label>

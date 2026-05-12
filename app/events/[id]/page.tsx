@@ -211,7 +211,7 @@ export default async function EventDetailPage({
     pendingSubmissionCount = pendCount ?? 0;
   }
 
-  // Slice 5.7: at-least-one-sponsor-token check for this event. Sponsor
+  // Slice 5.7: at-least-one-supporter-token check for this event. Supporter
   // tokens get auto-created when the coach opens the QR Codes page, so
   // any token presence is a fair "has visited QR codes" signal that drives
   // step 3 of the new EventGuide.
@@ -260,11 +260,11 @@ export default async function EventDetailPage({
               </div>
               <div className="celebration-content">
                 <div className="celebration-eyebrow">
-                  ★ {event.event_type === "camp" ? "FUNDRAISER" : "TOURNAMENT"} CREATED ★
+                  ★ {(event.event_type === "camp" || event.event_type === "mini-camp") ? "FUNDRAISER" : "TOURNAMENT"} CREATED ★
                 </div>
                 <h2 className="celebration-title">
                   Congrats on creating your {ordinal(eventOrdinal)}{" "}
-                  {event.event_type === "camp" ? "fundraiser" : "tournament"}!
+                  {(event.event_type === "camp" || event.event_type === "mini-camp") ? "fundraiser" : "tournament"}!
                 </h2>
                 <p className="celebration-text">
                   <strong>{event.name}</strong> is set up and ready. Once you've
@@ -279,7 +279,7 @@ export default async function EventDetailPage({
           <div className="event-hero">
             <div className="event-hero-pills">
               <span className="org-detail-type-pill">
-                {event.event_type === "camp" ? "🏃 Camp" : "🏆 Tournament"}
+                {(event.event_type === "camp" || event.event_type === "mini-camp") ? "🏃 Camp" : "🏆 Tournament"}
               </span>
               <span className={`status-pill status-${event.status || "draft"}`}>
                 {event.status === "active" ? "Active" : event.status === "completed" ? "Completed" : "Draft"}
@@ -364,18 +364,18 @@ export default async function EventDetailPage({
             </div>
             <div className="event-stat-cell">
               <div className="event-stat-label">
-                {event.event_type === "camp" ? "Goal/Player" : "Reg Fee"}
+                {(event.event_type === "camp" || event.event_type === "mini-camp") ? "Goal/Player" : "Reg Fee"}
               </div>
               <div className="event-stat-value">
                 {goalNum > 0 ? `$${formatMoney(goalNum)}` : "—"}
               </div>
               <div className="event-stat-sub">
-                {event.event_type === "camp" ? "Min to compete" : "Per player"}
+                {(event.event_type === "camp" || event.event_type === "mini-camp") ? "Min to compete" : "Per player"}
               </div>
             </div>
             <div className="event-stat-cell">
               <div className="event-stat-label">
-                {event.event_type === "camp" ? "Min Net to Team" : "Net to Team"}
+                {(event.event_type === "camp" || event.event_type === "mini-camp") ? "Min Net to Team" : "Net to Team"}
               </div>
               <div className="event-stat-value" style={{ color: "var(--color-gold)" }}>
                 {goalNum > 0 ? `$${formatMoney(netToTeam)}` : "—"}
@@ -400,7 +400,7 @@ export default async function EventDetailPage({
                       Choose what your players or participants must complete to
                       compete for prizes — push-ups, free throws, Bible verses,
                       mile runs, service hours, whatever fits. The more reps
-                      they hit (and {event.event_type === "camp" ? "the more they raise above the minimum" : "the better they perform"}), the more points they earn.
+                      they hit (and {(event.event_type === "camp" || event.event_type === "mini-camp") ? "the more they raise above the minimum" : "the better they perform"}), the more points they earn.
                     </p>
                     <Link href={`/events/${event.id}/schedule`} className="next-step-link">
                       {(eventChallenges?.length || 0) > 0
@@ -414,11 +414,11 @@ export default async function EventDetailPage({
                   <div className="next-step-content">
                     <h3 className="next-step-title">Activate the event to open registration</h3>
                     <p className="next-step-text">
-                      {event.event_type === "camp" ? (
+                      {(event.event_type === "camp" || event.event_type === "mini-camp") ? (
                         <>
                           Hit <strong>Activate Event</strong> to open the
                           fundraising window. Each player gets a unique QR
-                          code to share with sponsors (parents, family, local
+                          code to share with supporters (parents, family, local
                           businesses) to collect their fundraising minimum.
                           Once they hit the minimum, they're registered to
                           compete.
@@ -428,7 +428,7 @@ export default async function EventDetailPage({
                           Hit <strong>Activate Event</strong> to open
                           registration. Each player gets a unique QR code.
                           Players can pay the entry fee themselves, or share
-                          the code with a sponsor (parent, family, local
+                          the code with a supporter (parent, family, local
                           business) to cover it. Once paid, they're registered.
                         </>
                       )}
@@ -441,8 +441,8 @@ export default async function EventDetailPage({
                     <h3 className="next-step-title">Generate entry QR codes</h3>
                     <p className="next-step-text">
                       After activation, each registered player gets a QR code
-                      to share with sponsors. Sponsors scan it to{" "}
-                      {event.event_type === "camp" ? "contribute toward the player's fundraising goal" : "pay the player's registration fee"}.
+                      to share with supporters. Supporters scan it to{" "}
+                      {(event.event_type === "camp" || event.event_type === "mini-camp") ? "contribute toward the player's fundraising goal" : "pay the player's registration fee"}.
                     </p>
                     <Link href={`/events/${event.id}/qr-codes`} className="next-step-link">
                       📱 Open QR Code Generator →
@@ -475,7 +475,7 @@ export default async function EventDetailPage({
               <div className="breakdown-rows">
                 <div className="breakdown-row">
                   <span className="breakdown-label">
-                    ${formatMoney(goalNum)} {event.event_type === "camp" ? "minimum" : "fee"} × {totalPlayerCount} player{totalPlayerCount === 1 ? "" : "s"}/participant{totalPlayerCount === 1 ? "" : "s"}
+                    ${formatMoney(goalNum)} {(event.event_type === "camp" || event.event_type === "mini-camp") ? "minimum" : "fee"} × {totalPlayerCount} player{totalPlayerCount === 1 ? "" : "s"}/participant{totalPlayerCount === 1 ? "" : "s"}
                   </span>
                   <span className="breakdown-value">${formatMoney(totalRaised)}</span>
                 </div>
@@ -488,7 +488,7 @@ export default async function EventDetailPage({
                 <div className="breakdown-divider"></div>
                 <div className="breakdown-row breakdown-row-final">
                   <span className="breakdown-label">
-                    {event.event_type === "camp" ? "Minimum Net to Team" : "Net to Team"}
+                    {(event.event_type === "camp" || event.event_type === "mini-camp") ? "Minimum Net to Team" : "Net to Team"}
                   </span>
                   <span className="breakdown-value breakdown-value-final">
                     ${formatMoney(netToTeam)}
@@ -502,9 +502,9 @@ export default async function EventDetailPage({
                 </div>
               ) : netToTeam < 0 ? (
                 <div className="breakdown-per-player breakdown-per-player-warning">
-                  ⚠ Prize pool exceeds total raised. Reduce prizes or raise the {event.event_type === "camp" ? "goal" : "fee"}.
+                  ⚠ Prize pool exceeds total raised. Reduce prizes or raise the {(event.event_type === "camp" || event.event_type === "mini-camp") ? "goal" : "fee"}.
                 </div>
-              ) : event.event_type === "camp" ? (
+              ) : (event.event_type === "camp" || event.event_type === "mini-camp") ? (
                 <div className="breakdown-per-player">
                   <span className="breakdown-per-player-icon">★</span>
                   <span>
@@ -661,21 +661,21 @@ export default async function EventDetailPage({
             )}
           </div>
 
-          {/* Sponsor QR Codes (Slice 4.6) */}
+          {/* Supporter QR Codes (Slice 4.6) */}
           <div className="dashboard-card">
             <div className="section-header" style={{ marginBottom: "16px" }}>
-              <h2 className="dashboard-card-title">Sponsor QR Codes</h2>
-              <Tooltip text="Each player gets a unique QR code linking to a public sponsor page. Print them, share them, hang them on the fridge.">
+              <h2 className="dashboard-card-title">Supporter QR Codes</h2>
+              <Tooltip text="Each player gets a unique QR code linking to a public supporter page. Print them, share them, hang them on the fridge.">
                 <Link href={`/events/${event.id}/qr-codes`} className="btn-add">
                   📱 Open
                 </Link>
               </Tooltip>
             </div>
             <p className="dashboard-card-text">
-              {event.event_type === "camp" ? (
-                <>Generate one-of-a-kind sponsor QR codes for each player so family, friends, and local businesses can back their fundraising goal. Sponsor payments are coming soon — codes work now so you can start sharing.</>
+              {(event.event_type === "camp" || event.event_type === "mini-camp") ? (
+                <>Generate one-of-a-kind supporter QR codes for each player so family, friends, and local businesses can back their fundraising goal. Supporter payments are coming soon — codes work now so you can start sharing.</>
               ) : (
-                <>Generate one-of-a-kind QR codes for each player so sponsors can cover their registration fee. Sponsor payments are coming soon — codes work now so you can start sharing.</>
+                <>Generate one-of-a-kind QR codes for each player so supporters can cover their registration fee. Supporter payments are coming soon — codes work now so you can start sharing.</>
               )}
             </p>
           </div>

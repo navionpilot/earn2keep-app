@@ -138,7 +138,7 @@ export default async function TeamDetailPage({
                 </Link>
               </div>
               <div style={{ marginTop: "20px" }}>
-                <Tooltip text="Each player/participant on your team gets their own roster entry. Once added, they can compete in events and have their own sponsor QR code. You only need a first name to get started — everything else can be filled in later.">
+                <Tooltip text="Each player/participant on your team gets their own roster entry. Once added, they can compete in events and have their own supporter QR code. You only need a first name to get started — everything else can be filled in later.">
                   <a className="help-link">❓ What&apos;s a player/participant?</a>
                 </Tooltip>
               </div>

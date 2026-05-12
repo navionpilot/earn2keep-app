@@ -53,7 +53,7 @@ export interface InviteEmailOptions {
   teamSport: string | null;
   orgName: string;
   eventName: string | null;
-  eventType: "camp" | "tournament" | null;
+  eventType: "mini-camp" | "camp" | "tournament" | null;
   inviteUrl: string;
   // Slice 5.4.2: inclusive role label so emails don't always say "coach".
   // Caller passes whatever's appropriate ("coach", "youth pastor", "scout
@@ -163,7 +163,7 @@ function buildHtmlTemplate(opts: InviteEmailOptions): string {
     : `Your ${escape(inviter)} added you to <strong style="color:#ffffff;">${escape(teamName)}</strong>${teamSport ? ` (${escape(teamSport)})` : ""} at <strong style="color:#ffffff;">${escape(orgName)}</strong>.`;
 
   const eyebrow =
-    eventType === "camp"
+    (eventType === "camp" || eventType === "mini-camp")
       ? "CAMP INVITE"
       : eventType === "tournament"
       ? "TOURNAMENT INVITE"
@@ -260,7 +260,7 @@ ${escape(preheader)}
 
         <!-- Three feature rows -->
         ${renderFeatureRow("📹", "Record your challenges.", "Push-ups, free throws, drills — film it from your phone, send it in, get scored.", true)}
-        ${renderFeatureRow("💸", "Get sponsored. Keep more.", "Your sponsors back YOUR effort, not a cookie-dough catalog. Money raised stays with the team.", false)}
+        ${renderFeatureRow("💸", "Get supported. Keep more.", "Your supporters back YOUR effort, not a cookie-dough catalog. Money raised stays with the team.", false)}
         ${renderFeatureRow("🏆", "Climb the leaderboard.", "Top performers win prize gift cards. Best fundraisers earn bonus points.", false, true)}
 
         <!-- CTA button row -->
@@ -304,7 +304,7 @@ ${escape(preheader)}
 </html>`;
 }
 
-// Render one feature row. Used for the three-up "Record / Sponsored /
+// Render one feature row. Used for the three-up "Record / Supported /
 // Leaderboard" section. Top border on the first row, bottom on the last.
 function renderFeatureRow(
   emoji: string,
@@ -354,7 +354,7 @@ function buildPlainText(opts: InviteEmailOptions): string {
     : `Your ${inviter} added you to ${teamName}${teamSport ? ` (${teamSport})` : ""} at ${orgName}.`;
 
   const eyebrow =
-    eventType === "camp"
+    (eventType === "camp" || eventType === "mini-camp")
       ? "CAMP INVITE"
       : eventType === "tournament"
       ? "TOURNAMENT INVITE"
@@ -368,7 +368,7 @@ ${heroLine}
 
 What you'll do on earn²keep:
 * Record your challenges — push-ups, free throws, drills.
-* Get sponsored. Sponsors back YOUR effort, not catalogs.
+* Get supported. Supporters back YOUR effort, not catalogs.
 * Climb the leaderboard — top performers win prizes.
 
 Set up your account:

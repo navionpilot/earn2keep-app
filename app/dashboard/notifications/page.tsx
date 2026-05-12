@@ -60,7 +60,7 @@ export default async function CoachNotificationsPage() {
             <div className="profile-header-eyebrow">NOTIFICATIONS</div>
             <h1 className="profile-header-title">What&apos;s happening</h1>
             <p className="profile-header-sub">
-              New submissions to review, sponsor pledges, and event updates
+              New submissions to review, supporter pledges, and event updates
               show up here. Click any notification to jump to where it
               happened.
             </p>

@@ -10,7 +10,7 @@
 //
 //   1. Build training schedule
 //   2. Send invites to your players/participants      ← MOVED UP from step 3
-//   3. Generate sponsor QR codes         ← MOVED UP from step 4
+//   3. Generate supporter QR codes         ← MOVED UP from step 4
 //   4. Activate the event                ← MOVED DOWN from step 2
 //   5. Review submissions
 //   6. Track leaderboard
@@ -29,7 +29,7 @@ import Link from "next/link";
 interface EventGuideProps {
   eventId: string;
   eventStatus: "draft" | "active" | "completed" | string | null;
-  eventType: "camp" | "tournament" | string | null;
+  eventType: "mini-camp" | "camp" | "tournament" | string | null;
   // Schedule progress
   hasChallenges: boolean;
   // Player + invite progress
@@ -74,21 +74,21 @@ const STEPS: StepCopy[] = [
   },
   {
     num: 3,
-    title: "Generate sponsor QR codes",
+    title: "Generate supporter QR codes",
     intro:
-      "Each player/participant has a unique sponsor page with their own QR code. Print flyers, text the link to family, post on socials — these are how money gets raised.",
+      "Each player/participant has a unique supporter page with their own QR code. Print flyers, text the link to family, post on socials — these are how money gets raised.",
     detail:
-      "Sponsors scan the QR or click the link, see the player's name and event, and pledge support. Camps: sponsors back a fundraising minimum. Tournaments: registration fees are paid up front.",
-    tip: "Open the QR Codes tab to download a printable flyer per player, or copy individual sponsor links to share digitally.",
+      "Supporters scan the QR or click the link, see the player's name and event, and pledge support. Camps: supporters back a fundraising minimum. Tournaments: registration fees are paid up front.",
+    tip: "Open the QR Codes tab to download a printable flyer per player, or copy individual supporter links to share digitally.",
   },
   {
     num: 4,
     title: "Activate the event",
     intro:
-      "While your event is in Draft, players/participants can't submit anything and sponsors can't pledge. Click ▶ Activate Event in the header to flip it live.",
+      "While your event is in Draft, players/participants can't submit anything and supporters can't pledge. Click ▶ Activate Event in the header to flip it live.",
     detail:
       "You can pause an active event later if you need to (rain delay, schedule shift) — that just freezes new submissions without ending the event.",
-    tip: "Don't worry about activating too early. Sponsor pages and player tracking only \"go live\" once you flip the switch.",
+    tip: "Don't worry about activating too early. Supporter pages and player tracking only \"go live\" once you flip the switch.",
   },
   {
     num: 5,
@@ -128,7 +128,7 @@ function getCurrentStep(props: EventGuideProps): number {
   // Step 2: at least one player invite must have been sent.
   if (!props.hasInvitesSent) return 2;
 
-  // Step 3: at least one sponsor QR token must exist (proxy for "coach
+  // Step 3: at least one supporter QR token must exist (proxy for "coach
   // has opened the QR codes page at least once").
   if (!props.hasQRCodes) return 3;
 
@@ -202,7 +202,7 @@ export default function EventGuide(props: EventGuideProps) {
   const [collapsed, setCollapsed] = useState(false);
   const currentStep = getCurrentStep(props);
   const allDone = props.eventStatus === "completed";
-  const isCamp = props.eventType === "camp";
+  const isCamp = (p(rops.(eventType === "camp" || eventType === "mini-camp") || rops.eventType === "mini-camp") || props.eventType === "mini-camp");
 
   return (
     <aside

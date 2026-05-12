@@ -3,7 +3,7 @@
 import Link from "next/link";
 
 interface EventTypeCardProps {
-  variant: "camp" | "tournament";
+  variant: "mini-camp" | "camp" | "tournament";
   title: string;
   description: string;
   href: string;
@@ -40,15 +40,18 @@ export default function EventTypeCard({
   ctaLabel,
   icon,
 }: EventTypeCardProps) {
-  const fallbackIcon = variant === "camp" ? RunIcon : TrophyIcon;
+  const isCampLike = variant === "camp" || variant === "mini-camp";
+  const fallbackIcon = isCampLike ? RunIcon : TrophyIcon;
+  // Mini-Camp uses the same visual styling as Camp (cyan accents)
+  const visualVariant = isCampLike ? "camp" : variant;
   return (
-    <div className={`e2k-type-card e2k-type-${variant}`}>
-      <div className={`e2k-type-illus e2k-type-illus-${variant}`}>
+    <div className={`e2k-type-card e2k-type-${visualVariant}`}>
+      <div className={`e2k-type-illus e2k-type-illus-${visualVariant}`}>
         {icon || fallbackIcon}
       </div>
       <h3 className="e2k-type-name">{title}</h3>
       <p className="e2k-type-desc">{description}</p>
-      <Link href={href} className={`e2k-type-btn e2k-type-btn-${variant}`}>
+      <Link href={href} className={`e2k-type-btn e2k-type-btn-${visualVariant}`}>
         {ctaLabel} →
       </Link>
     </div>

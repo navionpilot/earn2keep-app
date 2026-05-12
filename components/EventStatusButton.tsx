@@ -21,7 +21,7 @@ export default function EventStatusButton({ eventId, currentStatus }: EventStatu
 
   // Generic status setter. We allow "draft" too because the Pause button
   // reverts an active event back to draft (no separate "paused" status —
-  // simpler, and draft already handles the "not visible to sponsors" semantics).
+  // simpler, and draft already handles the "not visible to supporters" semantics).
   const handleStatusChange = async (newStatus: "draft" | "active" | "completed") => {
     setLoading(true);
     const supabase = createClient();
@@ -66,7 +66,7 @@ export default function EventStatusButton({ eventId, currentStatus }: EventStatu
       );
     }
     return (
-      <Tooltip text="Activate this event so it's running and ready for sponsors. You can still edit details.">
+      <Tooltip text="Activate this event so it's running and ready for supporters. You can still edit details.">
         <button
           type="button"
           className="btn-activate"
@@ -108,7 +108,7 @@ export default function EventStatusButton({ eventId, currentStatus }: EventStatu
         <div className="status-confirm-inline">
           <span className="status-confirm-text">
             Pause this event? It will revert to Draft and stop being visible
-            to sponsors. You can re-activate any time.
+            to supporters. You can re-activate any time.
           </span>
           <button
             type="button"

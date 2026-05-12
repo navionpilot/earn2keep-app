@@ -38,7 +38,7 @@ export default function CoachWelcomeHero({ firstName }: CoachWelcomeHeroProps) {
           </span>{" "}
           — push-ups, scripture memorization, books read, miles run, whatever
           fits your group — instead of selling candy bars door-to-door.
-          Sponsors back your participants with pledged donations to your cause,
+          Supporters back your participants with pledged donations to your cause,
           and they compete for the door prizes you set by completing daily
           challenges. A modern fundraising approach your participants will
           actually enjoy.
@@ -54,7 +54,7 @@ export default function CoachWelcomeHero({ firstName }: CoachWelcomeHeroProps) {
             </li>
             <li>
               <strong>Launch a fundraiser.</strong> Pick challenges, set goals
-              and prizes, and generate sponsor QR codes that your participants
+              and prizes, and generate supporter QR codes that your participants
               hand out to friends and family.
             </li>
             <li>

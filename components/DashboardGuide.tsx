@@ -16,7 +16,7 @@
 //   PHASE B — Launch an event (per-event)
 //     4. Create event
 //     5. Send invites to players          ← NEW (was missing)
-//     6. Generate sponsor QR codes
+//     6. Generate supporter QR codes
 //     7. Activate the event
 //
 //   PHASE C — Run it
@@ -118,18 +118,18 @@ const STEPS: StepCopy[] = [
   {
     num: 6,
     phase: "launch",
-    title: "Generate sponsor QR codes",
+    title: "Generate supporter QR codes",
     intro:
       "Each player/participant gets a unique QR code. Print them, share them, or have players hand them out at school or practice.",
     detail:
-      "Sponsors (parents, family, local businesses) scan the QR, see the player's real verified work, and contribute. The code is tied to the player and the event.",
+      "Supporters (parents, family, local businesses) scan the QR, see the player's real verified work, and contribute. The code is tied to the player and the event.",
   },
   {
     num: 7,
     phase: "launch",
     title: "Activate the event",
     intro:
-      "While your event is in Draft, players can't submit anything and sponsors can't pledge. Click ▶ Activate Event in the event header to flip it live.",
+      "While your event is in Draft, players can't submit anything and supporters can't pledge. Click ▶ Activate Event in the event header to flip it live.",
     tip: "You can activate before or after sending invites — players who claim a magic link before activation just see a 'gets ready' state until the event starts.",
   },
 

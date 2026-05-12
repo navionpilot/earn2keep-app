@@ -112,7 +112,7 @@ export default async function PaymentPage({
               style={{ marginBottom: 24 }}
             >
               Your event has been saved as a draft. Pay the event fee to
-              launch and start accepting sponsors.
+              launch and start accepting supporters.
             </p>
 
             <div
@@ -171,14 +171,25 @@ export default async function PaymentPage({
                       ${formatMoney(pricing.fee)}
                     </span>
                   </div>
-                  <div className="breakdown-row">
-                    <span className="breakdown-label">
-                      Transaction &amp; hosting fee
-                    </span>
-                    <span className="breakdown-value">
-                      3.5% on funds raised
-                    </span>
-                  </div>
+                  {eventType !== "tournament" ? (
+                    <div className="breakdown-row">
+                      <span className="breakdown-label">
+                        Payment processing fee
+                      </span>
+                      <span className="breakdown-value">
+                        3.5% + $0.40 per donation
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="breakdown-row">
+                      <span className="breakdown-label">
+                        Registration processing
+                      </span>
+                      <span className="breakdown-value">
+                        Standard Stripe rate
+                      </span>
+                    </div>
+                  )}
                   <div className="breakdown-divider"></div>
                   <div className="breakdown-row breakdown-row-final">
                     <span className="breakdown-label">Due to launch</span>

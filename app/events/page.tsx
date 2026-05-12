@@ -65,7 +65,11 @@ export default async function EventsIndexPage() {
     rows.push({
       id: ev.id,
       name: ev.name,
-      event_type: (ev.event_type === "tournament" ? "tournament" : "camp"),
+      event_type: (ev.event_type === "tournament"
+        ? "tournament"
+        : ev.event_type === "mini-camp"
+        ? "mini-camp"
+        : "camp"),
       start_date: ev.start_date,
       end_date: ev.end_date,
       player_count: playersInEvent,
@@ -114,7 +118,7 @@ export default async function EventsIndexPage() {
             <p style={{ marginTop: "8px", fontSize: "13px", color: "var(--e2k-text-muted)" }}>
               An event is the actual fundraiser. You pick challenges (push-ups,
               books read, scripture memorized, whatever fits), set goals and
-              prizes, generate QR codes for sponsors to pledge with, and your
+              prizes, generate QR codes for supporters to pledge with, and your
               players go to work earning points.
             </p>
             <p style={{ marginTop: "8px", fontSize: "13px", color: "var(--e2k-text-muted)" }}>

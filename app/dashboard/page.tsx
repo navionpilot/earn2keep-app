@@ -38,7 +38,7 @@ export default async function DashboardPage() {
     .eq("owner_id", user?.id)
     .order("created_at", { ascending: false });
 
-  // Roster + event counts (real numbers; sponsorship/payment data isn't live yet)
+  // Roster + event counts (real numbers; support/payment data isn't live yet)
   const [{ count: teamCount }, { count: playerCount }, { count: eventCount }] = await Promise.all([
     supabase.from("teams").select("*", { count: "exact", head: true }).eq("owner_id", user?.id),
     supabase.from("players").select("*", { count: "exact", head: true }).eq("owner_id", user?.id),
@@ -87,7 +87,7 @@ export default async function DashboardPage() {
     const today = new Date().toISOString().slice(0, 10);
     const daysLeft = ev.end_date ? daysBetween(today, ev.end_date) : null;
 
-    // Money raised — sponsorship payments aren't shipped yet, so this is 0
+    // Money raised — support payments aren't shipped yet, so this is 0
     // for every event today. The UI handles 0 gracefully.
     const raised = 0;
     // goal_amount is per-player (goal_type is always 'per_player' from the
@@ -98,7 +98,11 @@ export default async function DashboardPage() {
     events.push({
       id: ev.id,
       name: ev.name,
-      event_type: (ev.event_type === "tournament" ? "tournament" : "camp"),
+      event_type: (ev.event_type === "tournament"
+        ? "tournament"
+        : ev.event_type === "mini-camp"
+        ? "mini-camp"
+        : "camp"),
       start_date: ev.start_date,
       end_date: ev.end_date,
       player_count: playersInEvent,
@@ -120,7 +124,7 @@ export default async function DashboardPage() {
     {
       num: "$" + totalRaised.toLocaleString("en-US"),
       label: "Total Raised",
-      trend: totalRaised > 0 ? "Across all events" : "Sponsorships ship in Phase 5",
+      trend: totalRaised > 0 ? "Across all events" : "Donations ship in Phase 5",
       trendTone: totalRaised > 0 ? "positive" : "neutral",
     },
     {

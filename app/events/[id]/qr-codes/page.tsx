@@ -6,20 +6,20 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 import LogoutButton from "@/components/LogoutButton";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
-import SponsorPdfButton from "@/components/SponsorPdfButton";
+import SupporterPdfButton from "@/components/SupporterPdfButton";
 import AppShell from "@/components/AppShell";
 import {
   ensureTokensForEvent,
   publicDisplayName,
-  sponsorUrlFromToken,
+  supporterUrlFromToken,
   type PlayerForToken,
-  type SponsorTokenRow,
-} from "@/lib/sponsorTokens";
+  type SupporterTokenRow,
+} from "@/lib/supporterTokens";
 import {
-  generateSponsorFlyerPDF,
+  generateSupporterFlyerPDF,
   type FlyerCard,
   type FlyerEventContext,
-} from "@/lib/sponsorFlyerPdf";
+} from "@/lib/supporterFlyerPdf";
 
 type EventInfo = {
   id: string;
@@ -33,13 +33,13 @@ type EventInfo = {
   organization_name: string;
 };
 
-export default function SponsorQrCodesPage() {
+export default function SupporterQrCodesPage() {
   const params = useParams();
   const eventId = params.id as string;
 
   const [event, setEvent] = useState<EventInfo | null>(null);
   const [players, setPlayers] = useState<PlayerForToken[]>([]);
-  const [tokens, setTokens] = useState<SponsorTokenRow[]>([]);
+  const [tokens, setTokens] = useState<SupporterTokenRow[]>([]);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -117,7 +117,7 @@ export default function SponsorQrCodesPage() {
 
   // Group players (and their tokens) by team for cleaner display
   const playersByTeam = useMemo(() => {
-    const tokenByPlayerId = new Map<string, SponsorTokenRow>();
+    const tokenByPlayerId = new Map<string, SupporterTokenRow>();
     tokens.forEach((t) => tokenByPlayerId.set(t.player_id, t));
 
     const groups: Record<string, {
@@ -125,7 +125,7 @@ export default function SponsorQrCodesPage() {
       teamName: string;
       teamSport: string | null;
       teamAgeGroup: string | null;
-      players: { player: PlayerForToken; token: SponsorTokenRow }[];
+      players: { player: PlayerForToken; token: SupporterTokenRow }[];
     }> = {};
 
     players.forEach((p) => {
@@ -151,7 +151,7 @@ export default function SponsorQrCodesPage() {
     if (!event) return null;
     return {
       eventName: event.name,
-      eventType: event.event_type === "camp" ? "camp" : "tournament",
+      eventType: (event.event_type === "camp" || event.event_type === "mini-camp") ? "camp" : "tournament",
       organizationName: event.organization_name,
       goalAmount: Number(event.goal_amount || 0),
       eventStartDate: event.start_date,
@@ -162,14 +162,14 @@ export default function SponsorQrCodesPage() {
   // Convert one player+token to a FlyerCard
   const buildFlyerCard = (
     player: PlayerForToken,
-    token: SponsorTokenRow,
+    token: SupporterTokenRow,
     teamName: string,
     teamSport: string | null,
     teamAgeGroup: string | null
   ): FlyerCard => ({
     publicLabel: publicDisplayName(player.first_name, player.last_name),
     privateLabel: `${player.first_name} ${player.last_name || ""}`.trim(),
-    url: sponsorUrlFromToken(token.token),
+    url: supporterUrlFromToken(token.token),
     teamName,
     teamSport,
     teamAgeGroup,
@@ -187,7 +187,7 @@ export default function SponsorQrCodesPage() {
   // Per-player flyer downloader
   const downloadOneFlyer = async (
     player: PlayerForToken,
-    token: SponsorTokenRow,
+    token: SupporterTokenRow,
     group: { teamName: string; teamSport: string | null; teamAgeGroup: string | null }
   ) => {
     if (!eventContext) return;
@@ -199,7 +199,7 @@ export default function SponsorQrCodesPage() {
       group.teamAgeGroup
     );
     try {
-      await generateSponsorFlyerPDF([card], eventContext);
+      await generateSupporterFlyerPDF([card], eventContext);
     } catch (err: any) {
       setError(err?.message || "Failed to build flyer.");
     }
@@ -211,7 +211,7 @@ export default function SponsorQrCodesPage() {
         <main className="form-page-main">
           <div className="form-card">
             <p style={{ textAlign: "center", color: "var(--color-text-muted)" }}>
-              Loading sponsor QR codes…
+              Loading supporter QR codes…
             </p>
           </div>
         </main>
@@ -237,7 +237,7 @@ export default function SponsorQrCodesPage() {
     );
   }
 
-  const isCamp = event.event_type === "camp";
+  const isCamp = (event.event_type === "camp" || event.event_type === "mini-camp");
   const totalPlayers = playersByTeam.reduce((sum, g) => sum + g.players.length, 0);
 
   return (
@@ -251,22 +251,22 @@ export default function SponsorQrCodesPage() {
             <span className="breadcrumb-sep">›</span>
             <Link href={`/events/${eventId}`} className="breadcrumb-link">{event.name}</Link>
             <span className="breadcrumb-sep">›</span>
-            <span className="breadcrumb-current">Sponsor QR Codes</span>
+            <span className="breadcrumb-current">Supporter QR Codes</span>
           </div>
 
           <div className="schedule-header">
             <div>
-              <h1 className="dashboard-welcome">Sponsor QR Codes</h1>
+              <h1 className="dashboard-welcome">Supporter QR Codes</h1>
               <p className="dashboard-subtitle">
                 {totalPlayers === 0 ? (
                   <>No active players on this event yet. Add players to a participating team and they'll show up here.</>
                 ) : (
                   <>
-                    Each player has their own scannable code linking to a public sponsor page.
+                    Each player has their own scannable code linking to a public supporter page.
                     {isCamp ? (
-                      <> Sponsors back the player's <strong>${formatMoney(event.goal_amount)} fundraising minimum</strong>.</>
+                      <> Supporters back the player's <strong>${formatMoney(event.goal_amount)} fundraising minimum</strong>.</>
                     ) : (
-                      <> Sponsors cover the player's <strong>${formatMoney(event.goal_amount)} registration fee</strong>.</>
+                      <> Supporters cover the player's <strong>${formatMoney(event.goal_amount)} registration fee</strong>.</>
                     )}{" "}
                     Hand out flyers, text them, post them — whatever works.
                   </>
@@ -278,12 +278,12 @@ export default function SponsorQrCodesPage() {
           {error && <div className="alert alert-error" style={{ marginBottom: "16px" }}>{error}</div>}
 
           <div className="alert alert-info" style={{ marginBottom: "20px" }}>
-            <strong>Heads up — payments aren't live yet.</strong> Sponsors who scan see a clean page with the goal/fee, but the <em>Sponsor This Player</em> button shows a "Coming soon" message for now. Stripe integration arrives in Phase 5/10 — this slice gets the funnel ready so organizers can start sharing.
+            <strong>Heads up — payments aren't live yet.</strong> Supporters who scan see a clean page with the goal/fee, but the <em>Supporter This Player</em> button shows a "Coming soon" message for now. Stripe integration arrives in Phase 5/10 — this slice gets the funnel ready so organizers can start sharing.
           </div>
 
           {totalPlayers > 0 && eventContext && (
             <div className="qr-toolbar">
-              <SponsorPdfButton
+              <SupporterPdfButton
                 cards={allFlyerCards}
                 eventContext={eventContext}
               />
@@ -318,7 +318,7 @@ export default function SponsorQrCodesPage() {
 
                   <div className="qr-grid">
                     {group.players.map(({ player, token }) => {
-                      const url = sponsorUrlFromToken(token.token);
+                      const url = supporterUrlFromToken(token.token);
                       const publicLabel = publicDisplayName(player.first_name, player.last_name);
                       const privateLabel = `${player.first_name} ${player.last_name || ""}`.trim();
                       return (

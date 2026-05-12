@@ -84,7 +84,7 @@ export default function PlayerProfileForm(props: Props) {
         return;
       }
       setToast({ kind: "ok", msg: "✓ Profile saved" });
-      // Re-render server components so PlayerTopBar / sponsor card see
+      // Re-render server components so PlayerTopBar / supporter card see
       // the new avatar/pronouns immediately on next nav.
       router.refresh();
       setTimeout(() => setToast(null), 2200);
@@ -109,7 +109,7 @@ export default function PlayerProfileForm(props: Props) {
         <h2 className="profile-section-title">Profile photo</h2>
         <p className="profile-section-help">
           Your photo shows up in the top bar, on the leaderboard, and on
-          your sponsor page. Square works best.
+          your supporter page. Square works best.
         </p>
         <PlayerAvatarUpload
           playerId={props.playerId}
@@ -126,7 +126,7 @@ export default function PlayerProfileForm(props: Props) {
       <section className="profile-section">
         <h2 className="profile-section-title">Pronouns</h2>
         <p className="profile-section-help">
-          Optional. Shown next to your name on your home page and sponsor
+          Optional. Shown next to your name on your home page and supporter
           page. Examples: he/him, she/her, they/them.
         </p>
         <div className="profile-input-row">
@@ -150,7 +150,7 @@ export default function PlayerProfileForm(props: Props) {
       <section className="profile-section">
         <h2 className="profile-section-title">Short bio</h2>
         <p className="profile-section-help">
-          Tell sponsors a little about yourself — what sport you play, what
+          Tell supporters a little about yourself — what sport you play, what
           you&apos;re training for, why this event matters to you.
           (Up to {BIO_MAX} characters.)
         </p>

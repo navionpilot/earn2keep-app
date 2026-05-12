@@ -51,7 +51,7 @@ export default async function QrCodesIndexPage() {
         <div>
           <h1 className="e2k-page-title">QR Codes</h1>
           <p className="e2k-page-sub">
-            Generate, print, and share player QR codes. Sponsors scan them to
+            Generate, print, and share player QR codes. Supporters scan them to
             see verified work and contribute toward player goals.
           </p>
         </div>
@@ -91,7 +91,7 @@ export default async function QrCodesIndexPage() {
                       className="e2k-qr-card"
                     >
                       <div className={`e2k-qr-card-tag e2k-qr-card-tag-${ev.event_type === "tournament" ? "tournament" : "camp"}`}>
-                        {ev.event_type === "tournament" ? "TOURNAMENT" : "CAMP"}
+                        {ev.event_type === "tournament" ? "TOURNAMENT" : ev.event_type === "mini-camp" ? "MINI-CAMP" : "CAMP"}
                       </div>
                       <div className="e2k-qr-card-name">{ev.name}</div>
                       <div className="e2k-qr-card-meta">
@@ -127,7 +127,7 @@ export default async function QrCodesIndexPage() {
                       className="e2k-qr-card e2k-qr-card-done"
                     >
                       <div className={`e2k-qr-card-tag e2k-qr-card-tag-${ev.event_type === "tournament" ? "tournament" : "camp"}`}>
-                        {ev.event_type === "tournament" ? "TOURNAMENT" : "CAMP"}
+                        {ev.event_type === "tournament" ? "TOURNAMENT" : ev.event_type === "mini-camp" ? "MINI-CAMP" : "CAMP"}
                       </div>
                       <div className="e2k-qr-card-name">{ev.name}</div>
                       <div className="e2k-qr-card-meta">

@@ -70,7 +70,7 @@ export default async function SetupGuidePage() {
         <span className="e2k-guide-eyebrow">★ Setup Playbook ★</span>
         <h1 className="e2k-guide-title">Your earn²keep playbook</h1>
         <p className="e2k-guide-sub">
-          Pick Camp or Tournament, then walk through every step from setup to
+          Pick Mini-Camp, Camp, or Tournament, then walk through every step from setup to
           launch. Most coaches finish setup in under 30 minutes.
         </p>
       </div>
@@ -93,7 +93,7 @@ export default async function SetupGuidePage() {
             <div className="e2k-compare-label">Money model</div>
             <div className="e2k-compare-value">Per-person fundraising goal</div>
             <div className="e2k-compare-detail">
-              Each participant has a personal $X minimum. Sponsors fund their effort.
+              Each participant has a personal $X minimum. Supporters fund their effort.
               Anything raised over the minimum becomes bonus points + extra prize money.
             </div>
           </div>
@@ -140,7 +140,7 @@ export default async function SetupGuidePage() {
             <div className="e2k-compare-label">Money model</div>
             <div className="e2k-compare-value">Flat registration fee per person</div>
             <div className="e2k-compare-detail">
-              Sponsors pay a flat entry fee per participant. Teams compete on
+              Supporters pay a flat entry fee per participant. Teams compete on
               points over the season. Top teams win the prize pot, organization
               keeps the rest.
             </div>
@@ -301,7 +301,7 @@ export default async function SetupGuidePage() {
               </p>
               <div className="e2k-walk-tip">
                 <strong>Recommended:</strong> 4–6 weeks. Shorter than 4 weeks
-                rushes the group and limits sponsor reach. Longer than 6 weeks
+                rushes the group and limits supporter reach. Longer than 6 weeks
                 loses momentum.
               </div>
             </div>
@@ -376,7 +376,7 @@ export default async function SetupGuidePage() {
                 Once the event is created, open <strong>QR Codes</strong> from
                 the event page. Each participant gets a unique QR — print,
                 share, or download. Participants hand them to family, friends,
-                and local sponsors. Sponsors scan, see the real verified
+                and local supporters. Supporters scan, see the real verified
                 effort, and contribute. You&apos;re live.
               </p>
             </div>
@@ -443,7 +443,7 @@ export default async function SetupGuidePage() {
               <h4 className="e2k-walk-title">Set the registration fee per person</h4>
               <p className="e2k-walk-text">
                 This is a <strong>flat fee per participant</strong>, paid by
-                their sponsor when they scan the QR code. Common: $25, $50,
+                their supporter when they scan the QR code. Common: $25, $50,
                 $100. The total tournament pot equals: registration fee ×
                 participants entered.
               </p>
@@ -484,7 +484,7 @@ export default async function SetupGuidePage() {
             <div>
               <h4 className="e2k-walk-title">Generate QR codes &amp; launch</h4>
               <p className="e2k-walk-text">
-                Each participant still gets a personal QR for sponsors to scan.
+                Each participant still gets a personal QR for supporters to scan.
                 The difference: each scan adds the registration fee to the pot
                 rather than progressing toward an individual minimum.
               </p>
@@ -524,7 +524,7 @@ export default async function SetupGuidePage() {
             don&apos;t get bonus points/prizes.
             <br /><br />
             Tournament: registration fees are paid up front per participant,
-            so the pot is the pot. The competition still runs whether sponsors
+            so the pot is the pot. The competition still runs whether supporters
             fund 5 participants or 50.
           </p>
         </div>
@@ -538,7 +538,7 @@ export default async function SetupGuidePage() {
             submissions automatically; you step in only for anything AI
             can&apos;t confirm. Participants also see their progress on the
             leaderboard, get notifications when you review a submission, and
-            can share their sponsor QR code from inside the app.
+            can share their supporter QR code from inside the app.
           </p>
         </div>
 
@@ -559,7 +559,7 @@ export default async function SetupGuidePage() {
         <div className="help-faq">
           <h4 className="help-faq-q">When does payment processing go live?</h4>
           <p className="help-faq-a">
-            Sponsor payments are coming soon. Right now you can run the entire
+            Supporter payments are coming soon. Right now you can run the entire
             flow — set up everything, generate QR codes, track participant
             progress, run challenges — and payments will be live before your
             first real fundraiser launches.

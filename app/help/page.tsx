@@ -69,7 +69,7 @@ export default async function HelpPage() {
               4–6 week Camp or Tournament. Each week, they complete real
               challenges (push-ups, free throws, Bible verses, service hours
               — whatever fits your group). Their family, friends, and local
-              businesses sponsor them by scanning a QR code. The organization
+              businesses supporter them by scanning a QR code. The organization
               keeps what they earn.
             </p>
             <p className="help-paragraph">
@@ -137,10 +137,10 @@ export default async function HelpPage() {
             <div className="help-step">
               <div className="help-step-num">5</div>
               <div>
-                <h3 className="help-step-title">Generate sponsor QR codes</h3>
+                <h3 className="help-step-title">Generate supporter QR codes</h3>
                 <p className="help-step-text">
                   Each player/participant gets a unique QR code. They share
-                  it with family, friends, and local businesses. Sponsors
+                  it with family, friends, and local businesses. Supporters
                   scan, see the real effort and progress, and contribute.
                   Your organization keeps what&apos;s raised.
                 </p>
@@ -164,9 +164,9 @@ export default async function HelpPage() {
             </div>
 
             <div className="help-faq">
-              <h4 className="help-faq-q">How does sponsorship work?</h4>
+              <h4 className="help-faq-q">How does support work?</h4>
               <p className="help-faq-a">
-                Each participant gets a personalized QR code. They share it with their network. Sponsors scan, see the participant&apos;s progress, and contribute. Sponsorships are processed securely and the funds go to your organization at the end of the season.
+                Each participant gets a personalized QR code. They share it with their network. Supporters scan, see the participant&apos;s progress, and contribute. Donations are processed securely and the funds go to your organization at the end of the season.
               </p>
             </div>
 

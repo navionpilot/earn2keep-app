@@ -22,7 +22,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "earn²keep — Earn it. Keep it.",
   description:
-    "Youth fundraising challenges, sponsorships, and team competitions. Earn it. Keep it.",
+    "Youth fundraising challenges, donations, and team competitions. Earn it. Keep it.",
   applicationName: "earn²keep",
   manifest: "/manifest.json",
   appleWebApp: {

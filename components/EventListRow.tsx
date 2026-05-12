@@ -5,7 +5,7 @@ import Link from "next/link";
 export interface EventListItem {
   id: string;
   name: string;
-  event_type: "camp" | "tournament";
+  event_type: "mini-camp" | "camp" | "tournament";
   start_date: string | null; // ISO date
   end_date: string | null;
   player_count: number;
@@ -68,6 +68,13 @@ function formatMoney(n: number): string {
 
 export default function EventListRow({ event }: EventListRowProps) {
   const variant = event.event_type;
+  // For visual styling, mini-camp uses the same colors/icons as camp (they're
+  // behaviorally identical; only the launch price differs). The pill label
+  // still says "Mini-Camp" though.
+  const visualVariant: "camp" | "tournament" =
+    variant === "tournament" ? "tournament" : "camp";
+  const pillLabel =
+    variant === "mini-camp" ? "Mini-Camp" : variant;
   const goal = event.amount_goal || 0;
   const pct = goal > 0
     ? Math.min(100, Math.max(0, Math.round((event.amount_raised / goal) * 100)))
@@ -85,12 +92,12 @@ export default function EventListRow({ event }: EventListRowProps) {
 
   return (
     <Link href={`/events/${event.id}`} className="e2k-event-row">
-      <div className={`e2k-event-thumb e2k-event-thumb-${variant}`}>
-        {variant === "camp" ? RunIcon : TrophyIcon}
+      <div className={`e2k-event-thumb e2k-event-thumb-${visualVariant}`}>
+        {visualVariant === "camp" ? RunIcon : TrophyIcon}
       </div>
       <div className="e2k-event-body">
-        <span className={`e2k-event-pill e2k-event-pill-${variant}`}>
-          {variant}
+        <span className={`e2k-event-pill e2k-event-pill-${visualVariant}`}>
+          {pillLabel}
         </span>
         <p className="e2k-event-name">{event.name}</p>
         <p className="e2k-event-dates">{formatDateRange(event.start_date, event.end_date)}</p>
@@ -100,7 +107,7 @@ export default function EventListRow({ event }: EventListRowProps) {
         </div>
         <div className="e2k-event-bar">
           <div
-            className={`e2k-event-bar-fill e2k-event-bar-fill-${variant}`}
+            className={`e2k-event-bar-fill e2k-event-bar-fill-${visualVariant}`}
             style={{ width: `${pct}%` }}
           />
         </div>

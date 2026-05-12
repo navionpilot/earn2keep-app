@@ -1,7 +1,7 @@
 {
   "name": "earn²keep",
   "short_name": "earn²keep",
-  "description": "Earn it. Keep it. — Youth fundraising challenges, sponsorships, and team competitions.",
+  "description": "Earn it. Keep it. — Youth fundraising challenges, donations, and team competitions.",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",

@@ -70,7 +70,7 @@ export default function NewOrganizationPage() {
             <div>
               <label htmlFor="name" className="form-label">
                 Organization name <span className="required">*</span>
-                <Tooltip text="The official name of your school, club, church, troop, or gym. This is what sponsors and players will see.">
+                <Tooltip text="The official name of your school, club, church, troop, or gym. This is what supporters and players will see.">
                   <span className="help-icon">?</span>
                 </Tooltip>
               </label>
@@ -142,7 +142,7 @@ export default function NewOrganizationPage() {
               </div>
             </div>
             <p className="form-hint">
-              Optional, but useful for matching you with local sponsors later.
+              Optional, but useful for matching you with local supporters later.
             </p>
 
             <div>

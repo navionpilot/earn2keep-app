@@ -24,7 +24,7 @@ export function generateInviteToken(): string {
 /**
  * Build the public invite URL for a given token.
  *
- * Mirrors lib/sponsorTokens.ts:sponsorUrlFromToken — uses window.location.origin
+ * Mirrors lib/supporterTokens.ts:supporterUrlFromToken — uses window.location.origin
  * client-side so production + Vercel preview deploys both work without an
  * env var. Server-side returns a relative path (only used as a fallback;
  * the modal that displays invite URLs always runs in the browser).

@@ -10,7 +10,7 @@
 // PlayerStats object and returns true when the badge is unlocked.
 //
 // Future hardening (when payments + streaks ship):
-//   - Add `donations_received` to PlayerStats and unlock sponsor badges
+//   - Add `donations_received` to PlayerStats and unlock supporter badges
 //   - Add `current_streak` + `longest_streak` and unlock streak badges
 //   - Persist earned-at timestamps to a player_badges table so the
 //     UI can show "Earned 3 days ago"

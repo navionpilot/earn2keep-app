@@ -10,14 +10,14 @@
 //   2. Player has a record but no active     -> Show "no event yet" state
 //      event for their team
 //   3. Player has an active event            -> Full home: greeting, today's
-//                                              challenges, sponsor link
+//                                              challenges, supporter link
 //
 // Data we pull:
 //   - The player record linked to auth.uid
 //   - Their team + org
 //   - Most relevant event for the team (active beats draft beats completed)
 //   - event_challenges for today's day_index
-//   - The player's sponsor_token for that event (may not exist yet — coach
+//   - The player's supporter_token for that event (may not exist yet — coach
 //     has to open the QR Codes page once to lazy-create them)
 // =============================================================================
 
@@ -27,7 +27,7 @@ import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import PlayerTopBar from "@/components/PlayerTopBar";
 import { getUnreadNotificationCount } from "@/lib/notifications";
-import PlayerSponsorCard from "@/components/PlayerSponsorCard";
+import PlayerSupporterCard from "@/components/PlayerSupporterCard";
 import InstallAppPanel from "@/components/InstallAppPanel";
 import {
   pointsEarnedForSubmission,
@@ -66,7 +66,7 @@ interface TeamShape {
 interface EventRow {
   id: string;
   name: string;
-  event_type: "camp" | "tournament" | string | null;
+  event_type: "mini-camp" | "camp" | "tournament" | string | null;
   status: "draft" | "active" | "completed" | string | null;
   start_date: string | null;
   end_date: string | null;
@@ -486,7 +486,7 @@ export default async function PlayerHomePage({
             <h2 className="player-home-empty-title">No event yet</h2>
             <p className="player-home-empty-text">
               Your team isn&apos;t competing in an event right now. When your
-              coach activates one, today&apos;s challenges and your sponsor
+              coach activates one, today&apos;s challenges and your supporter
               link will show up here.
             </p>
             <p className="player-home-empty-hint">
@@ -639,7 +639,7 @@ export default async function PlayerHomePage({
     progressPercent = 100;
   }
 
-  // Pull this player's sponsor token for this event. May not exist yet —
+  // Pull this player's supporter token for this event. May not exist yet —
   // gets lazy-created when the coach opens the QR codes page.
   const { data: tokenRow } = await supabase
     .from("sponsor_tokens")
@@ -693,7 +693,7 @@ export default async function PlayerHomePage({
   // payments slice), so amount_raised is currently always 0. The bar
   // renders anyway as a clear visual placeholder so players see what's
   // coming — when payments wire up, just swap the 0 for a real query.
-  const isCamp = event.event_type === "camp";
+  const isCamp = (event.event_type === "camp" || event.event_type === "mini-camp");
   const fundGoal = Number(event.goal_amount) || 0;
   const fundRaised = 0; // TODO Phase 6: SUM of donations linked to this player+event
   const fundPct =
@@ -905,7 +905,7 @@ export default async function PlayerHomePage({
                   <span>
                     SHARE YOUR{" "}
                     <a
-                      href="#sponsor"
+                      href="#supporter"
                       className="player-home-fund-share-link"
                     >
                       SPONSOR PAGE ↓
@@ -1244,17 +1244,17 @@ export default async function PlayerHomePage({
           </section>
         )}
 
-        {/* Sponsor link */}
-        <section className="player-home-section" id="sponsor">
+        {/* Supporter link */}
+        <section className="player-home-section" id="supporter">
           <div className="player-home-section-head">
             <span className="player-home-section-eyebrow">
               <span className="player-home-hero-prompt">&gt;</span> MY SPONSOR PAGE
             </span>
-            <h2 className="player-home-section-title">Get sponsored 💸</h2>
+            <h2 className="player-home-section-title">Get supported 💸</h2>
           </div>
 
           {tokenRow?.token ? (
-            <PlayerSponsorCard
+            <PlayerSupporterCard
               token={tokenRow.token}
               playerFirstName={player.first_name}
               playerLastName={player.last_name}
@@ -1277,7 +1277,7 @@ export default async function PlayerHomePage({
           ) : (
             <div className="player-home-card">
               <p className="player-home-card-text">
-                Your personal sponsor link will appear here once your coach
+                Your personal supporter link will appear here once your coach
                 generates QR codes for the event. They just need to open the
                 QR Codes page once — that creates a code for every player
                 automatically.
@@ -1297,10 +1297,10 @@ export default async function PlayerHomePage({
 }
 
 // -----------------------------------------------------------------------------
-// Note: the previous in-file SponsorLinkCard helper was deleted in 5.4.2.
-// Player sponsor display now lives in components/PlayerSponsorCard.tsx —
+// Note: the previous in-file SupporterLinkCard helper was deleted in 5.4.2.
+// Player supporter display now lives in components/PlayerSupporterCard.tsx —
 // a real client component with QR code, native share, and PDF flyer
-// download. Reused the same lib/sponsorFlyerPdf.ts the coach uses.
+// download. Reused the same lib/supporterFlyerPdf.ts the coach uses.
 // -----------------------------------------------------------------------------
 
 // Small "March 15" formatter used in the upcoming-event copy.

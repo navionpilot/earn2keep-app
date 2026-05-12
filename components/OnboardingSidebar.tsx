@@ -83,14 +83,14 @@ export default function OnboardingSidebar({
     {
       number: 4,
       title: "Create Event",
-      description: "Camp or Tournament",
+      description: "Mini-Camp, Camp, or Tournament",
       isComplete: hasEvent,
       isCurrent: currentStep === 4,
     },
     {
       number: 5,
       title: "Generate QR Codes",
-      description: "Share with sponsors",
+      description: "Share with supporters",
       isComplete: hasQRCodes,
       isCurrent: currentStep === 5,
     },

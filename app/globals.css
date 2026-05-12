@@ -5815,7 +5815,7 @@ a:hover {
 
 
 /* ============================================================
-   Slice 4.6 — Sponsor QR Codes (coach UI + public sponsor page)
+   Slice 4.6 — Supporter QR Codes (coach UI + public supporter page)
    ============================================================ */
 
 
@@ -5849,7 +5849,7 @@ a:hover {
   font-weight: 600;
 }
 
-.sponsor-pdf-btn-wrap {
+.supporter-pdf-btn-wrap {
   display: flex;
   flex-direction: column;
 }
@@ -5975,22 +5975,22 @@ a:hover {
 
 
 /* ============================================================
-   Public sponsor landing page
+   Public supporter landing page
    ============================================================ */
 
-.sponsor-page {
+.supporter-page {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, #F0F6FF 0%, #FFFFFF 360px);
 }
 
-.sponsor-header {
+.supporter-header {
   background: #fff;
   border-bottom: 1px solid var(--color-border);
 }
 
-.sponsor-header-inner {
+.supporter-header-inner {
   max-width: 720px;
   margin: 0 auto;
   padding: 14px 20px;
@@ -5999,7 +5999,7 @@ a:hover {
   justify-content: center;
 }
 
-.sponsor-logo {
+.supporter-logo {
   font-family: var(--font-display);
   font-weight: 900;
   font-size: 20px;
@@ -6007,7 +6007,7 @@ a:hover {
   letter-spacing: -0.3px;
 }
 
-.sponsor-main {
+.supporter-main {
   flex: 1;
   width: 100%;
   max-width: 720px;
@@ -6018,7 +6018,7 @@ a:hover {
   gap: 24px;
 }
 
-.sponsor-card {
+.supporter-card {
   background: #fff;
   border-radius: 18px;
   padding: 28px 24px;
@@ -6026,11 +6026,11 @@ a:hover {
   border: 1px solid var(--color-border);
 }
 
-.sponsor-card-not-found {
+.supporter-card-not-found {
   text-align: center;
 }
 
-.sponsor-eyebrow {
+.supporter-eyebrow {
   font-family: var(--font-display);
   font-size: 11px;
   font-weight: 800;
@@ -6040,7 +6040,7 @@ a:hover {
   margin-bottom: 12px;
 }
 
-.sponsor-headline {
+.supporter-headline {
   font-family: var(--font-display);
   font-size: 28px;
   font-weight: 900;
@@ -6051,11 +6051,11 @@ a:hover {
   line-height: 1.15;
 }
 
-.sponsor-name {
+.supporter-name {
   color: var(--color-blue);
 }
 
-.sponsor-subhead {
+.supporter-subhead {
   font-size: 15px;
   color: var(--color-text);
   text-align: center;
@@ -6063,7 +6063,7 @@ a:hover {
   line-height: 1.5;
 }
 
-.sponsor-event-strip {
+.supporter-event-strip {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
@@ -6073,11 +6073,11 @@ a:hover {
   margin-bottom: 22px;
 }
 
-.sponsor-event-block {
+.supporter-event-block {
   text-align: center;
 }
 
-.sponsor-event-label {
+.supporter-event-label {
   font-size: 10px;
   font-weight: 700;
   color: var(--color-text-muted);
@@ -6086,20 +6086,20 @@ a:hover {
   margin-bottom: 4px;
 }
 
-.sponsor-event-value {
+.supporter-event-value {
   font-size: 13px;
   font-weight: 700;
   color: var(--color-text);
   line-height: 1.3;
 }
 
-.sponsor-event-amount {
+.supporter-event-amount {
   color: var(--color-blue);
   font-size: 18px;
   font-family: var(--font-display);
 }
 
-.sponsor-pitch {
+.supporter-pitch {
   background: #FFFAF0;
   border-left: 4px solid var(--color-gold);
   border-radius: var(--radius);
@@ -6107,18 +6107,18 @@ a:hover {
   margin-bottom: 22px;
 }
 
-.sponsor-pitch p {
+.supporter-pitch p {
   font-size: 14px;
   color: var(--color-text);
   margin: 0 0 8px;
   line-height: 1.5;
 }
 
-.sponsor-pitch p:last-child {
+.supporter-pitch p:last-child {
   margin-bottom: 0;
 }
 
-.sponsor-pitch-mantra {
+.supporter-pitch-mantra {
   font-family: var(--font-display);
   font-style: italic;
   font-weight: 700;
@@ -6129,16 +6129,16 @@ a:hover {
 }
 
 
-/* ---- Sponsor CTA button ---- */
+/* ---- Supporter CTA button ---- */
 
-.sponsor-cta-wrap {
+.supporter-cta-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-bottom: 20px;
 }
 
-.sponsor-cta-btn {
+.supporter-cta-btn {
   background: var(--color-blue);
   color: #fff;
   font-family: var(--font-display);
@@ -6156,17 +6156,17 @@ a:hover {
   text-align: center;
 }
 
-.sponsor-cta-btn:hover {
+.supporter-cta-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
   background: #1E50C9;
 }
 
-.sponsor-cta-btn:active {
+.supporter-cta-btn:active {
   transform: translateY(0);
 }
 
-.sponsor-cta-hint {
+.supporter-cta-hint {
   font-size: 11px;
   color: var(--color-text-muted);
   font-style: italic;
@@ -6174,9 +6174,9 @@ a:hover {
 }
 
 
-/* ---- Sponsor trust row + explainer ---- */
+/* ---- Supporter trust row + explainer ---- */
 
-.sponsor-trust-row {
+.supporter-trust-row {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -6185,18 +6185,18 @@ a:hover {
   padding-top: 16px;
 }
 
-.sponsor-trust-item {
+.supporter-trust-item {
   font-size: 11px;
   color: var(--color-text-muted);
   font-weight: 600;
 }
 
-.sponsor-explainer {
+.supporter-explainer {
   text-align: center;
   padding: 20px 18px;
 }
 
-.sponsor-explainer-title {
+.supporter-explainer-title {
   font-family: var(--font-display);
   font-weight: 800;
   font-size: 18px;
@@ -6205,33 +6205,33 @@ a:hover {
   letter-spacing: -0.3px;
 }
 
-.sponsor-explainer p {
+.supporter-explainer p {
   font-size: 14px;
   color: var(--color-text-muted);
   line-height: 1.6;
   margin: 0 0 8px;
 }
 
-.sponsor-explainer-link {
+.supporter-explainer-link {
   color: var(--color-blue);
   font-weight: 700;
   text-decoration: none;
 }
 
-.sponsor-explainer-link:hover {
+.supporter-explainer-link:hover {
   text-decoration: underline;
 }
 
 
-/* ---- Sponsor footer ---- */
+/* ---- Supporter footer ---- */
 
-.sponsor-footer {
+.supporter-footer {
   background: #fff;
   border-top: 1px solid var(--color-border);
   padding: 16px 20px;
 }
 
-.sponsor-footer-inner {
+.supporter-footer-inner {
   max-width: 720px;
   margin: 0 auto;
   display: flex;
@@ -6241,20 +6241,20 @@ a:hover {
   color: var(--color-text-muted);
 }
 
-.sponsor-footer-link {
+.supporter-footer-link {
   color: var(--color-blue);
   text-decoration: none;
   font-weight: 600;
 }
 
-.sponsor-footer-link:hover {
+.supporter-footer-link:hover {
   text-decoration: underline;
 }
 
 
-/* ---- "Coming soon" modal on sponsor page ---- */
+/* ---- "Coming soon" modal on supporter page ---- */
 
-.sponsor-modal-overlay {
+.supporter-modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.55);
@@ -6263,10 +6263,10 @@ a:hover {
   justify-content: center;
   z-index: 999;
   padding: 16px;
-  animation: sponsor-fade-in 150ms ease;
+  animation: supporter-fade-in 150ms ease;
 }
 
-.sponsor-modal-card {
+.supporter-modal-card {
   position: relative;
   max-width: 460px;
   width: 100%;
@@ -6275,10 +6275,10 @@ a:hover {
   padding: 28px 24px 22px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
   text-align: center;
-  animation: sponsor-pop 200ms ease;
+  animation: supporter-pop 200ms ease;
 }
 
-.sponsor-modal-close {
+.supporter-modal-close {
   position: absolute;
   top: 10px;
   right: 14px;
@@ -6291,11 +6291,11 @@ a:hover {
   padding: 4px 8px;
 }
 
-.sponsor-modal-close:hover {
+.supporter-modal-close:hover {
   color: var(--color-text);
 }
 
-.sponsor-modal-eyebrow {
+.supporter-modal-eyebrow {
   font-family: var(--font-display);
   font-size: 11px;
   font-weight: 800;
@@ -6304,7 +6304,7 @@ a:hover {
   margin-bottom: 8px;
 }
 
-.sponsor-modal-title {
+.supporter-modal-title {
   font-family: var(--font-display);
   font-size: 22px;
   font-weight: 800;
@@ -6313,18 +6313,18 @@ a:hover {
   letter-spacing: -0.4px;
 }
 
-.sponsor-modal-text {
+.supporter-modal-text {
   font-size: 14px;
   color: var(--color-text);
   line-height: 1.55;
   margin: 0 0 12px;
 }
 
-.sponsor-modal-text:last-of-type {
+.supporter-modal-text:last-of-type {
   margin-bottom: 18px;
 }
 
-.sponsor-modal-ok-btn {
+.supporter-modal-ok-btn {
   background: var(--color-blue);
   color: #fff;
   border: none;
@@ -6336,14 +6336,14 @@ a:hover {
   font-family: var(--font-display);
 }
 
-.sponsor-modal-ok-btn:hover {
+.supporter-modal-ok-btn:hover {
   background: #1E50C9;
 }
 
 
-/* ---- Not-found sponsor variant ---- */
+/* ---- Not-found supporter variant ---- */
 
-.sponsor-not-found-actions {
+.supporter-not-found-actions {
   display: flex;
   justify-content: center;
   margin-top: 20px;
@@ -6352,12 +6352,12 @@ a:hover {
 
 /* ---- Animations ---- */
 
-@keyframes sponsor-fade-in {
+@keyframes supporter-fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-@keyframes sponsor-pop {
+@keyframes supporter-pop {
   from { opacity: 0; transform: scale(0.95); }
   to   { opacity: 1; transform: scale(1); }
 }
@@ -6366,21 +6366,21 @@ a:hover {
 /* ---- Mobile breakpoint adjustments ---- */
 
 @media (max-width: 600px) {
-  .sponsor-headline {
+  .supporter-headline {
     font-size: 22px;
   }
-  .sponsor-event-strip {
+  .supporter-event-strip {
     grid-template-columns: 1fr;
     gap: 8px;
   }
-  .sponsor-event-block {
+  .supporter-event-block {
     text-align: left;
     display: flex;
     align-items: baseline;
     justify-content: space-between;
     gap: 12px;
   }
-  .sponsor-event-label {
+  .supporter-event-label {
     margin-bottom: 0;
   }
   .qr-toolbar {
@@ -6418,7 +6418,7 @@ a:hover {
   cursor: not-allowed;
 }
 
-.sponsor-pdf-btn-hint {
+.supporter-pdf-btn-hint {
   font-size: 11px;
   color: var(--color-text-muted);
   font-style: italic;
@@ -6643,7 +6643,7 @@ a:hover {
   z-index: 999;
   padding: 30px 16px;
   overflow-y: auto;
-  animation: sponsor-fade-in 150ms ease;
+  animation: supporter-fade-in 150ms ease;
   backdrop-filter: blur(2px);
 }
 
@@ -6662,7 +6662,7 @@ a:hover {
   box-shadow:
     0 24px 70px rgba(0, 0, 0, 0.55),
     0 0 0 1px rgba(53, 213, 223, 0.08);
-  animation: sponsor-pop 200ms ease;
+  animation: supporter-pop 200ms ease;
   margin: auto 0;
   color: var(--e2k-text);
 }
@@ -11502,8 +11502,8 @@ input.form-input-with-prefix {
      · Per-event QR Codes page (team sections, qr cards, buttons)
    This block forces them onto the Variation F dark teal/coral
    palette using high-specificity overrides. CSS only.
-   The matching sponsor flyer PDF palette swap lives in
-   lib/sponsorFlyerPdf.ts.
+   The matching supporter flyer PDF palette swap lives in
+   lib/supporterFlyerPdf.ts.
    ============================================================ */
 
 
@@ -12074,15 +12074,15 @@ input.form-input-with-prefix {
   cursor: not-allowed !important;
 }
 
-.sponsor-pdf-btn-hint {
+.supporter-pdf-btn-hint {
   color: var(--e2k-text-muted) !important;
   font-style: italic;
 }
 
-/* SponsorPdfButton wrapper — the big "Download N flyers (PDF)" button
+/* SupporterPdfButton wrapper — the big "Download N flyers (PDF)" button
    is already .btn-primary so it picks up the coral gradient retrofit
    from 4.7.6 automatically. Just keep its container tidy. */
-.sponsor-pdf-btn-wrap { display: flex; flex-direction: column; gap: 4px; }
+.supporter-pdf-btn-wrap { display: flex; flex-direction: column; gap: 4px; }
 
 
 /* ============================================================
@@ -13466,7 +13466,7 @@ input.form-input-with-prefix {
 }
 
 
-/* --- Sections (today's challenges, sponsor, etc.) --- */
+/* --- Sections (today's challenges, supporter, etc.) --- */
 .player-home-section {
   display: flex;
   flex-direction: column;
@@ -13640,8 +13640,8 @@ input.form-input-with-prefix {
 }
 
 
-/* --- Sponsor link card --- */
-.player-home-sponsor-card {
+/* --- Supporter link card --- */
+.player-home-supporter-card {
   background: rgba(53, 213, 223, 0.06);
   border: 1px solid rgba(53, 213, 223, 0.30);
   border-left: 3px solid var(--e2k-cyan);
@@ -13649,7 +13649,7 @@ input.form-input-with-prefix {
   padding: 18px 20px;
 }
 
-.player-home-sponsor-link {
+.player-home-supporter-link {
   display: block;
   margin-top: 10px;
   padding: 10px 14px;
@@ -13665,7 +13665,7 @@ input.form-input-with-prefix {
   -webkit-user-select: all;
 }
 
-.player-home-sponsor-link:hover {
+.player-home-supporter-link:hover {
   background: rgba(4, 20, 24, 0.75);
   text-decoration: underline;
 }
@@ -14431,14 +14431,14 @@ input.form-input-with-prefix {
 
 
 /* ============================================================
-   Slice 5.4.2 — PlayerSponsorCard (QR + share + flyer)
+   Slice 5.4.2 — PlayerSupporterCard (QR + share + flyer)
    ============================================================
-   Replaces the simple URL-only sponsor card. Now has a
+   Replaces the simple URL-only supporter card. Now has a
    centered QR code, three action buttons (Share / Save flyer
    / Copy), and a small URL display below for fallback.
    ============================================================ */
 
-.player-sponsor-card {
+.player-supporter-card {
   background: rgba(53, 213, 223, 0.06);
   border: 1px solid rgba(53, 213, 223, 0.30);
   border-left: 3px solid var(--e2k-cyan);
@@ -14452,13 +14452,13 @@ input.form-input-with-prefix {
 
 /* --- QR display: white card so the code scans cleanly even on
        phones in dark mode. --- */
-.player-sponsor-qr-wrap {
+.player-supporter-qr-wrap {
   display: flex;
   justify-content: center;
   padding: 0;
 }
 
-.player-sponsor-qr {
+.player-supporter-qr {
   width: 220px;
   height: 220px;
   background: #ffffff;
@@ -14469,13 +14469,13 @@ input.form-input-with-prefix {
   justify-content: center;
 }
 
-.player-sponsor-qr svg {
+.player-supporter-qr svg {
   width: 100%;
   height: 100%;
   display: block;
 }
 
-.player-sponsor-qr-loading {
+.player-supporter-qr-loading {
   width: 220px;
   height: 220px;
   background: rgba(255, 255, 255, 0.05);
@@ -14490,7 +14490,7 @@ input.form-input-with-prefix {
 
 
 /* --- Instructional copy --- */
-.player-sponsor-instruct {
+.player-supporter-instruct {
   font-size: 13px;
   color: var(--e2k-text);
   line-height: 1.55;
@@ -14498,21 +14498,21 @@ input.form-input-with-prefix {
   text-align: center;
 }
 
-.player-sponsor-instruct strong {
+.player-supporter-instruct strong {
   color: var(--e2k-cyan);
 }
 
 
 /* --- Action button stack --- */
-.player-sponsor-actions {
+.player-supporter-actions {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.player-sponsor-btn-primary,
-.player-sponsor-btn-secondary,
-.player-sponsor-btn-tertiary {
+.player-supporter-btn-primary,
+.player-supporter-btn-secondary,
+.player-supporter-btn-tertiary {
   display: block;
   width: 100%;
   text-align: center;
@@ -14527,41 +14527,41 @@ input.form-input-with-prefix {
 }
 
 /* Primary: Share my page (the most-used button on mobile) */
-.player-sponsor-btn-primary {
+.player-supporter-btn-primary {
   background: linear-gradient(135deg, var(--e2k-coral) 0%, #ff9a7b 100%);
   color: #ffffff;
 }
 
-.player-sponsor-btn-primary:hover {
+.player-supporter-btn-primary:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(255, 117, 95, 0.30);
 }
 
 /* Secondary: Save flyer (PDF) — cyan to match the card accent */
-.player-sponsor-btn-secondary {
+.player-supporter-btn-secondary {
   background: rgba(53, 213, 223, 0.12);
   color: var(--e2k-cyan);
   border-color: rgba(53, 213, 223, 0.40);
 }
 
-.player-sponsor-btn-secondary:hover:not(:disabled) {
+.player-supporter-btn-secondary:hover:not(:disabled) {
   background: rgba(53, 213, 223, 0.20);
   border-color: var(--e2k-cyan);
 }
 
-.player-sponsor-btn-secondary:disabled {
+.player-supporter-btn-secondary:disabled {
   opacity: 0.7;
   cursor: wait;
 }
 
 /* Tertiary: Copy link — subtle outline */
-.player-sponsor-btn-tertiary {
+.player-supporter-btn-tertiary {
   background: transparent;
   color: var(--e2k-text-muted);
   border-color: var(--e2k-border);
 }
 
-.player-sponsor-btn-tertiary:hover {
+.player-supporter-btn-tertiary:hover {
   background: rgba(255, 255, 255, 0.04);
   color: var(--e2k-text);
   border-color: var(--e2k-border-strong);
@@ -14569,7 +14569,7 @@ input.form-input-with-prefix {
 
 
 /* --- URL display (small, monospace, selectable) --- */
-.player-sponsor-url-display {
+.player-supporter-url-display {
   padding: 8px 12px;
   background: rgba(4, 20, 24, 0.55);
   border: 1px solid var(--e2k-border);
@@ -14585,7 +14585,7 @@ input.form-input-with-prefix {
 
 
 /* --- Fine hint at the bottom --- */
-.player-sponsor-finehint {
+.player-supporter-finehint {
   font-size: 12px;
   color: var(--e2k-text-faint);
   line-height: 1.5;
@@ -16033,9 +16033,9 @@ input.form-input-with-prefix {
 
 
 /* ============================================================
-   Sponsor page — player avatar, pronouns, bio (5.5)
+   Supporter page — player avatar, pronouns, bio (5.5)
    ============================================================ */
-.sponsor-player-avatar-wrap {
+.supporter-player-avatar-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -16043,7 +16043,7 @@ input.form-input-with-prefix {
   margin: 10px 0 18px;
 }
 
-.sponsor-player-avatar {
+.supporter-player-avatar {
   width: 96px;
   height: 96px;
   border-radius: 50%;
@@ -16053,7 +16053,7 @@ input.form-input-with-prefix {
   background: linear-gradient(135deg, var(--e2k-coral) 0%, #ff9a7b 100%);
 }
 
-.sponsor-player-avatar-initials {
+.supporter-player-avatar-initials {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -16064,14 +16064,14 @@ input.form-input-with-prefix {
   letter-spacing: -0.6px;
 }
 
-.sponsor-player-pronouns {
+.supporter-player-pronouns {
   font-family: monospace, var(--font-body);
   font-size: 12px;
   color: var(--e2k-text-muted);
   letter-spacing: 0.4px;
 }
 
-.sponsor-player-bio {
+.supporter-player-bio {
   position: relative;
   margin: 16px 0 8px;
   padding: 14px 18px 16px;
@@ -16085,7 +16085,7 @@ input.form-input-with-prefix {
   font-style: italic;
 }
 
-.sponsor-player-bio-mark {
+.supporter-player-bio-mark {
   font-size: 22px;
   font-weight: 800;
   color: var(--e2k-cyan);
@@ -16095,7 +16095,7 @@ input.form-input-with-prefix {
   vertical-align: text-top;
 }
 
-.sponsor-player-bio cite {
+.supporter-player-bio cite {
   display: block;
   margin-top: 6px;
   font-size: 12px;
@@ -17198,39 +17198,39 @@ input.form-input-with-prefix {
 
 
 /* ============================================================
-   Slice 5.9.2 — Sponsor page redesign for cold visitors
+   Slice 5.9.2 — Supporter page redesign for cold visitors
    ============================================================
-   Public sponsor page — what someone sees when they scan a QR
+   Public supporter page — what someone sees when they scan a QR
    or tap a shared link. Cold visitor feedback was "I have no
    idea what this is for" — so the new structure leads with a
-   "what is earn²keep" frame BEFORE asking them to sponsor.
+   "what is earn²keep" frame BEFORE asking them to supporter.
    Also bumps the brand logo from 20px to 36px with a tagline
    so it reads as a real platform, not a kid's GoFundMe.
    ============================================================ */
 
 /* --- Bigger header brand --- */
-.sponsor-header-inner {
+.supporter-header-inner {
   padding: 16px 32px !important;
 }
 
-.sponsor-brand {
+.supporter-brand {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
 }
 
-.sponsor-logo {
+.supporter-logo {
   font-size: 36px !important;
   letter-spacing: -0.6px !important;
   line-height: 1;
 }
 
-.sponsor-logo .logo-sup {
+.supporter-logo .logo-sup {
   font-size: 20px !important;
 }
 
-.sponsor-brand-tag {
+.supporter-brand-tag {
   font-family: var(--font-display);
   font-size: 11px;
   font-weight: 800;
@@ -17241,16 +17241,16 @@ input.form-input-with-prefix {
 }
 
 @media (max-width: 480px) {
-  .sponsor-header-inner {
+  .supporter-header-inner {
     padding: 14px 16px !important;
   }
-  .sponsor-logo {
+  .supporter-logo {
     font-size: 30px !important;
   }
-  .sponsor-logo .logo-sup {
+  .supporter-logo .logo-sup {
     font-size: 16px !important;
   }
-  .sponsor-brand-tag {
+  .supporter-brand-tag {
     font-size: 10px;
     letter-spacing: 1.6px;
   }
@@ -17258,7 +17258,7 @@ input.form-input-with-prefix {
 
 
 /* --- "What is this?" framing line under the eyebrow --- */
-.sponsor-frame {
+.supporter-frame {
   margin: 0 auto 22px;
   max-width: 480px;
   text-align: center;
@@ -17276,8 +17276,8 @@ input.form-input-with-prefix {
 }
 
 
-/* --- "What you get as a sponsor" benefits block --- */
-.sponsor-benefits {
+/* --- "What you get as a supporter" benefits block --- */
+.supporter-benefits {
   margin-top: 22px;
   padding: 18px 18px 14px;
   background: #fafbfc;
@@ -17285,7 +17285,7 @@ input.form-input-with-prefix {
   border-radius: 10px;
 }
 
-.sponsor-benefits-title {
+.supporter-benefits-title {
   font-family: var(--font-display);
   font-size: 13px;
   font-weight: 800;
@@ -17296,7 +17296,7 @@ input.form-input-with-prefix {
   text-align: center;
 }
 
-.sponsor-benefits-list {
+.supporter-benefits-list {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -17305,7 +17305,7 @@ input.form-input-with-prefix {
   gap: 12px;
 }
 
-.sponsor-benefits-list li {
+.supporter-benefits-list li {
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -17314,12 +17314,12 @@ input.form-input-with-prefix {
   color: var(--color-text);
 }
 
-.sponsor-benefits-list strong {
+.supporter-benefits-list strong {
   font-weight: 700;
   color: var(--color-text);
 }
 
-.sponsor-benefits-icon {
+.supporter-benefits-icon {
   font-size: 22px;
   line-height: 1;
   flex-shrink: 0;
@@ -17328,7 +17328,7 @@ input.form-input-with-prefix {
 
 
 /* --- Hide the obsolete "trust row" if it shows up via cache --- */
-.sponsor-trust-row {
+.supporter-trust-row {
   display: none !important;
 }
 
@@ -17336,14 +17336,14 @@ input.form-input-with-prefix {
 /* ============================================================
    Slice 5.9.3 — Prizes display
    ============================================================
-   Two themes — light (sponsor public page) and dark
+   Two themes — light (supporter public page) and dark
    (player /home dashboard). The coach event detail page already
    has its own .prize-list/.prize-row rendering and is untouched.
    ============================================================ */
 
 
-/* --- Sponsor page (light theme) --- */
-.sponsor-prizes {
+/* --- Supporter page (light theme) --- */
+.supporter-prizes {
   margin-top: 22px;
   margin-bottom: 24px;
   padding: 18px 18px 14px;
@@ -17358,12 +17358,12 @@ input.form-input-with-prefix {
 
 /* Slice 5.9.5 — team name styling in the headline. Same blue
    accent treatment as the player name so they feel paired. */
-.sponsor-team {
+.supporter-team {
   color: var(--color-blue);
   font-weight: 900;
 }
 
-.sponsor-prizes-title {
+.supporter-prizes-title {
   font-family: var(--font-display);
   font-size: 13px;
   font-weight: 800;
@@ -17374,13 +17374,13 @@ input.form-input-with-prefix {
   text-align: center;
 }
 
-.sponsor-prizes-list {
+.supporter-prizes-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.sponsor-prize-row {
+.supporter-prize-row {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -17390,18 +17390,18 @@ input.form-input-with-prefix {
   border-radius: 8px;
 }
 
-.sponsor-prize-medal {
+.supporter-prize-medal {
   font-size: 26px;
   line-height: 1;
   flex-shrink: 0;
 }
 
-.sponsor-prize-body {
+.supporter-prize-body {
   flex: 1;
   min-width: 0;
 }
 
-.sponsor-prize-place {
+.supporter-prize-place {
   font-family: var(--font-display);
   font-size: 11px;
   font-weight: 800;
@@ -17411,18 +17411,18 @@ input.form-input-with-prefix {
   margin-bottom: 2px;
 }
 
-.sponsor-prize-text {
+.supporter-prize-text {
   font-size: 14px;
   color: var(--color-text);
   line-height: 1.4;
 }
 
-.sponsor-prize-text strong {
+.supporter-prize-text strong {
   font-weight: 800;
   color: #d97706;
 }
 
-.sponsor-prizes-foot {
+.supporter-prizes-foot {
   margin-top: 12px;
   font-size: 11.5px;
   line-height: 1.5;

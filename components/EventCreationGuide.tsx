@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export type EventType = "camp" | "tournament" | "";
+export type EventType = "mini-camp" | "camp" | "tournament" | "";
 
 interface EventCreationGuideProps {
   eventType: EventType;
@@ -56,7 +56,7 @@ const STEPS: StepCopy[] = [
     campNote:
       "Set a per-player fundraising goal (the minimum each player needs to raise). Common: $150, $250, $500. Players who exceed their minimum get bonus points + extra prize money. Total Camp goal = per-player × number of players.",
     tournamentNote:
-      "Set a flat registration fee per player. Common: $25, $50, $100. Sponsors (parents, family, businesses) pay the fee for the player. Total pot = registration fee × players entered.",
+      "Set a flat registration fee per player. Common: $25, $50, $100. Supporters (parents, family, businesses) pay the fee for the player. Total pot = registration fee × players entered.",
     tip:
       "Camp pays bonuses for over-performance. Tournament pays the pot to the winners. That's the core difference.",
   },
@@ -139,7 +139,7 @@ export default function EventCreationGuide(props: EventCreationGuideProps) {
                       )}
 
                       {/* Camp-specific guidance */}
-                      {eventType === "camp" && step.campNote && (
+                      {(e(ventType === "camp" || ventType === "mini-camp") || eventType === "mini-camp") && step.campNote && (
                         <div className="e2k-walk-aside-typetip e2k-walk-aside-camp">
                           <strong>Camp:</strong> {step.campNote}
                         </div>

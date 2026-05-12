@@ -61,7 +61,7 @@ export default function EditEventPage() {
   const [fetching, setFetching] = useState(true);
 
   const [name, setName] = useState("");
-  const [eventType, setEventType] = useState<"camp" | "tournament" | "">("");
+  const [eventType, setEventType] = useState<"mini-camp" | "camp" | "tournament" | "">("");
   const [description, setDescription] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -148,7 +148,7 @@ export default function EditEventPage() {
   }, [eventId]);
 
   const toggleTeam = (teamId: string) => {
-    if (eventType === "camp") {
+    if ((eventType === "camp" || eventType === "mini-camp")) {
       setSelectedTeamIds([teamId]);
     } else {
       if (selectedTeamIds.includes(teamId)) {
@@ -159,9 +159,9 @@ export default function EditEventPage() {
     }
   };
 
-  const handleEventTypeChange = (newType: "camp" | "tournament") => {
+  const handleEventTypeChange = (newType: "mini-camp" | "camp" | "tournament") => {
     setEventType(newType);
-    if (newType === "camp" && selectedTeamIds.length > 1) {
+    if ((newType === "camp" || newType === "mini-camp") && selectedTeamIds.length > 1) {
       setSelectedTeamIds([selectedTeamIds[0]]);
     }
   };
@@ -187,7 +187,7 @@ export default function EditEventPage() {
     setError(null);
 
     if (!name.trim()) { setError("Event name is required."); return; }
-    if (!eventType) { setError("Please pick Camp or Tournament."); return; }
+    if (!eventType) { setError("Please pick Mini-Camp, Camp, or Tournament."); return; }
     if (!startDate || !endDate) { setError("Please set start and end dates."); return; }
     if (new Date(endDate) < new Date(startDate)) { setError("End date must be on or after start date."); return; }
     if (!isWithinMaxDuration(startDate, endDate)) {
@@ -195,14 +195,14 @@ export default function EditEventPage() {
       return;
     }
     if (selectedTeamIds.length === 0) {
-      setError(eventType === "camp" ? "Please pick a team." : "Please pick at least one team.");
+      setError((eventType === "camp" || eventType === "mini-camp") ? "Please pick a team." : "Please pick at least one team.");
       return;
     }
     if (eventType === "tournament" && selectedTeamIds.length < 2) {
       setError("A Tournament needs at least 2 teams."); return;
     }
     if (!goalAmount || goalNum <= 0) {
-      setError(eventType === "camp"
+      setError((eventType === "camp" || eventType === "mini-camp")
         ? "Please enter a per-player fundraising goal."
         : "Please enter a per-player registration fee.");
       return;
@@ -263,11 +263,11 @@ export default function EditEventPage() {
     );
   }
 
-  const goalFieldLabel = eventType === "camp"
+  const goalFieldLabel = (eventType === "camp" || eventType === "mini-camp")
     ? "Fundraising Goal Amount per Player/Participant"
     : "Registration Fee per Player/Participant";
 
-  const goalFieldHint = eventType === "camp"
+  const goalFieldHint = (eventType === "camp" || eventType === "mini-camp")
     ? "The minimum amount each player must raise to compete. Players can raise more — extra fundraising = extra points."
     : "The flat entry fee each player pays to register.";
 
@@ -294,15 +294,27 @@ export default function EditEventPage() {
               <div>
                 <label className="form-label">Event type <span className="required">*</span></label>
                 <div className="radio-cards">
+                  <label className={`radio-card ${eventType === "mini-camp" ? "radio-card-active" : ""}`}>
+                    <input type="radio" name="eventType" value="mini-camp"
+                      checked={eventType === "mini-camp"} onChange={() => handleEventTypeChange("mini-camp")} />
+                    <div className="radio-card-content">
+                      <div className="radio-card-icon">🌱</div>
+                      <div className="radio-card-title">Mini-Camp <span style={{ fontWeight: 600, opacity: 0.7, fontSize: "0.85em" }}>· $99</span></div>
+                      <div className="radio-card-text">
+                        <strong>One team. Smaller fundraiser.</strong> Same as Camp,
+                        priced for events targeting under $5,000.
+                      </div>
+                    </div>
+                  </label>
                   <label className={`radio-card ${eventType === "camp" ? "radio-card-active" : ""}`}>
                     <input type="radio" name="eventType" value="camp"
                       checked={eventType === "camp"} onChange={() => handleEventTypeChange("camp")} />
                     <div className="radio-card-content">
                       <div className="radio-card-icon">🏃</div>
-                      <div className="radio-card-title">Camp</div>
+                      <div className="radio-card-title">Camp <span style={{ fontWeight: 600, opacity: 0.7, fontSize: "0.85em" }}>· $189</span></div>
                       <div className="radio-card-text">
                         <strong>One team. Fundraiser model.</strong> Each
-                        player raises a minimum amount through sponsors.
+                        player raises a minimum amount through supporters.
                       </div>
                     </div>
                   </label>
@@ -311,7 +323,7 @@ export default function EditEventPage() {
                       checked={eventType === "tournament"} onChange={() => handleEventTypeChange("tournament")} />
                     <div className="radio-card-content">
                       <div className="radio-card-icon">🏆</div>
-                      <div className="radio-card-title">Tournament</div>
+                      <div className="radio-card-title">Tournament <span style={{ fontWeight: 600, opacity: 0.7, fontSize: "0.85em" }}>· $349</span></div>
                       <div className="radio-card-text">
                         <strong>Multiple teams. Registration model.</strong>{" "}
                         Each player pays a flat entry fee.
@@ -356,13 +368,13 @@ export default function EditEventPage() {
 
             <div className="form-section">
               <h3 className="form-section-title">
-                2. {eventType === "camp" ? "Pick the Team" : "Pick Participating Teams"}
+                2. {(eventType === "camp" || eventType === "mini-camp") ? "Pick the Team" : "Pick Participating Teams"}
               </h3>
               <div className="team-picker">
                 {teams.map((team) => (
                   <label key={team.id}
                     className={`team-pick-card ${selectedTeamIds.includes(team.id) ? "team-pick-card-active" : ""}`}>
-                    <input type={eventType === "camp" ? "radio" : "checkbox"} name="team"
+                    <input type={(eventType === "camp" || eventType === "mini-camp") ? "radio" : "checkbox"} name="team"
                       checked={selectedTeamIds.includes(team.id)} onChange={() => toggleTeam(team.id)} />
                     <div className="team-pick-content">
                       <div className="team-pick-name">{team.name}</div>
@@ -380,21 +392,21 @@ export default function EditEventPage() {
 
             <div className="form-section">
               <h3 className="form-section-title">
-                3. {eventType === "camp" ? "Fundraising Goal" : "Registration Fee"}
+                3. {(eventType === "camp" || eventType === "mini-camp") ? "Fundraising Goal" : "Registration Fee"}
               </h3>
 
               <div className={`info-box info-box-${eventType}`}>
-                {eventType === "camp" ? (
+                {(eventType === "camp" || eventType === "mini-camp") ? (
                   <>
                     <strong>How a Camp works:</strong> Each player has a
                     minimum fundraising goal. They share QR codes with
-                    sponsors to collect funds. Raising more = more points
+                    supporters to collect funds. Raising more = more points
                     toward winning.
                   </>
                 ) : (
                   <>
                     <strong>How a Tournament works:</strong> Each player
-                    pays a flat registration fee. Sponsors can cover it
+                    pays a flat registration fee. Supporters can cover it
                     via QR code. Once paid, they're registered to compete.
                   </>
                 )}
@@ -560,7 +572,7 @@ export default function EditEventPage() {
                   <div className="breakdown-rows">
                     <div className="breakdown-row">
                       <span className="breakdown-label">
-                        ${formatMoney(goalNum)} {eventType === "camp" ? "minimum" : "fee"} × {totalPlayerCount}
+                        ${formatMoney(goalNum)} {(eventType === "camp" || eventType === "mini-camp") ? "minimum" : "fee"} × {totalPlayerCount}
                       </span>
                       <span className="breakdown-value">${formatMoney(totalRaised)}</span>
                     </div>
@@ -573,7 +585,7 @@ export default function EditEventPage() {
                     <div className="breakdown-divider"></div>
                     <div className="breakdown-row breakdown-row-final">
                       <span className="breakdown-label">
-                        {eventType === "camp" ? "Minimum Net to Team" : "Net to Team"}
+                        {(eventType === "camp" || eventType === "mini-camp") ? "Minimum Net to Team" : "Net to Team"}
                       </span>
                       <span className="breakdown-value breakdown-value-final">${formatMoney(netToTeam)}</span>
                     </div>
@@ -585,9 +597,9 @@ export default function EditEventPage() {
                     </div>
                   ) : netToTeam < 0 ? (
                     <div className="breakdown-per-player breakdown-per-player-warning">
-                      ⚠ Prize pool exceeds total raised. Reduce prizes or raise the {eventType === "camp" ? "goal" : "fee"}.
+                      ⚠ Prize pool exceeds total raised. Reduce prizes or raise the {(eventType === "camp" || eventType === "mini-camp") ? "goal" : "fee"}.
                     </div>
-                  ) : eventType === "camp" ? (
+                  ) : (eventType === "camp" || eventType === "mini-camp") ? (
                     <div className="breakdown-per-player">
                       <span className="breakdown-per-player-icon">★</span>
                       <span>Each player must raise <strong>${formatMoney(goalNum)}</strong> minimum — extra raised = extra points</span>
