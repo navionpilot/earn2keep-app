@@ -42,9 +42,24 @@ interface Props {
   // Slice 8.3 — strategy framework: challenge declares which AI strategy
   // (if any) applies. Null means "no AI verification for this challenge."
   aiVerificationStrategy?: AIStrategy | null;
+  // L23 — points awarded for this challenge, used by the auto-approval
+  // celebration variant of the success screen ("+25 pts earned").
+  pointsValue?: number | null;
 }
 
 type Stage = "idle" | "previewing" | "uploading" | "success";
+
+// L23 — Shape of the JSON the /api/ai/verify-submission route returns on
+// success. Stored in state so the success screen can show what AI found
+// instead of a generic "Submitted!".
+interface AIResultPayload {
+  ok: boolean;
+  count?: number;
+  confidence?: "high" | "medium" | "low" | "unable_to_verify";
+  reasoning?: string;
+  autoApproved?: boolean;
+  autoApprovalReason?: string;
+}
 
 export default function RecordingForm({
   playerId,
@@ -54,6 +69,7 @@ export default function RecordingForm({
   repTarget,
   challengeUnit,
   aiVerificationStrategy = null,
+  pointsValue = null,
 }: Props) {
   const [stage, setStage] = useState<Stage>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -68,6 +84,12 @@ export default function RecordingForm({
   );
   const [playerNote, setPlayerNote] = useState<string>("");
   const [uploadStep, setUploadStep] = useState<string>("");
+
+  // L23 — AI verification result captured from the route's response body,
+  // used by the success screen to show what AI found (or to render the
+  // celebration variant when AI auto-approved). Null means AI didn't run
+  // or returned no parseable body.
+  const [aiResult, setAiResult] = useState<AIResultPayload | null>(null);
 
   // Slice 8.1: when true, render <TimedRecorder> instead of the idle
   // record/upload buttons. Set by tapping the in-browser-record CTA on
@@ -252,7 +274,23 @@ export default function RecordingForm({
             signal: ac.signal,
           });
           log(`[ai-verify] POST returned ${res.status}`);
-          if (!res.ok) {
+          if (res.ok) {
+            // L23 — Capture AI result so the success screen can show what
+            // AI found (or render the auto-approval celebration). JSON
+            // parse failures are non-fatal — fall back to generic success.
+            try {
+              const data = await res.json();
+              if (data && typeof data === "object" && data.ok === true) {
+                setAiResult(data as AIResultPayload);
+                log(
+                  `[ai-verify] AI result captured: count=${data.count} confidence=${data.confidence} autoApproved=${data.autoApproved}`
+                );
+              }
+            } catch (parseErr) {
+              // eslint-disable-next-line no-console
+              console.error("[ai-verify] response body parse failed", parseErr);
+            }
+          } else {
             // eslint-disable-next-line no-console
             console.error(
               "[ai-verify] route returned non-OK",
@@ -279,7 +317,76 @@ export default function RecordingForm({
   };
 
   // ---------- SUCCESS ----------
+  // L23 — Three variants depending on AI result:
+  //
+  // 1. Auto-approved celebration — AI approved + count known. The player
+  //    gets a "+X pts earned" win screen instead of "we'll get back to you."
+  //
+  // 2. AI completed but didn't auto-approve — show what AI found ("AI
+  //    counted 3 push-ups · low confidence") so the player understands why
+  //    the submission is going to manual review. Honest feedback.
+  //
+  // 3. No usable AI result — generic success (same as pre-L23). Covers
+  //    AI failures, AI skipped, AI not applicable, parse errors, etc.
   if (stage === "success") {
+    const unitSuffix = challengeUnit ? ` ${challengeUnit}` : "";
+
+    // Variant 1 — auto-approved celebration
+    if (aiResult?.autoApproved === true && aiResult.count != null) {
+      const pts = pointsValue ?? 0;
+      return (
+        <div className="recording-success recording-success-celebration">
+          <div className="recording-success-icon">🎉</div>
+          <h2 className="recording-success-title">AI Approved!</h2>
+          {pts > 0 && (
+            <div className="recording-success-points">+{pts} pts</div>
+          )}
+          <div className="recording-success-ai-line">
+            🤖 AI counted <strong>{aiResult.count}{unitSuffix}</strong>
+            {aiResult.confidence && aiResult.confidence !== "unable_to_verify" && (
+              <> · {aiResult.confidence} confidence</>
+            )}
+          </div>
+          <p className="recording-success-text">
+            Your <strong>{challengeName}</strong> submission is approved and
+            on the leaderboard. Keep it up!
+          </p>
+          <Link href="/home" className="btn-primary-link recording-success-cta">
+            Back to home →
+          </Link>
+        </div>
+      );
+    }
+
+    // Variant 2 — AI ran but didn't auto-approve
+    if (aiResult?.ok === true && aiResult.confidence != null) {
+      const unableToVerify = aiResult.confidence === "unable_to_verify";
+      return (
+        <div className="recording-success">
+          <div className="recording-success-icon">✓</div>
+          <h2 className="recording-success-title">Submitted!</h2>
+          <div className="recording-success-ai-line">
+            {unableToVerify ? "❓" : "🤖"} AI{" "}
+            {unableToVerify ? "couldn't confirm a count" : (
+              <>
+                counted <strong>{aiResult.count ?? 0}{unitSuffix}</strong>
+                {" · "}{aiResult.confidence} confidence
+              </>
+            )}
+          </div>
+          <p className="recording-success-text">
+            Your coach will review your <strong>{challengeName}</strong>{" "}
+            submission and get back to you soon. You&apos;ll see the status
+            on your home screen.
+          </p>
+          <Link href="/home" className="btn-primary-link recording-success-cta">
+            Back to home →
+          </Link>
+        </div>
+      );
+    }
+
+    // Variant 3 — no AI / AI failed / AI not applicable
     return (
       <div className="recording-success">
         <div className="recording-success-icon">✓</div>

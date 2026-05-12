@@ -272,6 +272,7 @@ export default async function RecordPage({
           challengeName={challenge.name}
           repTarget={ec.rep_target}
           challengeUnit={challenge.unit}
+          pointsValue={ec.points_value}
           aiVerificationStrategy={
             (challenge.ai_verification_strategy as
               | "rep_count"

@@ -14419,6 +14419,61 @@ input.form-input-with-prefix {
   text-align: center;
 }
 
+/* ============================================================
+   L23 — AI-aware success screen variants
+   ============================================================
+   Two additions to the existing success layout:
+
+   1. .recording-success-celebration modifier — applied when AI
+      auto-approved. Brand-gradient styling so this reads as a
+      win moment, not a generic "submitted" confirmation.
+
+   2. .recording-success-ai-line — small subline used in BOTH
+      variants to surface what AI counted ("🤖 AI counted 5 push-ups
+      · high confidence"). Helps players understand WHY their
+      submission is approved (or going to manual review).
+   ============================================================ */
+.recording-success.recording-success-celebration {
+  background: linear-gradient(
+    135deg,
+    rgba(53, 213, 223, 0.10) 0%,
+    rgba(255, 117, 95, 0.10) 100%
+  );
+  border-color: rgba(53, 213, 223, 0.45);
+}
+
+.recording-success.recording-success-celebration .recording-success-icon {
+  background: linear-gradient(135deg, #35d5df 0%, #ff755f 100%);
+  font-size: 32px;
+}
+
+.recording-success.recording-success-celebration .recording-success-title {
+  color: var(--e2k-cyan);
+}
+
+.recording-success-points {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 800;
+  color: var(--e2k-coral);
+  letter-spacing: -0.8px;
+  margin: 4px 0;
+  line-height: 1;
+}
+
+.recording-success-ai-line {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.72);
+  margin: 0;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.recording-success-ai-line strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
 
 /* ============================================================
    Slice 5.4.1 — Allow re-inviting already-joined players
