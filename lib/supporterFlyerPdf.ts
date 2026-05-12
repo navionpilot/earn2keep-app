@@ -285,8 +285,8 @@ async function drawFlyerPage(
   pdf.setFontSize(10.5);
   pdf.setTextColor(...COLOR_TEXT);
   const pitch = isCamp
-    ? `earn2keep is a youth fundraising platform that lets kids EARN rewards instead of just collecting handouts. ${card.publicLabel} will train, record videos of their progress, and compete for prizes \u2014 every dollar of support fuels the work.`
-    : `earn2keep is a youth fundraising platform that connects kids with supporters who back their journey. ${card.publicLabel} will compete with the ${card.teamName}, train hard, and play for a real prize.`;
+    ? `earn2keep is a fundraising platform where participants EARN their rewards instead of just collecting handouts. ${card.publicLabel} will train, record videos of their progress, and compete for prizes \u2014 every dollar of support fuels the work.`
+    : `earn2keep is a fundraising platform that connects participants with supporters who back their journey. ${card.publicLabel} will compete with the ${card.teamName}, train hard, and play for a real prize.`;
   const pitchLines = pdf.splitTextToSize(pitch, PAGE_W - MARGIN_X * 2);
   pdf.text(pitchLines, MARGIN_X, cursorY + 0.12);
   cursorY += pitchLines.length * 0.18 + 0.18;
@@ -405,7 +405,7 @@ async function drawFlyerPage(
   // -------- QR + CALL TO ACTION --------
   const qrCardY = cursorY;
   // Slice 5.5.1: trimmed from 2.95 → 2.5 (and qrSize 2.45 → 2.05, ctaY initial
-  // 0.6 → 0.45) so the "When you supporter" section and footer have room to
+  // 0.6 → 0.45) so the "When you support" section and footer have room to
   // breathe at the bottom. QR still renders at ~130 DPI (320px / 2.05") which
   // scans flawlessly across phone cameras.
   const qrCardH = 2.5;
@@ -489,16 +489,16 @@ async function drawFlyerPage(
         `Watch ${card.publicLabel}'s training videos`,
         "Track their fundraising progress",
         "Get notified when they win",
-        "Help fund a young athlete's growth",
+        "Help fuel their training",
       ]
     : [
         `See ${card.publicLabel} compete in real events`,
         "Track team standings & results",
         "Get notified when their team wins",
-        "Help a kid play the sport they love",
+        "Help fuel their competition",
       ];
 
-  // Slice 5.5.1: anchor the "When you supporter" section to the footer
+  // Slice 5.5.1: anchor the "When you support" section to the footer
   // instead of stacking it directly under the QR card. When the prior
   // content (long event name, prize section, etc.) was tall, the bullets
   // section's natural Y would crash into the fixed-position footer at
@@ -521,7 +521,7 @@ async function drawFlyerPage(
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(11);
   pdf.setTextColor(...COLOR_TEXT);
-  pdf.text(`When you supporter ${card.publicLabel}:`, MARGIN_X, cursorY);
+  pdf.text(`When you support ${card.publicLabel}:`, MARGIN_X, cursorY);
   cursorY += supporterHeaderH;
 
   // Two columns of benefits with green dot bullets (drawn as filled circles
