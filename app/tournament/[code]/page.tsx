@@ -62,12 +62,11 @@ interface ChallengeRow {
   id: string;
   name: string;
   description: string | null;
-  challenge_type: string | null;
   target_value: number | null;
   target_unit: string | null;
   points_value: number | null;
   is_tiebreaker: boolean;
-  sort_order: number | null;
+  day_index: number | null;
 }
 
 function formatMoney(cents: number): string {
