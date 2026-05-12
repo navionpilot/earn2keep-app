@@ -6884,6 +6884,18 @@ a:hover {
   color: var(--e2k-coral);
 }
 
+/* Neutral / informational — used for ai_status === "skipped" or null.
+   The AI didn't fail, it just didn't run (or didn't reach a confident
+   answer). Different from "failed" so the coach reads it as "review
+   manually" rather than "something went wrong." */
+.ai-verify-skipped {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.10);
+}
+.ai-verify-skipped .ai-verify-icon {
+  color: rgba(255, 255, 255, 0.55);
+}
+
 /* Confidence-colored variants on the parent block */
 .ai-verify-completed.ai-confidence-high {
   background: rgba(53, 213, 223, 0.08);

@@ -260,10 +260,10 @@ export default function SubmissionReviewModal({
           </strong>
         </div>
 
-        {/* Slice 8.2 — AI verification result block. Renders only when AI
-            actually attempted verification (status is one of pending/
-            completed/failed). Skipped submissions (challenges not yet
-            covered by AI) show nothing — no need to clutter the UI. */}
+        {/* Slice 8.2 — AI verification result block. Slice 8.4e (L19) added
+            explicit handling for skipped + null ai_status — the coach should
+            always see SOMETHING about the AI's involvement (or lack thereof)
+            so they can review with full context. */}
         {submission.ai_status === "pending" && (
           <div className="ai-verify-block ai-verify-pending">
             <div className="ai-verify-icon" aria-hidden="true">⟳</div>
@@ -283,6 +283,31 @@ export default function SubmissionReviewModal({
               <div className="ai-verify-headline">AI verification didn&apos;t complete</div>
               <div className="ai-verify-sub">
                 {submission.ai_error || "Review manually."}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {submission.ai_status === "skipped" && (
+          <div className="ai-verify-block ai-verify-skipped">
+            <div className="ai-verify-icon" aria-hidden="true">⊘</div>
+            <div className="ai-verify-body">
+              <div className="ai-verify-headline">AI verification skipped</div>
+              <div className="ai-verify-sub">
+                {submission.ai_error ||
+                  "AI didn't run for this submission. Please review the video manually."}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {submission.ai_status === null && (
+          <div className="ai-verify-block ai-verify-skipped">
+            <div className="ai-verify-icon" aria-hidden="true">⊘</div>
+            <div className="ai-verify-body">
+              <div className="ai-verify-headline">No AI verification on this submission</div>
+              <div className="ai-verify-sub">
+                AI didn&apos;t run for this submission. Please review the video manually.
               </div>
             </div>
           </div>
