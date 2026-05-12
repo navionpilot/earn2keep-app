@@ -286,11 +286,25 @@ function playAndCapture(opts: {
 }
 
 /**
- * Wait for the video to have metadata + first-frame data loaded.
+ * Wait for the video to have metadata + dimensions loaded.
+ *
+ * Slice 8.4d hotfix: previously required readyState >= 2 (HAVE_CURRENT_DATA).
+ * That works on desktop browsers (which preload frame data eagerly) but
+ * deadlocks on iOS Safari, which refuses to advance past readyState=1
+ * (HAVE_METADATA) until the video actually plays. Since playAndCapture
+ * below calls play() and captures frames during playback, we only need
+ * duration + dimensions here — both available at readyState >= 1 once
+ * the `loadedmetadata` event fires.
  */
 function waitForVideoReady(video: HTMLVideoElement): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (video.readyState >= 2 && video.duration > 0 && video.videoWidth > 0) {
+    const isReady = () =>
+      video.readyState >= 1 &&
+      video.duration > 0 &&
+      isFinite(video.duration) &&
+      video.videoWidth > 0;
+
+    if (isReady()) {
       return resolve();
     }
     const timer = window.setTimeout(() => {
@@ -303,7 +317,7 @@ function waitForVideoReady(video: HTMLVideoElement): Promise<void> {
     }, 15000);
 
     const check = () => {
-      if (video.readyState >= 2 && video.duration > 0 && video.videoWidth > 0) {
+      if (isReady()) {
         cleanup();
         resolve();
       }
