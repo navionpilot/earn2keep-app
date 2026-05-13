@@ -303,9 +303,9 @@ export default async function SetupGuidePage() {
                 your start and end dates.
               </p>
               <div className="e2k-walk-tip">
-                <strong>Recommended:</strong> 4–6 weeks. Shorter than 4 weeks
-                rushes the group and limits supporter reach. Longer than 6 weeks
-                loses momentum.
+                <strong>Recommended:</strong> 2–3 weeks. Events can run up to
+                30 days max. Shorter than 2 weeks rushes the group; longer
+                approaches the 30-day ceiling and risks losing momentum.
               </div>
             </div>
           </div>

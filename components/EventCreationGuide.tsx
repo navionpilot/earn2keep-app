@@ -36,7 +36,7 @@ const STEPS: StepCopy[] = [
       "A Camp is one team competing internally. Each player has a personal fundraising minimum (the goal you'll set in step 3). Best for: a single team, group, troop, class, gym, or club.",
     tournamentNote:
       "A Tournament is a multi-team commitment contest. Your team competes head-to-head against teams from other organizations. Each joining team's organizer pays a per-team Entry Fee (set in step 3). All Entry Fees go into a pot; the winning team takes the whole pot.",
-    tip: "Most events run 4–6 weeks. Shorter loses momentum, longer loses focus.",
+    tip: "Events can run up to 30 days. Most groups find 2–3 weeks is the sweet spot — long enough for momentum, short enough to keep participants engaged.",
   },
   {
     num: 2,

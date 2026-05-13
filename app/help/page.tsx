@@ -153,7 +153,7 @@ export default async function HelpPage() {
 
             <div className="help-faq">
               <h4 className="help-faq-q">When does a season run?</h4>
-              <p className="help-faq-a">Typical Camps and Tournaments run 4-6 weeks. You set the start and end dates.</p>
+              <p className="help-faq-a">Camps and Tournaments can run up to 30 days. Most groups find 2–3 weeks is the sweet spot. You set the start and end dates.</p>
             </div>
 
             <div className="help-faq">
