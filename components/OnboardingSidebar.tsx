@@ -75,7 +75,7 @@ export default function OnboardingSidebar({
     },
     {
       number: 3,
-      title: "Add Players",
+      title: "Add Players/Participants",
       description: "Build your roster",
       isComplete: hasPlayers,
       isCurrent: currentStep === 3,

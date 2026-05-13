@@ -119,9 +119,9 @@ export default function NewPlayerPage() {
             <span className="auth-eyebrow">★ STEP 3 OF YOUR JOURNEY ★</span>
           </div>
 
-          <h1 className="form-title">Add a Player</h1>
+          <h1 className="form-title">Add a Player/Participant</h1>
           <p className="form-subtitle">
-            Adding a player to <strong>{teamName}</strong>. Only first name is
+            Adding a player/participant to <strong>{teamName}</strong>. Only first name is
             required — fill in the rest now or come back later.
           </p>
 
@@ -231,7 +231,7 @@ export default function NewPlayerPage() {
               <textarea
                 id="notes"
                 className="form-input form-textarea"
-                placeholder="Any notes about this player..."
+                placeholder="Any notes about this player/participant..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={2}
@@ -248,7 +248,7 @@ export default function NewPlayerPage() {
                   checked={addAnother}
                   onChange={(e) => setAddAnother(e.target.checked)}
                 />
-                <span>Add another player after saving (clears form, stays on this page)</span>
+                <span>Add another player/participant after saving (clears form, stays on this page)</span>
               </label>
             </div>
 
@@ -257,7 +257,7 @@ export default function NewPlayerPage() {
                 Cancel
               </Link>
               <button type="submit" className="btn-primary btn-inline" disabled={loading}>
-                {loading ? "Saving..." : addAnother ? "Save & Add Another" : "Save Player →"}
+                {loading ? "Saving..." : addAnother ? "Save & Add Another" : "Save Player/Participant →"}
               </button>
             </div>
           </form>
