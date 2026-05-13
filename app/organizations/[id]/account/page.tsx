@@ -263,6 +263,25 @@ export default async function OrgAccountPage({ params }: PageProps) {
           </div>
         </div>
 
+        <div style={{ marginTop: 14 }}>
+          <Link
+            href={`/organizations/${orgId}/money`}
+            style={{
+              display: "inline-block",
+              padding: "10px 20px",
+              background: "rgba(53, 213, 223, 0.08)",
+              color: "#35d5df",
+              border: "1px solid rgba(53, 213, 223, 0.35)",
+              borderRadius: 999,
+              fontWeight: 700,
+              fontSize: 13,
+              textDecoration: "none",
+            }}
+          >
+            View money activity →
+          </Link>
+        </div>
+
         <div style={{ marginTop: 16, padding: 14, background: "rgba(255, 255, 255, 0.02)", borderRadius: 8 }}>
           <div style={{ fontSize: 11, fontWeight: 800, color: "#9fc3c7", letterSpacing: 1.2, marginBottom: 8 }}>
             HOW IT WILL WORK

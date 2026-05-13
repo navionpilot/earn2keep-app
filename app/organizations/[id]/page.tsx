@@ -120,6 +120,11 @@ export default async function OrganizationDetailPage({
                   Account →
                 </Link>
               </Tooltip>
+              <Tooltip text="See total received, per-event breakdown, and recent payments.">
+                <Link href={`/organizations/${org.id}/money`} className="btn-secondary-link">
+                  Money →
+                </Link>
+              </Tooltip>
             </div>
           </div>
 
