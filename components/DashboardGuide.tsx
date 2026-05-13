@@ -113,23 +113,29 @@ const STEPS: StepCopy[] = [
       "Players/participants need their own accounts to record challenges and track fundraising. Open the team page and click ✉ Send Invites.",
     detail:
       "Each player gets a branded email with a one-click sign-up link. They don't need a password — just click the link in their inbox.",
+    campNote:
+      "Camp: invite every player on the team — they're all competing.",
+    tournamentNote:
+      "Tournament: invite the players on YOUR team. Other teams' coaches get invited separately, from the event page — they receive the 6-character join code and bring their own rosters.",
     tip: "If a parent's email is on the player record, that's where the invite goes. Otherwise paste in the right address right in the modal.",
   },
   {
     num: 6,
     phase: "launch",
-    title: "Generate supporter QR codes",
+    title: "Generate supporter QR codes (Camps) or invite other coaches (Tournaments)",
     intro:
-      "Each player/participant gets a unique QR code. Print them, share them, or have players hand them out at school or practice.",
-    detail:
-      "Supporters (parents, family, local businesses) scan the QR, see the player's real verified work, and contribute. The code is tied to the player and the event.",
+      "This step depends on event type. Pick the path that matches what you're running.",
+    campNote:
+      "Camp: each player gets a unique QR code. Print them, share them, or have players hand them out at school or practice. Supporters scan the QR, see the player's real verified work, and contribute. The code is tied to the player and the event.",
+    tournamentNote:
+      "Tournament: open the event page and use the Tournament Invitations panel to email the join code to coaches at other organizations. They click the link, see your tournament's public info page, pay their team's Entry Fee, and they're in.",
   },
   {
     num: 7,
     phase: "launch",
     title: "Activate the event",
     intro:
-      "While your event is in Draft, players can't submit anything and supporters can't pledge. Click ▶ Activate Event in the event header to flip it live.",
+      "While your event is in Draft, players can't submit anything, supporters can't pledge, and (for Tournaments) other teams can't join. Click ▶ Activate Event in the event header to flip it live.",
     tip: "You can activate before or after sending invites — players who claim a magic link before activation just see a 'gets ready' state until the event starts.",
   },
 
@@ -142,13 +148,19 @@ const STEPS: StepCopy[] = [
       "As the event runs, players/participants submit videos of their challenges. You review and approve them with one tap.",
     detail:
       "The leaderboard updates automatically. You can review submissions from the Events page → submissions tab.",
+    tournamentNote:
+      "Tournament: also keep an eye on the event page for pending team approvals (if you enabled approval mode) and the tiebreaker block (if a tie activates the sudden-death challenge).",
   },
   {
     num: 9,
     phase: "run",
     title: "Mark the event complete",
     intro:
-      "When the event ends, mark it complete from the event header. The leaderboard locks, top performers earn prizes, the team or organization keeps the rest. Earned, not begged for.",
+      "When the event ends, mark it complete from the event header. The leaderboard locks and prizes get awarded.",
+    campNote:
+      "Camp: top individual performers earn the prize gift cards you configured. The team or organization keeps what's left of the fundraising total. Earned, not begged for.",
+    tournamentNote:
+      "Tournament: the winning team takes the whole pot of Entry Fees. The host org pays the winning team's coach directly (off-platform). View total received and per-event activity via the Money page on each org.",
   },
 ];
 
@@ -322,7 +334,7 @@ export default function DashboardGuide(props: DashboardGuideProps) {
                               <p className="e2k-walk-aside-text">{step.detail}</p>
                             )}
 
-                            {step.num === 4 && (
+                            {step.campNote && step.tournamentNote && (
                               <>
                                 <div className="e2k-walk-aside-typetip e2k-walk-aside-camp">
                                   <strong>Camp:</strong> {step.campNote}
@@ -331,6 +343,11 @@ export default function DashboardGuide(props: DashboardGuideProps) {
                                   <strong>Tournament:</strong> {step.tournamentNote}
                                 </div>
                               </>
+                            )}
+                            {step.tournamentNote && !step.campNote && (
+                              <div className="e2k-walk-aside-typetip e2k-walk-aside-tournament">
+                                <strong>Tournament:</strong> {step.tournamentNote}
+                              </div>
                             )}
 
                             {step.tip && (

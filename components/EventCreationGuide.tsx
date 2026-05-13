@@ -35,7 +35,7 @@ const STEPS: StepCopy[] = [
     campNote:
       "A Camp is one team competing internally. Each player has a personal fundraising minimum (the goal you'll set in step 3). Best for: a single team, group, troop, class, gym, or club.",
     tournamentNote:
-      "A Tournament is multiple teams competing head-to-head. Each player pays a flat registration fee (the amount you'll set in step 3). Best for: a multi-team league, an interscholastic competition, a multi-troop event, or any cross-group challenge.",
+      "A Tournament is a multi-team commitment contest. Your team competes head-to-head against teams from other organizations. Each joining team's coach pays a per-team Entry Fee (set in step 3). All Entry Fees go into a pot; the winning team takes the whole pot.",
     tip: "Most events run 4–6 weeks. Shorter loses momentum, longer loses focus.",
   },
   {
@@ -45,7 +45,7 @@ const STEPS: StepCopy[] = [
     campNote:
       "Camps need exactly ONE team — players compete against each other inside the team for prizes.",
     tournamentNote:
-      "Tournaments need at least 2 teams. Pick all the teams competing in this event. Each team brings its full roster.",
+      "Pick which of YOUR OWN teams you want to enter. Other teams from other organizations don't get picked here — they join later by using the 6-character join code you'll share with their coaches via email after the event is created.",
     tip:
       "Don't see the team you want? You can add a new one from the Teams page first, then come back here.",
   },
@@ -56,21 +56,21 @@ const STEPS: StepCopy[] = [
     campNote:
       "Set a per-player fundraising goal (the minimum each player needs to raise). Common: $150, $250, $500. Players who exceed their minimum get bonus points + extra prize money. Total Camp goal = per-player × number of players.",
     tournamentNote:
-      "Set a flat registration fee per player. Common: $25, $50, $100. Supporters (parents, family, businesses) pay the fee for the player. Total pot = registration fee × players entered.",
+      "Set a flat per-team Entry Fee. Common: $250, $500, $1,000. The coach of each joining team pays this once when their team registers. The pot = Entry Fee × number of teams registered. Players don't pay anything to earn²keep — the platform fee (3.5% + $0.40) comes out of the host's share.",
     tip:
-      "Camp pays bonuses for over-performance. Tournament pays the pot to the winners. That's the core difference.",
+      "Camp pays bonuses for over-performance. Tournament pays the entire pot to the team that wins. That's the core difference.",
   },
   {
     num: 4,
     title: "Prizes",
     intro:
-      "Decide how many places win and what they win. Most organizers do top 3.",
+      "Decide how prizes work. Setup depends on event type.",
     campNote:
-      "Camp prizes go to top INDIVIDUAL players — usually whoever raised the most or earned the most points. Pick gift card type and amount per place.",
+      "Camp prizes go to top INDIVIDUAL players — usually whoever raised the most or earned the most points. Pick gift card type and amount per place. Most organizers do top 3.",
     tournamentNote:
-      "Tournament prizes go to top TEAMS. The whole pot is divvied between the top finishers and what's left goes to the organization.",
+      "Tournament prizes are automatic — nothing to configure. The whole pot of Entry Fees goes to the team that wins. No individual winners, no split pot, no gift cards. The form will skip the prize editor for you.",
     tip:
-      "You can pick gift cards from major retailers (Amazon, Walmart, Dick's, etc.) or use a custom value.",
+      "Camp: you can pick gift cards from major retailers (Amazon, Walmart, Dick's, etc.) or use a custom value. Tournament: the prize is the pot — that's it.",
   },
 ];
 

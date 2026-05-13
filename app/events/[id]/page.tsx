@@ -466,6 +466,37 @@ export default async function EventDetailPage({
   // First team id for the "Send invites" guide action button.
   const firstTeamId = teams.length > 0 ? teams[0].id : null;
 
+  // Tournament-specific progress signals for the EventGuide
+  // (only meaningful when event_type === 'tournament'; cheap to compute
+  // either way so we always set them).
+  const hasTiebreakerConfigured =
+    event.event_type === "tournament" &&
+    !!event.tournament_tiebreaker_challenge_id;
+  let hasOtherTeamsRegistered = false;
+  let hasPendingApprovals = false;
+  if (event.event_type === "tournament") {
+    // Other-team registration: anyone in tournament_teams with active or
+    // pending_approval status counts. (Host's own teams are in
+    // event_participants, not tournament_teams.)
+    const { count: regCount } = await supabase
+      .from("tournament_teams")
+      .select("*", { count: "exact", head: true })
+      .eq("tournament_event_id", id)
+      .in("status", ["active", "pending_approval"]);
+    hasOtherTeamsRegistered = (regCount || 0) > 0;
+
+    const { count: pendCount } = await supabase
+      .from("tournament_teams")
+      .select("*", { count: "exact", head: true })
+      .eq("tournament_event_id", id)
+      .eq("status", "pending_approval");
+    hasPendingApprovals = (pendCount || 0) > 0;
+  }
+  const tiebreakerStateForGuide =
+    event.event_type === "tournament"
+      ? event.tournament_tiebreaker_state ?? null
+      : null;
+
   return (
     <AppShell active="events" userDisplayName={profile?.full_name?.trim() || ""}>
       {/* Slice 5.2.1: 2-col grid puts the EventGuide walkthrough in a
@@ -1145,7 +1176,9 @@ export default async function EventDetailPage({
           />
         </div>
 
-        {/* Right-rail walkthrough — Slice 5.2.1; reordered + QR step in 5.7. */}
+        {/* Right-rail walkthrough — Slice 5.2.1; reordered + QR step in 5.7.
+            Event-type-aware in the L41-guides slice: shows Tournament-
+            specific steps when event_type === 'tournament'. */}
         <EventGuide
           eventId={event.id}
           eventStatus={event.status}
@@ -1156,6 +1189,10 @@ export default async function EventDetailPage({
           totalSubmissionCount={totalSubmissionCount}
           pendingSubmissionCount={pendingSubmissionCount}
           firstTeamId={firstTeamId}
+          hasTiebreakerConfigured={hasTiebreakerConfigured}
+          hasOtherTeamsRegistered={hasOtherTeamsRegistered}
+          hasPendingApprovals={hasPendingApprovals}
+          tiebreakerState={tiebreakerStateForGuide}
         />
       </div>
     </AppShell>
