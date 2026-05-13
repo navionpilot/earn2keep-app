@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import LogoutButton from "@/components/LogoutButton";
 import CoachAIAutoApproveToggle from "@/components/CoachAIAutoApproveToggle";
+import OrganizationsLinks from "@/components/OrganizationsLinks";
 
 const ROLE_LABELS: Record<string, string> = {
   coach: "Coach",
@@ -94,6 +95,12 @@ export default async function SettingsPage() {
         </div>
       </section>
 
+      {/* L39 — Your Organizations: links to the org-level Account pages
+          for any org the user owns. The Account page is where org-level
+          config + Stripe Connect + coaches live (vs this Settings page
+          which is user-level). */}
+      <OrganizationsLinks userId={user.id} />
+
       <section className="e2k-panel">
         <div className="e2k-panel-head">
           <h2 className="e2k-panel-title">AI Verification</h2>
@@ -130,7 +137,7 @@ export default async function SettingsPage() {
             meets motivation: teams compete in verified challenges to earn
             supporter donations.
           </p>
-          <p className="e2k-settings-tag">Phase 4 · Coach experience</p>
+          <p className="e2k-settings-tag">earn²keep · Earn it. Keep it.</p>
         </div>
       </section>
     </AppShell>

@@ -1479,3 +1479,181 @@ function buildTiebreakerText(opts: TiebreakerNotificationEmailOptions): string {
   lines.push("earn²keep — Earn it. Keep it.");
   return lines.join("\n");
 }
+
+// =============================================================================
+// L39 — Coach invitation email
+// =============================================================================
+// Sent when an org owner invites a coach to join their organization. Tone
+// is warm + collegial — this is "hey, come coach with us" not the more
+// competitive Tournament invitation. Single CTA goes to the accept page.
+// =============================================================================
+
+export interface CoachInvitationEmailOptions {
+  to: string;
+  recipientFirstName: string | null;
+  inviterName: string | null;
+  orgName: string;
+  acceptUrl: string;
+}
+
+export async function sendCoachInvitationEmail(
+  opts: CoachInvitationEmailOptions
+): Promise<SendResult> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    return { ok: false, error: "RESEND_API_KEY is not set on the server." };
+  }
+
+  const subject = `🏟️ ${opts.inviterName || "A coach"} invited you to join ${opts.orgName} on earn²keep`;
+  const html = buildCoachInvitationHtml(opts);
+  const text = buildCoachInvitationText(opts, subject);
+
+  try {
+    const response = await fetch(RESEND_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        from: FROM_ADDRESS,
+        to: [opts.to],
+        subject,
+        html,
+        text,
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      return { ok: false, error: `Resend ${response.status}: ${errText}` };
+    }
+
+    const data = (await response.json()) as { id?: string };
+    return { ok: true, resendId: data.id };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+function buildCoachInvitationHtml(opts: CoachInvitationEmailOptions): string {
+  const greeting = opts.recipientFirstName
+    ? `Hey ${escape(opts.recipientFirstName)},`
+    : `Hey coach,`;
+
+  const inviterPhrase = opts.inviterName
+    ? `<strong style="color:#ffffff;">${escape(opts.inviterName)}</strong>`
+    : `Someone`;
+
+  const ctaButton = `
+    <!--[if mso]>
+    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escape(opts.acceptUrl)}" style="height:50px;v-text-anchor:middle;width:300px;" arcsize="100%" stroke="f" fillcolor="#ff755f">
+      <w:anchorlock/>
+      <center style="color:#ffffff;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;letter-spacing:0.3px;">
+        Accept invitation →
+      </center>
+    </v:roundrect>
+    <![endif]-->
+    <!--[if !mso]><!-- -->
+    <a href="${escape(opts.acceptUrl)}"
+       style="background-color:#ff755f;color:#ffffff;display:inline-block;font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;font-weight:800;letter-spacing:0.3px;line-height:50px;text-align:center;text-decoration:none;width:300px;border-radius:999px;-webkit-text-size-adjust:none;mso-hide:all;">
+      Accept invitation →
+    </a>
+    <!--<![endif]-->
+  `.trim();
+
+  return `<!doctype html>
+<html lang="en" style="margin:0;padding:0;">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="dark">
+<title>Coach invitation</title>
+</head>
+<body bgcolor="#041418" style="margin:0;padding:0;background-color:#041418;color:#f7fbfb;-webkit-font-smoothing:antialiased;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#041418" style="background-color:#041418;">
+  <tr>
+    <td align="center" bgcolor="#041418" style="background-color:#041418;padding:32px 16px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" bgcolor="#06242b" style="max-width:600px;width:100%;background-color:#06242b;border-radius:12px;">
+        <tr>
+          <td bgcolor="#ff755f" style="background-color:#ff755f;padding:24px 28px;border-radius:12px 12px 0 0;font-family:Arial,sans-serif;">
+            <div style="font-family:'Sora','Segoe UI',Arial,sans-serif;font-size:26px;font-weight:800;color:#ffffff;letter-spacing:-0.6px;line-height:1;mso-line-height-rule:exactly;">
+              earn<sup style="font-size:14px;vertical-align:super;">2</sup>keep
+            </div>
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;font-weight:700;color:#ffffff;letter-spacing:1.6px;text-transform:uppercase;margin-top:6px;">
+              🏟️ Coach Invitation
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td bgcolor="#06242b" style="background-color:#06242b;padding:32px 32px 12px 32px;font-family:Arial,sans-serif;">
+            <h1 style="font-family:'Sora','Segoe UI',Arial,sans-serif;font-size:24px;font-weight:800;color:#f7fbfb;letter-spacing:-0.4px;margin:0 0 12px 0;line-height:1.25;mso-line-height-rule:exactly;">
+              ${greeting}
+            </h1>
+            <p style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:15px;line-height:1.6;color:#cfe7e7;margin:0 0 12px 0;">
+              ${inviterPhrase} invited you to be a coach at <strong style="color:#ffffff;">${escape(opts.orgName)}</strong> on earn²keep.
+            </p>
+            <p style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:14px;line-height:1.6;color:#cfe7e7;margin:0;">
+              Once you accept, you&rsquo;ll be able to create teams under this org, manage their rosters, and join the organization&rsquo;s Camps and Tournaments.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td bgcolor="#06242b" align="center" style="background-color:#06242b;padding:24px 32px;">
+            ${ctaButton}
+          </td>
+        </tr>
+        <tr>
+          <td bgcolor="#06242b" style="background-color:#06242b;padding:0 32px 24px 32px;font-family:Arial,sans-serif;">
+            <div style="padding:14px 16px;background-color:#0a2f37;border-radius:8px;border-left:3px solid #35d5df;">
+              <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:10px;font-weight:800;color:#35d5df;letter-spacing:1.6px;text-transform:uppercase;margin-bottom:4px;">
+                What is earn²keep?
+              </div>
+              <p style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:13px;line-height:1.6;color:#cfe7e7;margin:0;">
+                A fundraising platform built around effort, not asks. Players earn donations by completing real verified challenges. Coaches verify submissions. Supporters give based on what kids actually do.
+              </p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td bgcolor="#041418" style="background-color:#041418;padding:20px 32px;border-radius:0 0 12px 12px;font-family:Arial,sans-serif;text-align:center;">
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;color:#6b8788;line-height:1.6;">
+              If you weren&rsquo;t expecting this, it&rsquo;s safe to ignore — no account is created until you click the button above.
+            </div>
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;color:#6b8788;margin-top:8px;">
+              earn²keep · Earn it. Keep it.
+            </div>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>`;
+}
+
+function buildCoachInvitationText(opts: CoachInvitationEmailOptions, subject: string): string {
+  const lines: string[] = [];
+  lines.push("🏟️ COACH INVITATION");
+  lines.push("");
+  lines.push(opts.recipientFirstName ? `Hey ${opts.recipientFirstName},` : "Hey coach,");
+  lines.push("");
+  lines.push(
+    `${opts.inviterName || "Someone"} invited you to be a coach at ${opts.orgName} on earn²keep.`
+  );
+  lines.push("");
+  lines.push("Once you accept, you can create teams under this org and join the organization's Camps and Tournaments.");
+  lines.push("");
+  lines.push(`Accept here: ${opts.acceptUrl}`);
+  lines.push("");
+  lines.push("If you weren't expecting this email, it's safe to ignore.");
+  lines.push("");
+  lines.push("--");
+  lines.push("earn²keep — Earn it. Keep it.");
+  return lines.join("\n");
+}
