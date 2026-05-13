@@ -116,19 +116,19 @@ const STEPS: StepCopy[] = [
     campNote:
       "Camp: invite every player on the team — they're all competing.",
     tournamentNote:
-      "Tournament: invite the players on YOUR team. Other teams' coaches get invited separately, from the event page — they receive the 6-character join code and bring their own rosters.",
+      "Tournament: invite the players on YOUR team. Other teams' organizers get invited separately, from the event page — they receive the 6-character join code and bring their own rosters.",
     tip: "If a parent's email is on the player record, that's where the invite goes. Otherwise paste in the right address right in the modal.",
   },
   {
     num: 6,
     phase: "launch",
-    title: "Generate supporter QR codes (Camps) or invite other coaches (Tournaments)",
+    title: "Generate supporter QR codes (Camps) or invite other organizers (Tournaments)",
     intro:
       "This step depends on event type. Pick the path that matches what you're running.",
     campNote:
       "Camp: each player gets a unique QR code. Print them, share them, or have players hand them out at school or practice. Supporters scan the QR, see the player's real verified work, and contribute. The code is tied to the player and the event.",
     tournamentNote:
-      "Tournament: open the event page and use the Tournament Invitations panel to email the join code to coaches at other organizations. They click the link, see your tournament's public info page, pay their team's Entry Fee, and they're in.",
+      "Tournament: open the event page and use the Tournament Invitations panel to email the join code to organizers at other organizations. They click the link, see your tournament's public info page, pay their team's Entry Fee, and they're in.",
   },
   {
     num: 7,
@@ -160,7 +160,7 @@ const STEPS: StepCopy[] = [
     campNote:
       "Camp: top individual performers earn the prize gift cards you configured. The team or organization keeps what's left of the fundraising total. Earned, not begged for.",
     tournamentNote:
-      "Tournament: the winning team takes the whole pot of Entry Fees. The host org pays the winning team's coach directly (off-platform). View total received and per-event activity via the Money page on each org.",
+      "Tournament: the winning team takes the whole pot of Entry Fees. The host org pays the winning team's organizer directly (off-platform). View total received and per-event activity via the Money page on each org.",
   },
 ];
 

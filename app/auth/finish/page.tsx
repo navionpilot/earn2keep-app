@@ -116,7 +116,7 @@ export default function AuthFinishPage() {
             claimErr.message
           );
           setError(
-            `We signed you in, but couldn't link you to your team: ${claimErr.message}. Please ask your coach to send a fresh invite.`
+            `We signed you in, but couldn't link you to your team: ${claimErr.message}. Please ask your organizer to send a fresh invite.`
           );
           setStage("error");
           return;
@@ -137,7 +137,7 @@ export default function AuthFinishPage() {
             reason
           );
           setError(
-            `We signed you in, but ${reason}. The invite link may have expired or the email may not match. Please ask your coach to send a fresh invite to this email address.`
+            `We signed you in, but ${reason}. The invite link may have expired or the email may not match. Please ask your organizer to send a fresh invite to this email address.`
           );
           setStage("error");
           return;
@@ -177,7 +177,7 @@ export default function AuthFinishPage() {
             <p className="join-page-text">{error}</p>
             <p className="join-page-text">
               Try clicking the button in your invite email again. If the link
-              has expired, ask your coach to send a fresh invite.
+              has expired, ask your organizer to send a fresh invite.
             </p>
           </>
         )}

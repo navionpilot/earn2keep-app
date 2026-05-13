@@ -800,7 +800,7 @@ export default async function PublicTournamentInfoPage({ params }: PageProps) {
               <p style={{ fontSize: 14, opacity: 0.85, marginBottom: 20, maxWidth: 480, margin: "0 auto 20px" }}>
                 {isLoggedIn
                   ? "Pick which team is entering and confirm your registration."
-                  : "Create your free coach account, then pick which team is entering and confirm registration."}
+                  : "Create your free organizer account, then pick which team is entering and confirm registration."}
               </p>
 
               {/* L38 — Prominently displayed join code, always visible.

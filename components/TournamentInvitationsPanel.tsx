@@ -220,7 +220,7 @@ export default function TournamentInvitationsPanel({ tournamentId }: Props) {
             disabled={sending}
           />
           <p style={{ fontSize: 11, opacity: 0.55, marginTop: 4 }}>
-            If you skip names, the email opens with &quot;Hey coach,&quot; instead.
+            If you skip names, the email opens with &quot;Hey there,&quot; instead.
           </p>
 
           {topLevelError && (

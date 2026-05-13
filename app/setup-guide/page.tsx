@@ -71,7 +71,7 @@ export default async function SetupGuidePage() {
         <h1 className="e2k-guide-title">Your earn²keep playbook</h1>
         <p className="e2k-guide-sub">
           Pick Camp or Tournament, then walk through every step from setup to
-          launch. Most coaches finish setup in under 30 minutes.
+          launch. Most organizers finish setup in under 30 minutes.
         </p>
       </div>
 
@@ -177,7 +177,7 @@ export default async function SetupGuidePage() {
         <strong>Still not sure?</strong> Quick test —
         <span> if you have <em>one team</em> competing internally for prizes, pick <strong>Camp</strong>.</span>
         <span> If you have <em>multiple teams</em> competing against each other, pick <strong>Tournament</strong>.</span>
-        <span> You can also run both — many coaches do a Camp first, then a Tournament finale.</span>
+        <span> You can also run both — many organizers do a Camp first, then a Tournament finale.</span>
       </div>
 
       {/* SETUP CHECKLIST */}
@@ -448,8 +448,8 @@ export default async function SetupGuidePage() {
               <p className="e2k-walk-text">
                 This is what <strong>other teams</strong> pay to enter your
                 tournament — not per player, per team. Common: $250, $400,
-                $1,000. Each joining team&apos;s coach pays this once at
-                checkout, then collects from their own players however they
+                $1,000. Each joining team&apos;s organizer pays this once at
+                checkout, then collects from their own members however they
                 want (off-platform).
               </p>
               <div className="e2k-walk-tip">
@@ -528,16 +528,16 @@ export default async function SetupGuidePage() {
           <div className="e2k-walk-step">
             <div className="e2k-walk-num">8</div>
             <div>
-              <h4 className="e2k-walk-title">Share the join code with other team coaches</h4>
+              <h4 className="e2k-walk-title">Share the join code with other team organizers</h4>
               <p className="e2k-walk-text">
                 Every tournament gets a 6-character join code like
                 <strong> ABC-XYZ</strong>. Use the in-app
                 <strong> Invitations</strong> panel to send the code via email
-                to coaches you want to invite, or paste it anywhere — text
+                to organizers you want to invite, or paste it anywhere — text
                 message, group chat, league forum.
               </p>
               <p className="e2k-walk-text">
-                Coaches who receive the code enter it, see your tournament&apos;s
+                Organizers who receive the code enter it, see your tournament&apos;s
                 public info page (name, dates, Entry Fee, your challenges, your
                 tiebreaker), pick which of their teams to enter, pay the Entry
                 Fee, and they&apos;re in. If you enabled approval mode in step 5,
@@ -557,7 +557,7 @@ export default async function SetupGuidePage() {
           <h4 className="help-faq-q">Can I run a Camp and a Tournament at the same time?</h4>
           <p className="help-faq-a">
             Yes — they&apos;re separate events. You can have multiple events
-            running at once. Many coaches run a Camp during regular season,
+            running at once. Many organizers run a Camp during regular season,
             then a Tournament for an end-of-season showdown.
           </p>
         </div>
@@ -592,9 +592,9 @@ export default async function SetupGuidePage() {
           <p className="help-faq-a">
             Every Tournament gets a unique 6-character join code (like
             <strong> ABC-XYZ</strong>). Share it via the in-app
-            <strong> Invitations</strong> panel — type in coach email
+            <strong> Invitations</strong> panel — type in organizer email
             addresses and we send a one-click invitation. Or paste the code
-            anywhere — text, group chat, league forum. Coaches enter the
+            anywhere — text, group chat, league forum. Organizers enter the
             code, see your tournament&apos;s public info page, pick which of
             their teams to enter, pay the Entry Fee, and they&apos;re
             registered. If you turned on Approval mode at setup, you decide
@@ -696,7 +696,7 @@ export default async function SetupGuidePage() {
           <p className="help-faq-a">
             <strong>Tournament:</strong> when the tournament resolves, the
             winning team takes the pot. You (the host) pay the winning
-            team&apos;s coach directly from your organization&apos;s bank
+            team&apos;s organizer directly from your organization&apos;s bank
             account — by check, wire, Venmo, or any other method you
             arrange. earn²keep does not transfer prize money to winners.
           </p>

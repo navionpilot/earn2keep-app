@@ -46,7 +46,7 @@ const verificationModeLabel = (mode: string): string => {
   switch (mode) {
     case "ai_only": return "🤖 AI only";
     case "coach_only": return "👤 Coach only";
-    case "ai_and_coach": return "🤖+👤 AI + Coach";
+    case "ai_and_coach": return "🤖+👤 AI + Organizer";
     default: return "—";
   }
 };
@@ -166,7 +166,7 @@ export default function CSVChallengePreviewTable({
                             className="csv-preview-new-sub-pill"
                             title={
                               isAdmin
-                                ? "Will be created as a new public subcategory (visible to all coaches)"
+                                ? "Will be created as a new public subcategory (visible to all organizers)"
                                 : "Will be created as a new private subcategory"
                             }
                           >
@@ -187,7 +187,7 @@ export default function CSVChallengePreviewTable({
                             className="csv-preview-new-sub-pill"
                             title={
                               isAdmin
-                                ? "Will be created as a new public sub-subcategory (visible to all coaches)"
+                                ? "Will be created as a new public sub-subcategory (visible to all organizers)"
                                 : "Will be created as a new private sub-subcategory"
                             }
                           >

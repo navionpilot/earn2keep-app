@@ -446,7 +446,7 @@ export default function RecordingForm({
             <p className="recording-prompt-hint">
               {isTimed
                 ? "Tip: prop your phone up where it can see your full body, and make sure your volume is up so you can hear the countdown."
-                : "Tip: prop your phone up so the camera can see your full body or the rep clearly. Coach can't approve what they can't see."}
+                : "Tip: prop your phone up so the camera can see your full body or the rep clearly. The reviewer can't approve what they can't see."}
             </p>
           </div>
 

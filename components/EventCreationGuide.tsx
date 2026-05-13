@@ -35,7 +35,7 @@ const STEPS: StepCopy[] = [
     campNote:
       "A Camp is one team competing internally. Each player has a personal fundraising minimum (the goal you'll set in step 3). Best for: a single team, group, troop, class, gym, or club.",
     tournamentNote:
-      "A Tournament is a multi-team commitment contest. Your team competes head-to-head against teams from other organizations. Each joining team's coach pays a per-team Entry Fee (set in step 3). All Entry Fees go into a pot; the winning team takes the whole pot.",
+      "A Tournament is a multi-team commitment contest. Your team competes head-to-head against teams from other organizations. Each joining team's organizer pays a per-team Entry Fee (set in step 3). All Entry Fees go into a pot; the winning team takes the whole pot.",
     tip: "Most events run 4–6 weeks. Shorter loses momentum, longer loses focus.",
   },
   {
@@ -45,7 +45,7 @@ const STEPS: StepCopy[] = [
     campNote:
       "Camps need exactly ONE team — players compete against each other inside the team for prizes.",
     tournamentNote:
-      "Pick which of YOUR OWN teams you want to enter. Other teams from other organizations don't get picked here — they join later by using the 6-character join code you'll share with their coaches via email after the event is created.",
+      "Pick which of YOUR OWN teams you want to enter. Other teams from other organizations don't get picked here — they join later by using the 6-character join code you'll share with their organizers via email after the event is created.",
     tip:
       "Don't see the team you want? You can add a new one from the Teams page first, then come back here.",
   },
@@ -56,7 +56,7 @@ const STEPS: StepCopy[] = [
     campNote:
       "Set a per-player fundraising goal (the minimum each player needs to raise). Common: $150, $250, $500. Players who exceed their minimum get bonus points + extra prize money. Total Camp goal = per-player × number of players.",
     tournamentNote:
-      "Set a flat per-team Entry Fee. Common: $250, $500, $1,000. The coach of each joining team pays this once when their team registers. The pot = Entry Fee × number of teams registered. earn²keep takes ZERO transaction fees — only Stripe's standard card-processing fee (2.9% + $0.30 per transaction, paid to Stripe) comes out before the host receives funds.",
+      "Set a flat per-team Entry Fee. Common: $250, $500, $1,000. The organizer of each joining team pays this once when their team registers. The pot = Entry Fee × number of teams registered. earn²keep takes ZERO transaction fees — only Stripe's standard card-processing fee (2.9% + $0.30 per transaction, paid to Stripe) comes out before the host receives funds.",
     tip:
       "Camp pays bonuses for over-performance. Tournament pays the entire pot to the team that wins. That's the core difference.",
   },

@@ -431,7 +431,7 @@ export default async function SupporterPage({
       <footer className="supporter-footer">
         <div className="supporter-footer-inner">
           <span>© earn²keep · A platform for fundraisers and tournaments</span>
-          <Link href="/" className="supporter-footer-link">Coach login</Link>
+          <Link href="/" className="supporter-footer-link">Organizer login</Link>
         </div>
       </footer>
     </div>

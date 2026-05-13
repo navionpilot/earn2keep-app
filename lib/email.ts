@@ -724,7 +724,7 @@ function buildSubmissionCreatedHtml(
           </table>
         </td></tr>
         <tr><td style="background:#fafafa;padding:16px 32px;text-align:center;font-size:11px;color:#6b7280;border-top:1px solid #eaecef;">
-          You're getting this because you're the coach on this player's roster.<br>
+          You're getting this because you're the organizer on this player's roster.<br>
           Reviewing one submission takes about 30 seconds.
         </td></tr>
       </table>
@@ -883,7 +883,7 @@ function buildTournamentInvitationHtml(opts: TournamentInvitationEmailOptions): 
 
   const greeting = recipientFirstName
     ? `Hey ${escape(recipientFirstName)},`
-    : `Hey coach,`;
+    : `Hey there,`;
 
   const inviterPhrase = hostInviterName
     ? `<strong style="color:#ffffff;">${escape(hostInviterName)}</strong> at <strong style="color:#ffffff;">${escape(hostOrgName)}</strong>`
@@ -1108,7 +1108,7 @@ function buildTournamentInvitationText(opts: TournamentInvitationEmailOptions): 
   const lines: string[] = [];
   lines.push("⚡ TOURNAMENT CHALLENGE");
   lines.push("");
-  lines.push(opts.recipientFirstName ? `Hey ${opts.recipientFirstName},` : "Hey coach,");
+  lines.push(opts.recipientFirstName ? `Hey ${opts.recipientFirstName},` : "Hey there,");
   lines.push("");
   lines.push(`Your team is challenged. ${inviterLine} is hosting a tournament on earn²keep:`);
   lines.push("");
@@ -1244,7 +1244,7 @@ function formatDeadline(iso: string | null): string {
 function buildTiebreakerHtml(opts: TiebreakerNotificationEmailOptions): string {
   const greeting = opts.recipientFirstName
     ? `Hey ${escape(opts.recipientFirstName)},`
-    : `Hey coach,`;
+    : `Hey there,`;
 
   const heroLine = (() => {
     switch (opts.variant) {
@@ -1436,7 +1436,7 @@ function buildTiebreakerText(opts: TiebreakerNotificationEmailOptions): string {
     case "activated":
       lines.push("⚡ TIEBREAKER ACTIVATED");
       lines.push("");
-      lines.push(opts.recipientFirstName ? `Hey ${opts.recipientFirstName},` : "Hey coach,");
+      lines.push(opts.recipientFirstName ? `Hey ${opts.recipientFirstName},` : "Hey there,");
       lines.push("");
       lines.push(`Your team is tied for a prize position in ${opts.tournamentName}.`);
       lines.push("Sudden-death tiebreaker is live.");
@@ -1504,7 +1504,7 @@ export async function sendCoachInvitationEmail(
     return { ok: false, error: "RESEND_API_KEY is not set on the server." };
   }
 
-  const subject = `🏟️ ${opts.inviterName || "A coach"} invited you to join ${opts.orgName} on earn²keep`;
+  const subject = `🏟️ ${opts.inviterName || "Someone"} invited you to join ${opts.orgName} on earn²keep`;
   const html = buildCoachInvitationHtml(opts);
   const text = buildCoachInvitationText(opts, subject);
 
@@ -1542,7 +1542,7 @@ export async function sendCoachInvitationEmail(
 function buildCoachInvitationHtml(opts: CoachInvitationEmailOptions): string {
   const greeting = opts.recipientFirstName
     ? `Hey ${escape(opts.recipientFirstName)},`
-    : `Hey coach,`;
+    : `Hey there,`;
 
   const inviterPhrase = opts.inviterName
     ? `<strong style="color:#ffffff;">${escape(opts.inviterName)}</strong>`
@@ -1572,7 +1572,7 @@ function buildCoachInvitationHtml(opts: CoachInvitationEmailOptions): string {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="color-scheme" content="dark">
-<title>Coach invitation</title>
+<title>Organizer invitation</title>
 </head>
 <body bgcolor="#041418" style="margin:0;padding:0;background-color:#041418;color:#f7fbfb;-webkit-font-smoothing:antialiased;">
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#041418" style="background-color:#041418;">
@@ -1585,7 +1585,7 @@ function buildCoachInvitationHtml(opts: CoachInvitationEmailOptions): string {
               earn<sup style="font-size:14px;vertical-align:super;">2</sup>keep
             </div>
             <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;font-weight:700;color:#ffffff;letter-spacing:1.6px;text-transform:uppercase;margin-top:6px;">
-              🏟️ Coach Invitation
+              🏟️ Organizer Invitation
             </div>
           </td>
         </tr>
@@ -1595,7 +1595,7 @@ function buildCoachInvitationHtml(opts: CoachInvitationEmailOptions): string {
               ${greeting}
             </h1>
             <p style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:15px;line-height:1.6;color:#cfe7e7;margin:0 0 12px 0;">
-              ${inviterPhrase} invited you to be a coach at <strong style="color:#ffffff;">${escape(opts.orgName)}</strong> on earn²keep.
+              ${inviterPhrase} invited you to be an organizer at <strong style="color:#ffffff;">${escape(opts.orgName)}</strong> on earn²keep.
             </p>
             <p style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:14px;line-height:1.6;color:#cfe7e7;margin:0;">
               Once you accept, you&rsquo;ll be able to create teams under this org, manage their rosters, and join the organization&rsquo;s Camps and Tournaments.
@@ -1614,7 +1614,7 @@ function buildCoachInvitationHtml(opts: CoachInvitationEmailOptions): string {
                 What is earn²keep?
               </div>
               <p style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:13px;line-height:1.6;color:#cfe7e7;margin:0;">
-                A fundraising platform built around effort, not asks. Players earn donations by completing real verified challenges. Coaches verify submissions. Supporters give based on what kids actually do.
+                A fundraising platform built around effort, not asks. Participants earn donations by completing real verified challenges. Organizers verify submissions. Supporters give based on what the participants actually do.
               </p>
             </div>
           </td>
@@ -1639,12 +1639,12 @@ function buildCoachInvitationHtml(opts: CoachInvitationEmailOptions): string {
 
 function buildCoachInvitationText(opts: CoachInvitationEmailOptions, subject: string): string {
   const lines: string[] = [];
-  lines.push("🏟️ COACH INVITATION");
+  lines.push("🏟️ ORGANIZER INVITATION");
   lines.push("");
-  lines.push(opts.recipientFirstName ? `Hey ${opts.recipientFirstName},` : "Hey coach,");
+  lines.push(opts.recipientFirstName ? `Hey ${opts.recipientFirstName},` : "Hey there,");
   lines.push("");
   lines.push(
-    `${opts.inviterName || "Someone"} invited you to be a coach at ${opts.orgName} on earn²keep.`
+    `${opts.inviterName || "Someone"} invited you to be an organizer at ${opts.orgName} on earn²keep.`
   );
   lines.push("");
   lines.push("Once you accept, you can create teams under this org and join the organization's Camps and Tournaments.");

@@ -36,7 +36,7 @@ export default function SupporterNotFound() {
       <footer className="supporter-footer">
         <div className="supporter-footer-inner">
           <span>© earn²keep</span>
-          <Link href="/" className="supporter-footer-link">Coach login</Link>
+          <Link href="/" className="supporter-footer-link">Organizer login</Link>
         </div>
       </footer>
     </div>

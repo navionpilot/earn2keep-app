@@ -457,7 +457,7 @@ export default async function EventMoneyDetailPage({ params }: PageProps) {
                         )}
                       </div>
                       <div style={{ fontSize: 12, opacity: 0.65, marginTop: 2 }}>
-                        {tx.coach_name && <>Coach: <strong>{tx.coach_name}</strong> · </>}
+                        {tx.coach_name && <>Organizer: <strong>{tx.coach_name}</strong> · </>}
                         Joined {formatDateWithTime(tx.joined_at)}
                       </div>
                       <div style={{ marginTop: 6 }}>

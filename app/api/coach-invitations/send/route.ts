@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
   }
   if (org.owner_id !== user.id) {
     return NextResponse.json(
-      { error: "Only the org owner can invite coaches." },
+      { error: "Only the org owner can invite organizers." },
       { status: 403 }
     );
   }

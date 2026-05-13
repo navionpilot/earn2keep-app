@@ -139,9 +139,9 @@ export default function CoachesPanel({ orgId, orgName, coaches, pendingInvites }
     <section className="e2k-panel" style={{ marginBottom: 16 }}>
       <div className="e2k-panel-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h2 className="e2k-panel-title">Coaches</h2>
+          <h2 className="e2k-panel-title">Organizers</h2>
           <p className="e2k-panel-sub">
-            {coaches.length} active{coaches.length === 1 ? " coach" : " coaches"}
+            {coaches.length} active organizer{coaches.length === 1 ? "" : "s"}
             {pendingInvites.length > 0 && (
               <> · {pendingInvites.length} pending invitation{pendingInvites.length === 1 ? "" : "s"}</>
             )}
@@ -162,7 +162,7 @@ export default function CoachesPanel({ orgId, orgName, coaches, pendingInvites }
               cursor: "pointer",
             }}
           >
-            + Invite a coach
+            + Invite an organizer
           </button>
         )}
       </div>
@@ -290,7 +290,7 @@ export default function CoachesPanel({ orgId, orgName, coaches, pendingInvites }
           }}
         >
           <div style={{ fontSize: 11, fontWeight: 800, color: "#35d5df", letterSpacing: 1.2, marginBottom: 10 }}>
-            INVITE A NEW COACH
+            INVITE A NEW ORGANIZER
           </div>
           <p style={{ fontSize: 12, opacity: 0.75, margin: "0 0 12px 0", lineHeight: 1.5 }}>
             They&apos;ll get an email invitation. Once they sign up and accept,
@@ -300,7 +300,7 @@ export default function CoachesPanel({ orgId, orgName, coaches, pendingInvites }
           <div style={{ display: "grid", gap: 10 }}>
             <input
               type="email"
-              placeholder="coach@example.com"
+              placeholder="organizer@example.com"
               value={inviteEmail}
               onChange={(e) => setInviteEmail(e.target.value)}
               disabled={sending}
@@ -315,7 +315,7 @@ export default function CoachesPanel({ orgId, orgName, coaches, pendingInvites }
             />
             <input
               type="text"
-              placeholder="Coach name (optional)"
+              placeholder="Organizer name (optional)"
               value={inviteName}
               onChange={(e) => setInviteName(e.target.value)}
               disabled={sending}

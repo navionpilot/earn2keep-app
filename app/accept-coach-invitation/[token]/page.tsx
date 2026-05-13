@@ -67,7 +67,7 @@ export default async function AcceptCoachInvitationPage({ params }: PageProps) {
       <CenteredCard
         eyebrow="ALREADY ACCEPTED"
         title="You've already accepted this invitation"
-        body={`You're a coach at ${orgName}. Head to your dashboard to create teams and assign them to this org.`}
+        body={`You're now an organizer at ${orgName}. Head to your dashboard to create teams and assign them to this org.`}
         cta={{ href: "/dashboard", label: "Go to dashboard →" }}
       />
     );

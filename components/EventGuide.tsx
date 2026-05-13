@@ -156,18 +156,18 @@ const TOURNAMENT_STEPS: StepCopy[] = [
   },
   {
     num: 3,
-    title: "Invite other team coaches",
+    title: "Invite other team organizers",
     intro:
-      "This is how teams from other organizations join your tournament. Open the Tournament Invitations panel on the event page and email the 6-character join code to coaches you want to invite.",
+      "This is how teams from other organizations join your tournament. Open the Tournament Invitations panel on the event page and email the 6-character join code to organizers you want to invite.",
     detail:
       "They click the email link, see the public tournament info page (dates, Entry Fee, your challenges, current pot), decide if they're in, pay their team's Entry Fee, and they're registered. Each joining team adds their Entry Fee to the pot.",
-    tip: "You can also paste the join code into a group chat, Slack, league forum, or anywhere coaches hang out. Anyone with the code can join.",
+    tip: "You can also paste the join code into a group chat, Slack, league forum, or anywhere organizers hang out. Anyone with the code can join.",
   },
   {
     num: 4,
     title: "Send invites to your team's players",
     intro:
-      "Invite the players on YOUR team (the host's team). They need their own accounts to record challenges. Other teams' players get invited by their own coaches, not by you.",
+      "Invite the players on YOUR team (the host's team). They need their own accounts to record challenges. Other teams' players get invited by their own organizers, not by you.",
     detail:
       "Each player gets a branded email with a one-click sign-up link — no password needed. The button below jumps straight to your team page with the invite modal open.",
     tip: "Same flow as a Camp — you're just inviting one team's worth of players (yours).",
@@ -178,7 +178,7 @@ const TOURNAMENT_STEPS: StepCopy[] = [
     intro:
       "Click ▶ Activate Event in the header to flip the tournament live. While in Draft, no team (including yours) can submit anything and the join code doesn't accept new registrations.",
     detail:
-      "Tip: activate AFTER you've sent the invitations to other coaches and given them a window to register. Once activated, the tournament runs on its own schedule.",
+      "Tip: activate AFTER you've sent the invitations to other organizers and given them a window to register. Once activated, the tournament runs on its own schedule.",
     tip: 'Don\'t worry about activating too early. Player pages and submission tracking only "go live" once you flip the switch.',
   },
   {
@@ -196,7 +196,7 @@ const TOURNAMENT_STEPS: StepCopy[] = [
     intro:
       "When the tournament ends, click ✓ Mark Complete in the header. The winning team is locked in. The whole pot of Entry Fees goes to the winning team — no individual prizes, no split pot.",
     detail:
-      "You (the host org) pay the winning team's coach directly from your bank account. Earn²keep facilitates the competition but doesn't handle the prize payout. View total received via the Money page on your org.",
+      "You (the host org) pay the winning team's organizer directly from your bank account. Earn²keep facilitates the competition but doesn't handle the prize payout. View total received via the Money page on your org.",
   },
 ];
 
@@ -338,7 +338,7 @@ function getActionFor(
 function getUpLookHint(stepNum: number, isTournament: boolean): string | null {
   if (isTournament) {
     if (stepNum === 2) return "↑ Use the Tiebreaker section on this page to pick the sudden-death challenge.";
-    if (stepNum === 3) return "↑ Use the Tournament Invitations panel on this page to email the join code to other coaches.";
+    if (stepNum === 3) return "↑ Use the Tournament Invitations panel on this page to email the join code to other organizers.";
     if (stepNum === 5) return "↑ Look for the ▶ Activate Event button at the top of this page.";
     if (stepNum === 7) return "↑ Look for the ✓ Mark Complete button at the top of this page.";
   } else {

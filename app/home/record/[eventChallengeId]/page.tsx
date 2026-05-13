@@ -170,7 +170,7 @@ export default async function RecordPage({
     if (event.status === "draft") {
       title = "Event hasn't started yet";
       text =
-        "Your coach hasn't activated this event yet. Once it goes live, you'll be able to record and submit challenges.";
+        "Your organizer hasn't activated this event yet. Once it goes live, you'll be able to record and submit challenges.";
     } else if (event.status === "completed") {
       title = "Event has ended";
       text =
@@ -178,7 +178,7 @@ export default async function RecordPage({
     } else {
       title = "Submissions are paused";
       text =
-        "Your coach has paused this event. Hold tight — recording will reopen soon.";
+        "Your organizer has paused this event. Hold tight — recording will reopen soon.";
     }
     return (
       <ErrorPage playerFirstName={player.first_name} playerLastName={player.last_name} title={title} text={text} />

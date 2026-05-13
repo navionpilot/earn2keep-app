@@ -171,7 +171,7 @@ export const RECORDING_TEMPLATES: Record<string, RecordingTemplate> = {
     icon: "✏️",
     label: "Custom recording",
     description:
-      "Your coach has set custom recording instructions for this challenge — see below.",
+      "Your organizer has set custom recording instructions for this challenge — see below.",
     instructions: [
       "Read your coach's instructions carefully (they appear right below this panel).",
       "If anything is unclear, ask your coach before recording.",

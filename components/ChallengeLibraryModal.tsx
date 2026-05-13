@@ -343,7 +343,7 @@ export default function ChallengeLibraryModal({
                 <div className="library-manage-banner-text">
                   <strong>Manage mode</strong>
                   {isAdmin
-                    ? <> — edit or delete any challenge in the library. As admin, your changes apply for every coach.</>
+                    ? <> — edit or delete any challenge in the library. As admin, your changes apply for every organizer.</>
                     : <> — edit or delete challenges you created. Public/seeded library challenges can only be modified by the platform admin.</>}
                 </div>
                 <div className="library-manage-banner-actions">
@@ -583,7 +583,7 @@ export default function ChallengeLibraryModal({
                                         : c.verification_mode === "coach_only"
                                         ? "Coach review required"
                                         : c.verification_mode === "ai_then_coach"
-                                        ? "AI pre-screen, coach confirms"
+                                        ? "AI pre-screen, organizer confirms"
                                         : c.verification_mode}
                                     </div>
                                   </div>

@@ -28,7 +28,7 @@ function buildPrompt(input: StrategyInput): string {
   const targetLine =
     repTarget != null ? `\nThe target for this challenge is ${repTarget} ${unitText}.` : "";
 
-  return `You are verifying a fundraising challenge submission for earn²keep, a youth platform where kids do physical challenges to earn money from supporters. Your verification helps the organizer review the submission.
+  return `You are verifying a fundraising challenge submission for earn²keep, a platform where participants of any age do real challenges to earn money from supporters. Your verification helps the organizer review the submission.
 
 The challenge is: ${challengeName}${claimedLine}${targetLine}
 The ${framesBase64.length} images below are frames extracted at evenly-spaced intervals from a video the participant recorded.

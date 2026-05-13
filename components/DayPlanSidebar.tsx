@@ -81,7 +81,7 @@ export default function DayPlanSidebar({
     switch (mode) {
       case "ai_only": return "🤖 AI verification only";
       case "coach_only": return "👤 Coach manual review";
-      case "ai_and_coach": return "🤖 + 👤 AI suggests, coach confirms";
+      case "ai_and_coach": return "🤖 + 👤 AI suggests, organizer confirms";
       default: return "👤 Coach manual review";
     }
   };
