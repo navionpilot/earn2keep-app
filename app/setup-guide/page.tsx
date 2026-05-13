@@ -683,6 +683,34 @@ export default async function SetupGuidePage() {
             changed after creation.
           </p>
         </div>
+
+        <div className="help-faq">
+          <h4 className="help-faq-q">Who handles the prize money?</h4>
+          <p className="help-faq-a">
+            earn²keep is a marketplace platform — <strong>we facilitate the
+            competition but we don&apos;t hold or distribute prize money</strong>.
+            Each host organization connects its own payment account, and
+            money from Entry Fees (Tournament) or supporter donations
+            (Camp) routes directly to that account.
+          </p>
+          <p className="help-faq-a">
+            <strong>Tournament:</strong> when the tournament resolves, the
+            winning team takes the pot. You (the host) pay the winning
+            team&apos;s coach directly from your organization&apos;s bank
+            account — by check, wire, Venmo, or any other method you
+            arrange. earn²keep does not transfer prize money to winners.
+          </p>
+          <p className="help-faq-a">
+            <strong>Camp:</strong> when the event completes, you distribute
+            the prize gift cards you configured to top-finishing players,
+            from the funds raised. earn²keep does not purchase or mail
+            prizes.
+          </p>
+          <p className="help-faq-a">
+            Either way: any dispute over prize payment is between you (the
+            host) and the recipient. earn²keep is not party to it.
+          </p>
+        </div>
       </div>
 
       {/* FINAL CTA */}

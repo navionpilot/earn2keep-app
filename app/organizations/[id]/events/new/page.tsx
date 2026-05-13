@@ -664,6 +664,33 @@ export default function NewEventPage() {
                     registered</em> (net of payment processing).
                   </p>
                 </div>
+
+                {/* L42 — Marketplace disclosure: required legal cover. The
+                    host org pays the winning team directly off-platform.
+                    earn²keep is not the payer of record. */}
+                <div
+                  style={{
+                    marginTop: 12,
+                    padding: 14,
+                    background: "rgba(255, 117, 95, 0.05)",
+                    border: "1px solid rgba(255, 117, 95, 0.25)",
+                    borderLeft: "3px solid #ff755f",
+                    borderRadius: 8,
+                  }}
+                >
+                  <div style={{ fontSize: 11, fontWeight: 800, color: "#ff755f", letterSpacing: 1.2, marginBottom: 6 }}>
+                    ⚠️ HOST RESPONSIBILITY
+                  </div>
+                  <p style={{ fontSize: 12, lineHeight: 1.6, margin: 0, opacity: 0.92 }}>
+                    earn²keep <strong>facilitates this competition but does not hold or
+                    distribute prize money.</strong> When the tournament resolves,
+                    your organization is responsible for paying the winning
+                    team&apos;s coach directly from your bank account (via check,
+                    Venmo, wire transfer, or any other method you arrange).
+                    Disputes over prize payments are between your organization
+                    and the winning team — earn²keep is not party to them.
+                  </p>
+                </div>
               </div>
             )}
             {eventType && eventType !== "tournament" && (

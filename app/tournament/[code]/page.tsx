@@ -899,6 +899,39 @@ export default async function PublicTournamentInfoPage({ params }: PageProps) {
         </div>
         )}
 
+        {/* L42 — Marketplace disclosure. Required legal cover for joining
+            teams before they pay. Makes the host-pays-prize relationship
+            explicit so prize disputes don't land on earn²keep. */}
+        <div
+          style={{
+            marginTop: 32,
+            padding: 16,
+            background: "rgba(255, 117, 95, 0.04)",
+            border: "1px solid rgba(255, 117, 95, 0.2)",
+            borderRadius: 10,
+            fontSize: 12,
+            lineHeight: 1.6,
+            opacity: 0.92,
+          }}
+        >
+          <div style={{ fontSize: 10, fontWeight: 800, color: "#ff755f", letterSpacing: 1.4, marginBottom: 6 }}>
+            ⚠️ ABOUT PRIZE PAYMENTS
+          </div>
+          <p style={{ margin: 0 }}>
+            earn²keep facilitates this tournament but does not hold or
+            distribute prize money.{" "}
+            <strong style={{ color: "#f7fbfb" }}>
+              {tournament.host_org_name || "The host organization"}
+            </strong>{" "}
+            is responsible for paying the winning team directly from their
+            organization&apos;s bank account when the tournament resolves.
+            If you have questions about prize payment terms or timing,
+            contact the host directly before joining. Disputes over prize
+            payment are between you and the host — earn²keep is not party
+            to them.
+          </p>
+        </div>
+
         {/* Footer */}
         <div
           style={{
