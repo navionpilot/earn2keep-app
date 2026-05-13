@@ -40,7 +40,7 @@ export default async function OrgAccountPage({ params }: PageProps) {
   // Fetch the org (must be owned by current user)
   const { data: org, error: orgErr } = await supabase
     .from("organizations")
-    .select("id, name, description, location, owner_id, created_at")
+    .select("id, name, description, city, state, org_type, owner_id, created_at")
     .eq("id", orgId)
     .maybeSingle();
 
@@ -161,8 +161,15 @@ export default async function OrgAccountPage({ params }: PageProps) {
         </div>
         <div style={{ display: "grid", gap: 12 }}>
           <DetailRow label="Name" value={org.name} />
+          <DetailRow label="Type" value={org.org_type || "(not set)"} muted={!org.org_type} />
           <DetailRow label="Description" value={org.description || "(none)"} muted={!org.description} />
-          <DetailRow label="Location" value={org.location || "(none)"} muted={!org.location} />
+          <DetailRow
+            label="Location"
+            value={
+              [org.city, org.state].filter(Boolean).join(", ") || "(none)"
+            }
+            muted={!org.city && !org.state}
+          />
           <DetailRow
             label="Created"
             value={new Date(org.created_at).toLocaleDateString("en-US", {
