@@ -84,12 +84,12 @@ const STEPS: StepCopy[] = [
   {
     num: 3,
     phase: "setup",
-    title: "Add players/participants to your roster",
+    title: "Add players/participants — and send them invites",
     intro:
-      "Add each player/participant's name and jersey number. You can add them one at a time or import a CSV.",
+      "Add each player/participant's name and jersey number, then send them invites so they can log in and submit their own challenge videos.",
     detail:
-      "We auto-detect CSV exports from TeamSnap, GameChanger, SportsEngine, and a few others — just drop in the file.",
-    tip: "An optional verification photo per player helps confirm it's the right player/participant in submitted videos.",
+      "You can add players one at a time or import a CSV (we auto-detect TeamSnap, GameChanger, SportsEngine, and a few others). Once players are on the roster, click ✉ Send Invites on the team page to email a one-click sign-up link to each one.",
+    tip: "Players don't need a password — just clicking the link in their email signs them in. If a parent's email is on the player record, that's where the invite goes; you can also paste in the right address in the invite modal.",
   },
 
   // ------- PHASE B: Launch an event -------
@@ -108,40 +108,26 @@ const STEPS: StepCopy[] = [
   {
     num: 5,
     phase: "launch",
-    title: "Send invites to your players/participants",
-    intro:
-      "Players/participants need their own accounts to record challenges and track fundraising. Open the team page and click ✉ Send Invites.",
-    detail:
-      "Each player gets a branded email with a one-click sign-up link. They don't need a password — just click the link in their inbox.",
-    campNote:
-      "Camp: invite every player on the team — they're all competing.",
-    tournamentNote:
-      "Tournament: invite the players on YOUR team. Other teams' organizers get invited separately, from the event page — they receive the 6-character join code and bring their own rosters.",
-    tip: "If a parent's email is on the player record, that's where the invite goes. Otherwise paste in the right address right in the modal.",
-  },
-  {
-    num: 6,
-    phase: "launch",
-    title: "Generate supporter QR codes (Camps) or invite other organizers (Tournaments)",
+    title: "Share supporter QR codes (Camps) or invite competing teams (Tournaments)",
     intro:
       "This step depends on event type. Pick the path that matches what you're running.",
     campNote:
-      "Camp: each player gets a unique QR code. Print them, share them, or have players hand them out at school or practice. Supporters scan the QR, see the player's real verified work, and contribute. The code is tied to the player and the event.",
+      "Camp: each player automatically gets a unique QR code when the event is created. Print them, share them, or have players hand them out at school or practice. Supporters scan the QR, see the player's real verified work, and contribute. The code is tied to the player and the event.",
     tournamentNote:
       "Tournament: open the event page and use the Tournament Invitations panel to email the join code to organizers at other organizations. They click the link, see your tournament's public info page, pay their team's Entry Fee, and they're in.",
   },
   {
-    num: 7,
+    num: 6,
     phase: "launch",
     title: "Activate the event",
     intro:
       "While your event is in Draft, players can't submit anything, supporters can't pledge, and (for Tournaments) other teams can't join. Click ▶ Activate Event in the event header to flip it live.",
-    tip: "You can activate before or after sending invites — players who claim a magic link before activation just see a 'gets ready' state until the event starts.",
+    tip: "You can activate before or after sharing QR codes / sending tournament invites — players who claim a magic link before activation just see a 'gets ready' state until the event starts.",
   },
 
   // ------- PHASE C: Run it -------
   {
-    num: 8,
+    num: 7,
     phase: "run",
     title: "Review submissions as they come in",
     intro:
@@ -152,7 +138,7 @@ const STEPS: StepCopy[] = [
       "Tournament: also keep an eye on the event page for pending team approvals (if you enabled approval mode) and the tiebreaker block (if a tie activates the sudden-death challenge).",
   },
   {
-    num: 9,
+    num: 8,
     phase: "run",
     title: "Mark the event complete",
     intro:
@@ -173,12 +159,12 @@ const PHASE_LABELS: Record<string, string> = {
 function getCurrentStep(props: DashboardGuideProps): number {
   if (!props.hasOrganization) return 1;
   if (!props.hasTeams) return 2;
-  if (!props.hasPlayers) return 3;
+  // Step 3 combines "add players" + "send invites" — both must be done to clear it
+  if (!props.hasPlayers || !props.hasInvited) return 3;
   if (!props.hasEvent) return 4;
-  if (!props.hasInvited) return 5;
-  if (!props.hasQR) return 6;
-  if (!props.hasActiveOrCompletedEvent) return 7;
-  if (!props.hasCompletedEvent) return 8;
+  if (!props.hasQR) return 5;
+  if (!props.hasActiveOrCompletedEvent) return 6;
+  if (!props.hasCompletedEvent) return 7;
   return 10; // all done sentinel
 }
 
@@ -197,10 +183,23 @@ function getActionFor(
           }
         : null;
     case 3:
+      // Combined "add players + send invites" step. Action depends on
+      // which sub-task is incomplete:
+      //   • No players yet → "Add players →"
+      //   • Players exist but none invited → "✉ Send invites →" (deep-links
+      //     to the team page with the invite modal auto-opened via ?send=true)
+      if (!props.hasPlayers) {
+        return props.firstTeamId
+          ? {
+              label: "Add players →",
+              href: `/teams/${props.firstTeamId}/players/new`,
+            }
+          : null;
+      }
       return props.firstTeamId
         ? {
-            label: "Add players →",
-            href: `/teams/${props.firstTeamId}/players/new`,
+            label: "✉ Open team to send invites →",
+            href: `/teams/${props.firstTeamId}?send=true`,
           }
         : null;
     case 4:
@@ -211,36 +210,27 @@ function getActionFor(
           }
         : null;
     case 5:
-      // Slice 5.7: deep-link to the team page with ?send=true to auto-open
-      // the invites modal.
-      return props.firstTeamId
-        ? {
-            label: "✉ Open team to send invites →",
-            href: `/teams/${props.firstTeamId}?send=true`,
-          }
-        : null;
-    case 6:
       return props.firstEventId
         ? {
             label: "Open QR codes →",
             href: `/events/${props.firstEventId}/qr-codes`,
           }
         : null;
-    case 7:
+    case 6:
       return props.firstEventId
         ? {
             label: "▶ Open event to activate →",
             href: `/events/${props.firstEventId}`,
           }
         : null;
-    case 8:
+    case 7:
       return props.firstEventId
         ? {
             label: "Open submissions →",
             href: `/events/${props.firstEventId}/submissions`,
           }
         : null;
-    case 9:
+    case 8:
       return props.firstEventId
         ? {
             label: "Open event →",

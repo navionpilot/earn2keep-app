@@ -32,8 +32,8 @@ interface NavItem {
 interface JourneyStatus {
   hasOrg: boolean;
   hasTeam: boolean;
+  hasPlayer: boolean;
   hasEvent: boolean;
-  hasQR: boolean;
 }
 
 interface AppSidebarProps {
@@ -115,8 +115,12 @@ const items: NavItem[] = [
   { key: "overview", label: "Dashboard", href: "/dashboard", icon: Icon.Dashboard },
   { key: "organizations", label: "Organizations", href: "/organizations", icon: Icon.Building, journeyStep: 1, statusKey: "hasOrg" },
   { key: "teams", label: "Teams", href: "/teams", icon: Icon.Users, journeyStep: 2, statusKey: "hasTeam" },
-  { key: "events", label: "Events", href: "/events", icon: Icon.Calendar, journeyStep: 3, statusKey: "hasEvent" },
-  { key: "qr-codes", label: "QR Codes", href: "/qr-codes", icon: Icon.QrCode, journeyStep: 4, statusKey: "hasQR" },
+  { key: "participants", label: "Participants", href: "/participants", icon: Icon.User, journeyStep: 3, statusKey: "hasPlayer" },
+  { key: "events", label: "Events", href: "/events", icon: Icon.Calendar, journeyStep: 4, statusKey: "hasEvent" },
+  // QR Codes is now an always-available utility, no longer a numbered journey step.
+  // Supporter pages auto-generate when an event activates; users come here to view
+  // or print them, not as a required setup step.
+  { key: "qr-codes", label: "QR Codes", href: "/qr-codes", icon: Icon.QrCode },
   { key: "settings", label: "Settings", href: "/settings", icon: Icon.Settings },
   { key: "help", label: "Help", href: "/help", icon: Icon.Help },
 ];
@@ -139,20 +143,20 @@ export default function AppSidebar({ active, open, onClose }: AppSidebarProps) {
         } = await supabase.auth.getUser();
         if (!user) return;
 
-        const [orgsRes, teamsRes, eventsRes, tokensRes] = await Promise.all([
+        const [orgsRes, teamsRes, playersRes, eventsRes] = await Promise.all([
           supabase
             .from("organizations")
             .select("id", { count: "exact", head: true })
             .eq("owner_id", user.id),
-          // RLS scopes teams/events/tokens to user-owned orgs automatically
+          // RLS scopes teams/players/events to user-owned orgs automatically
           supabase
             .from("teams")
             .select("id", { count: "exact", head: true }),
           supabase
-            .from("events")
+            .from("players")
             .select("id", { count: "exact", head: true }),
           supabase
-            .from("supporter_tokens")
+            .from("events")
             .select("id", { count: "exact", head: true }),
         ]);
 
@@ -160,8 +164,8 @@ export default function AppSidebar({ active, open, onClose }: AppSidebarProps) {
         setStatus({
           hasOrg: (orgsRes.count || 0) > 0,
           hasTeam: (teamsRes.count || 0) > 0,
+          hasPlayer: (playersRes.count || 0) > 0,
           hasEvent: (eventsRes.count || 0) > 0,
-          hasQR: (tokensRes.count || 0) > 0,
         });
       } catch {
         // Failure is non-fatal — sidebar just renders without badges.
