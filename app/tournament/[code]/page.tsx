@@ -134,44 +134,67 @@ export default async function PublicTournamentInfoPage({ params }: PageProps) {
   // strict-scored standings + per-team roster status panels below the basic
   // info. This is what turns the public info page into the "participant
   // home" for the tournament once someone's actually in.
+  // L37 — Also detect "user is a player on a team in this tournament" via
+  // players.linked_user_id. Players need to see the same participant view
+  // as coaches so they can read roster status and submit to the tiebreaker.
   let participantTeams: { team_id: string; team_name: string }[] = [];
   if (isLoggedIn && user) {
-    // All teams the user owns
+    // 1) Teams the user owns directly
     const { data: ownedTeams } = await supabase
       .from("teams")
       .select("id, name")
       .eq("owner_id", user.id);
-    const ownedTeamIds = (ownedTeams || []).map((t) => t.id);
-    if (ownedTeamIds.length > 0) {
-      // Find which of the user's teams are in this tournament (via
-      // event_participants for the host's teams, or tournament_teams for
-      // joining teams). Either way, the team is participating.
+    // 2) Teams where the user is a linked player
+    const { data: linkedPlayerRows } = await supabase
+      .from("players")
+      .select("team_id, teams(id, name)")
+      .eq("linked_user_id", user.id);
+    type TeamLite = { id: string; name: string };
+    const teamMap: Record<string, TeamLite> = {};
+    (ownedTeams || []).forEach((t) => {
+      teamMap[t.id] = { id: t.id, name: t.name };
+    });
+    (linkedPlayerRows || []).forEach((row) => {
+      const rel = row.teams;
+      if (rel) {
+        const t = Array.isArray(rel) ? rel[0] : rel;
+        if (t && (t as { id?: string }).id) {
+          const obj = t as { id: string; name: string };
+          teamMap[obj.id] = { id: obj.id, name: obj.name };
+        }
+      }
+    });
+    const candidateTeamIds = Object.keys(teamMap);
+    if (candidateTeamIds.length > 0) {
       const [{ data: epRows }, { data: ttRows }] = await Promise.all([
         supabase
           .from("event_participants")
           .select("team_id")
           .eq("event_id", tournament.id)
-          .in("team_id", ownedTeamIds),
+          .in("team_id", candidateTeamIds),
         supabase
           .from("tournament_teams")
           .select("team_id")
           .eq("tournament_event_id", tournament.id)
-          .in("team_id", ownedTeamIds)
+          .in("team_id", candidateTeamIds)
           .in("status", ["active", "pending_approval"]),
       ]);
       const participatingIds = new Set<string>([
         ...(epRows || []).map((r) => r.team_id),
         ...(ttRows || []).map((r) => r.team_id),
       ]);
-      participantTeams = (ownedTeams || [])
-        .filter((t) => participatingIds.has(t.id))
+      participantTeams = candidateTeamIds
+        .filter((id) => participatingIds.has(id))
+        .map((id) => teamMap[id])
         .map((t) => ({ team_id: t.id, team_name: t.name }));
     }
   }
   const isParticipant = participantTeams.length > 0;
 
   // L35 — Process tiebreaker state on this page load. Idempotent.
+  // L37 — Type updated to receive from_state; fire notify on transition.
   type TiebreakerStateRow = {
+    from_state: string;
     state: string;
     activated_at: string | null;
     deadline_at: string | null;
@@ -187,15 +210,30 @@ export default async function PublicTournamentInfoPage({ params }: PageProps) {
     target_unit: string | null;
   } | null = null;
 
-  // Only process and show tiebreaker UI to participants (or anyone after
-  // resolution — the winner announcement is fine to surface publicly).
-  // For non-participants pre-resolution we keep things clean.
   if (isLoggedIn) {
     const { data: stateRows } = await supabase.rpc("process_tournament_tiebreaker", {
       p_event_id: tournament.id,
     });
     if (Array.isArray(stateRows) && stateRows.length > 0) {
       tiebreakerState = stateRows[0] as TiebreakerStateRow;
+    }
+
+    // L37 — On transition, fire the notification API (fire-and-forget).
+    if (tiebreakerState && tiebreakerState.from_state !== tiebreakerState.state) {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "";
+      if (baseUrl) {
+        fetch(`${baseUrl}/api/tournament-tiebreaker/notify`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            eventId: tournament.id,
+            fromState: tiebreakerState.from_state,
+            toState: tiebreakerState.state,
+          }),
+        }).catch(() => {
+          // Swallow — page doesn't depend on email delivery
+        });
+      }
     }
     if (tiebreakerState?.tied_team_ids && tiebreakerState.tied_team_ids.length > 0) {
       const { data: teamRows } = await supabase
@@ -706,10 +744,18 @@ export default async function PublicTournamentInfoPage({ params }: PageProps) {
                 winnerTeamId={tiebreakerState.winner_team_id}
                 tiedTeamIds={tiebreakerState.tied_team_ids ?? []}
                 tiedTeams={tiedTeamsDetail}
+                tiebreakerChallengeId={tiebreakerChallenge?.id ?? null}
                 tiebreakerChallengeName={tiebreakerChallengeMeta?.name ?? null}
                 tiebreakerChallengeTargetValue={tiebreakerChallengeMeta?.target_value ?? null}
                 tiebreakerChallengeTargetUnit={tiebreakerChallengeMeta?.target_unit ?? null}
                 isCurrentUserHost={false}
+                isCurrentUserOnTiedTeam={
+                  // True when the user has a participating team that's in the
+                  // tied set for this tournament.
+                  participantTeams.some((t) =>
+                    (tiebreakerState?.tied_team_ids ?? []).includes(t.team_id)
+                  )
+                }
                 eventId={tournament.id}
               />
             )}

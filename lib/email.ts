@@ -1108,3 +1108,345 @@ function buildTournamentInvitationText(opts: TournamentInvitationEmailOptions): 
   lines.push("earn²keep — Earn it. Keep it.");
   return lines.join("\n");
 }
+
+// =============================================================================
+// L37 — Tournament tiebreaker notification email
+// =============================================================================
+// Sent when the sudden-death tiebreaker transitions state:
+//   - "activated" → tied teams' coaches: tiebreaker is now live, X-hour window
+//   - "resolved" → tied teams' coaches: winner announced (automated)
+//   - "host_decision_needed" → host only: window closed, you need to pick
+//   - "host_decided" → tied teams' coaches: winner announced (host-picked)
+//
+// Single email function with a `variant` parameter that picks the right
+// copy. Same Resend integration as the L33 invitation email.
+// =============================================================================
+
+export type TiebreakerEmailVariant =
+  | "activated"
+  | "resolved"
+  | "host_decision_needed"
+  | "host_decided";
+
+export interface TiebreakerNotificationEmailOptions {
+  to: string;
+  recipientFirstName: string | null;
+  variant: TiebreakerEmailVariant;
+  tournamentName: string;
+  hostOrgName: string;
+  tournamentUrl: string;
+  // Variant-specific extras (any may be null depending on variant):
+  tiebreakerChallengeName: string | null;
+  tiebreakerChallengeTarget: string | null;  // e.g. "100 burpees"
+  deadlineIso: string | null;                // for "activated"
+  windowHours: number | null;                // for "activated"
+  winnerTeamName: string | null;             // for "resolved"/"host_decided"
+}
+
+export async function sendTiebreakerNotificationEmail(
+  opts: TiebreakerNotificationEmailOptions
+): Promise<SendResult> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    return { ok: false, error: "RESEND_API_KEY is not set on the server." };
+  }
+
+  const subject = buildTiebreakerSubject(opts);
+  const html = buildTiebreakerHtml(opts);
+  const text = buildTiebreakerText(opts);
+
+  try {
+    const response = await fetch(RESEND_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        from: FROM_ADDRESS,
+        to: [opts.to],
+        subject,
+        html,
+        text,
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      return { ok: false, error: `Resend ${response.status}: ${errText}` };
+    }
+
+    const data = (await response.json()) as { id?: string };
+    return { ok: true, resendId: data.id };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+function buildTiebreakerSubject(opts: TiebreakerNotificationEmailOptions): string {
+  switch (opts.variant) {
+    case "activated":
+      return `⚡ TIEBREAKER ACTIVATED: ${opts.tournamentName}`;
+    case "resolved":
+      return `🏆 ${opts.tournamentName} tiebreaker won by ${opts.winnerTeamName ?? "a team"}`;
+    case "host_decision_needed":
+      return `⚖️ ${opts.tournamentName}: tiebreaker needs your decision`;
+    case "host_decided":
+      return `🏆 ${opts.tournamentName} tiebreaker decided`;
+  }
+}
+
+function formatDeadline(iso: string | null): string {
+  if (!iso) return "the deadline";
+  const d = new Date(iso);
+  return d.toLocaleString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  });
+}
+
+function buildTiebreakerHtml(opts: TiebreakerNotificationEmailOptions): string {
+  const greeting = opts.recipientFirstName
+    ? `Hey ${escape(opts.recipientFirstName)},`
+    : `Hey coach,`;
+
+  const heroLine = (() => {
+    switch (opts.variant) {
+      case "activated":
+        return `Your team is tied for a prize position in <strong style="color:#ffffff;">${escape(opts.tournamentName)}</strong>. Sudden-death tiebreaker is live.`;
+      case "resolved":
+        return `The sudden-death tiebreaker in <strong style="color:#ffffff;">${escape(opts.tournamentName)}</strong> is decided.`;
+      case "host_decision_needed":
+        return `The sudden-death window closed without any team hitting 100% completion. You need to pick the winner.`;
+      case "host_decided":
+        return `The host has decided the sudden-death tiebreaker in <strong style="color:#ffffff;">${escape(opts.tournamentName)}</strong>.`;
+    }
+  })();
+
+  const bodyBlock = (() => {
+    switch (opts.variant) {
+      case "activated": {
+        const tbName = opts.tiebreakerChallengeName ?? "the pre-declared tiebreaker challenge";
+        const tbTarget = opts.tiebreakerChallengeTarget
+          ? ` (target: ${escape(opts.tiebreakerChallengeTarget)})`
+          : "";
+        const windowDesc = opts.windowHours
+          ? `${opts.windowHours}-hour window`
+          : "submission window";
+        return `
+          <div style="background-color:#0a2f37;padding:16px 18px;border-radius:8px;border-left:3px solid #ff755f;margin:16px 0;">
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;font-weight:800;color:#ff755f;letter-spacing:1.6px;text-transform:uppercase;margin-bottom:4px;">
+              ⚡ TIEBREAKER CHALLENGE
+            </div>
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:15px;color:#f7fbfb;font-weight:700;">
+              ${escape(tbName)}${tbTarget}
+            </div>
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:13px;color:#cfe7e7;margin-top:8px;">
+              ${windowDesc} · Deadline: <strong>${escape(formatDeadline(opts.deadlineIso))}</strong>
+            </div>
+          </div>
+          <p style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:14px;line-height:1.6;color:#cfe7e7;margin:12px 0;">
+            <strong style="color:#ffffff;">Strict scoring still applies.</strong> Every player on your roster needs to complete the tiebreaker challenge before the deadline. The team with the earliest 100%-completion timestamp wins.
+          </p>
+          <p style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:14px;line-height:1.6;color:#cfe7e7;margin:12px 0;">
+            Get your roster moving. Every player needs to record their video before time runs out.
+          </p>
+        `;
+      }
+      case "resolved": {
+        const winner = opts.winnerTeamName
+          ? `<strong style="color:#6EE7B7;">${escape(opts.winnerTeamName)}</strong>`
+          : "A team";
+        return `
+          <div style="background-color:#0a2f37;padding:16px 18px;border-radius:8px;border-left:3px solid #6EE7B7;margin:16px 0;">
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;font-weight:800;color:#6EE7B7;letter-spacing:1.6px;text-transform:uppercase;margin-bottom:4px;">
+              🏆 WINNER
+            </div>
+            <div style="font-family:'Sora','Segoe UI',Arial,sans-serif;font-size:22px;color:#f7fbfb;font-weight:800;">
+              ${winner}
+            </div>
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:13px;color:#cfe7e7;margin-top:8px;">
+              Earliest 100%-completion timestamp on the tiebreaker challenge.
+            </div>
+          </div>
+          <p style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:14px;line-height:1.6;color:#cfe7e7;margin:12px 0;">
+            Other tied teams take the lower prize position. Prizes get distributed off-platform by the host.
+          </p>
+        `;
+      }
+      case "host_decision_needed":
+        return `
+          <div style="background-color:#0a2f37;padding:16px 18px;border-radius:8px;border-left:3px solid #ffd000;margin:16px 0;">
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;font-weight:800;color:#ffd000;letter-spacing:1.6px;text-transform:uppercase;margin-bottom:4px;">
+              ⚖️ WHAT HAPPENED
+            </div>
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:14px;color:#cfe7e7;line-height:1.6;">
+              No team hit 100% completion on the tiebreaker challenge within the window. Per the v5 rules, this falls through to your discretion.
+            </div>
+          </div>
+          <p style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:14px;line-height:1.6;color:#cfe7e7;margin:12px 0;">
+            Open the tournament page, review the tied teams, and click <strong>Declare winner</strong>. You can pick using any criteria — partial completion, sportsmanship, a coin flip, whatever fits.
+          </p>
+        `;
+      case "host_decided": {
+        const winner = opts.winnerTeamName
+          ? `<strong style="color:#35d5df;">${escape(opts.winnerTeamName)}</strong>`
+          : "A team";
+        return `
+          <div style="background-color:#0a2f37;padding:16px 18px;border-radius:8px;border-left:3px solid #35d5df;margin:16px 0;">
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;font-weight:800;color:#35d5df;letter-spacing:1.6px;text-transform:uppercase;margin-bottom:4px;">
+              🏆 HOST DECISION
+            </div>
+            <div style="font-family:'Sora','Segoe UI',Arial,sans-serif;font-size:22px;color:#f7fbfb;font-weight:800;">
+              ${winner}
+            </div>
+          </div>
+          <p style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:14px;line-height:1.6;color:#cfe7e7;margin:12px 0;">
+            No team hit 100% on the tiebreaker within the window, so the host picked using their discretion. Other tied teams take the lower prize position.
+          </p>
+        `;
+      }
+    }
+  })();
+
+  const ctaLabel = opts.variant === "activated"
+    ? "Go submit →"
+    : opts.variant === "host_decision_needed"
+      ? "Open tournament to decide →"
+      : "View tournament →";
+
+  const ctaButton = `
+    <!--[if mso]>
+    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escape(opts.tournamentUrl)}" style="height:50px;v-text-anchor:middle;width:280px;" arcsize="100%" stroke="f" fillcolor="#ff755f">
+      <w:anchorlock/>
+      <center style="color:#ffffff;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;letter-spacing:0.3px;">
+        ${ctaLabel}
+      </center>
+    </v:roundrect>
+    <![endif]-->
+    <!--[if !mso]><!-- -->
+    <a href="${escape(opts.tournamentUrl)}"
+       style="background-color:#ff755f;color:#ffffff;display:inline-block;font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;font-weight:800;letter-spacing:0.3px;line-height:50px;text-align:center;text-decoration:none;width:280px;border-radius:999px;-webkit-text-size-adjust:none;mso-hide:all;">
+      ${ctaLabel}
+    </a>
+    <!--<![endif]-->
+  `.trim();
+
+  return `<!doctype html>
+<html lang="en" style="margin:0;padding:0;">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="dark">
+<title>${escape(buildTiebreakerSubject(opts))}</title>
+</head>
+<body bgcolor="#041418" style="margin:0;padding:0;background-color:#041418;color:#f7fbfb;-webkit-font-smoothing:antialiased;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#041418" style="background-color:#041418;">
+  <tr>
+    <td align="center" bgcolor="#041418" style="background-color:#041418;padding:32px 16px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" bgcolor="#06242b" style="max-width:600px;width:100%;background-color:#06242b;border-radius:12px;">
+        <tr>
+          <td bgcolor="#ff755f" style="background-color:#ff755f;padding:24px 28px;border-radius:12px 12px 0 0;font-family:Arial,sans-serif;">
+            <div style="font-family:'Sora','Segoe UI',Arial,sans-serif;font-size:26px;font-weight:800;color:#ffffff;letter-spacing:-0.6px;line-height:1;mso-line-height-rule:exactly;">
+              earn<sup style="font-size:14px;vertical-align:super;">2</sup>keep
+            </div>
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;font-weight:700;color:#ffffff;letter-spacing:1.6px;text-transform:uppercase;margin-top:6px;">
+              ${opts.variant === "activated" ? "⚡ Tiebreaker activated" : opts.variant === "host_decision_needed" ? "⚖️ Decision needed" : "🏆 Tiebreaker resolved"}
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td bgcolor="#06242b" style="background-color:#06242b;padding:32px 32px 12px 32px;font-family:Arial,sans-serif;">
+            <h1 style="font-family:'Sora','Segoe UI',Arial,sans-serif;font-size:24px;font-weight:800;color:#f7fbfb;letter-spacing:-0.4px;margin:0 0 12px 0;line-height:1.25;mso-line-height-rule:exactly;">
+              ${greeting}
+            </h1>
+            <p style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:15px;line-height:1.6;color:#cfe7e7;margin:0;">
+              ${heroLine}
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td bgcolor="#06242b" style="background-color:#06242b;padding:0 32px;font-family:Arial,sans-serif;">
+            ${bodyBlock}
+          </td>
+        </tr>
+        <tr>
+          <td bgcolor="#06242b" align="center" style="background-color:#06242b;padding:8px 32px 24px 32px;">
+            ${ctaButton}
+          </td>
+        </tr>
+        <tr>
+          <td bgcolor="#041418" style="background-color:#041418;padding:20px 32px;border-radius:0 0 12px 12px;font-family:Arial,sans-serif;text-align:center;">
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;color:#6b8788;line-height:1.6;">
+              Hosted by ${escape(opts.hostOrgName)}
+            </div>
+            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;color:#6b8788;margin-top:8px;">
+              earn²keep · Earn it. Keep it.
+            </div>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>`;
+}
+
+function buildTiebreakerText(opts: TiebreakerNotificationEmailOptions): string {
+  const lines: string[] = [];
+  switch (opts.variant) {
+    case "activated":
+      lines.push("⚡ TIEBREAKER ACTIVATED");
+      lines.push("");
+      lines.push(opts.recipientFirstName ? `Hey ${opts.recipientFirstName},` : "Hey coach,");
+      lines.push("");
+      lines.push(`Your team is tied for a prize position in ${opts.tournamentName}.`);
+      lines.push("Sudden-death tiebreaker is live.");
+      lines.push("");
+      if (opts.tiebreakerChallengeName) {
+        lines.push(`Challenge: ${opts.tiebreakerChallengeName}${opts.tiebreakerChallengeTarget ? ` (${opts.tiebreakerChallengeTarget})` : ""}`);
+      }
+      if (opts.deadlineIso) {
+        lines.push(`Deadline: ${formatDeadline(opts.deadlineIso)}`);
+      }
+      lines.push("");
+      lines.push("STRICT SCORING STILL APPLIES.");
+      lines.push("Every player on your roster needs to complete the tiebreaker.");
+      lines.push("Earliest 100%-completion timestamp wins.");
+      break;
+    case "resolved":
+      lines.push("🏆 TIEBREAKER RESOLVED");
+      lines.push("");
+      lines.push(`${opts.winnerTeamName ?? "A team"} won the ${opts.tournamentName} tiebreaker.`);
+      lines.push("Earliest 100%-completion timestamp on the tiebreaker challenge.");
+      lines.push("");
+      lines.push("Other tied teams take the lower prize position.");
+      break;
+    case "host_decision_needed":
+      lines.push("⚖️ TIEBREAKER NEEDS YOUR DECISION");
+      lines.push("");
+      lines.push(`The sudden-death window closed without any team hitting 100% in ${opts.tournamentName}.`);
+      lines.push("Open the tournament page and pick the winner using your discretion.");
+      break;
+    case "host_decided":
+      lines.push("🏆 TIEBREAKER DECIDED");
+      lines.push("");
+      lines.push(`Host picked ${opts.winnerTeamName ?? "a team"} as the winner of the ${opts.tournamentName} tiebreaker.`);
+      break;
+  }
+  lines.push("");
+  lines.push(`Tournament: ${opts.tournamentUrl}`);
+  lines.push("");
+  lines.push("--");
+  lines.push("earn²keep — Earn it. Keep it.");
+  return lines.join("\n");
+}

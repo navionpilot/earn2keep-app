@@ -253,7 +253,10 @@ export default async function EventDetailPage({
   // Auto-activates the sudden-death tiebreaker on the first view after end
   // date when prize-position teams are tied, and resolves it when the
   // deadline passes. Side effect: may mutate event row.
+  // L37 — RPC now returns from_state; we compare to current state to fire
+  // a one-shot notification email on transitions.
   type TiebreakerStateRow = {
+    from_state: string;
     state: string;
     activated_at: string | null;
     deadline_at: string | null;
@@ -274,6 +277,29 @@ export default async function EventDetailPage({
     });
     if (Array.isArray(stateRows) && stateRows.length > 0) {
       tiebreakerState = stateRows[0] as TiebreakerStateRow;
+    }
+
+    // L37 — If state transitioned, fire the notification API (fire-and-forget).
+    // The API itself dedupes/filters non-interesting transitions internally,
+    // so calling it on every load is safe even if from_state === state.
+    if (tiebreakerState && tiebreakerState.from_state !== tiebreakerState.state) {
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        (typeof window !== "undefined" ? window.location.origin : "");
+      if (baseUrl) {
+        // Fire and forget — don't block render on email delivery
+        fetch(`${baseUrl}/api/tournament-tiebreaker/notify`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            eventId: event.id,
+            fromState: tiebreakerState.from_state,
+            toState: tiebreakerState.state,
+          }),
+        }).catch(() => {
+          // Swallow — UI doesn't depend on email delivery
+        });
+      }
     }
 
     // If the tiebreaker is in any state past not_evaluated, fetch tied
@@ -543,10 +569,18 @@ export default async function EventDetailPage({
               winnerTeamId={tiebreakerState.winner_team_id}
               tiedTeamIds={tiebreakerState.tied_team_ids ?? []}
               tiedTeams={tiedTeamsDetail}
+              tiebreakerChallengeId={event.tournament_tiebreaker_challenge_id ?? null}
               tiebreakerChallengeName={tiebreakerChallengeMeta?.name ?? null}
               tiebreakerChallengeTargetValue={tiebreakerChallengeMeta?.target_value ?? null}
               tiebreakerChallengeTargetUnit={tiebreakerChallengeMeta?.target_unit ?? null}
               isCurrentUserHost={event.owner_id === user?.id}
+              isCurrentUserOnTiedTeam={
+                // Host counts as on a tied team if any of their participating
+                // teams are in the tied set.
+                hostParticipatingTeams.some((t) =>
+                  (tiebreakerState?.tied_team_ids ?? []).includes(t.team_id)
+                )
+              }
               eventId={event.id}
             />
           )}

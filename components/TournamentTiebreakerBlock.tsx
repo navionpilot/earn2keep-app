@@ -16,6 +16,7 @@
 // =============================================================================
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 
 interface TiedTeam {
@@ -31,10 +32,12 @@ interface Props {
   winnerTeamId: string | null;
   tiedTeamIds: string[];
   tiedTeams: TiedTeam[];
+  tiebreakerChallengeId: string | null;
   tiebreakerChallengeName: string | null;
   tiebreakerChallengeTargetValue: number | null;
   tiebreakerChallengeTargetUnit: string | null;
   isCurrentUserHost: boolean;
+  isCurrentUserOnTiedTeam: boolean;
   eventId: string;
 }
 
@@ -67,10 +70,12 @@ export default function TournamentTiebreakerBlock(props: Props) {
     deadlineAt,
     winnerTeamId,
     tiedTeams,
+    tiebreakerChallengeId,
     tiebreakerChallengeName,
     tiebreakerChallengeTargetValue,
     tiebreakerChallengeTargetUnit,
     isCurrentUserHost,
+    isCurrentUserOnTiedTeam,
     eventId,
   } = props;
 
@@ -207,6 +212,50 @@ export default function TournamentTiebreakerBlock(props: Props) {
             </div>
           ))}
         </div>
+
+        {/* L37 — Submit CTA for users on tied teams. Coaches and players
+            both see it; clicking takes them to the record flow for the
+            tiebreaker challenge. */}
+        {isCurrentUserOnTiedTeam && tiebreakerChallengeId && !countdown.expired && (
+          <div
+            style={{
+              marginTop: 16,
+              padding: 14,
+              background: "rgba(255, 117, 95, 0.12)",
+              border: "1px solid rgba(255, 117, 95, 0.4)",
+              borderRadius: 8,
+              textAlign: "center",
+            }}
+          >
+            <div
+              style={{
+                fontSize: 12,
+                color: "rgba(255, 255, 255, 0.85)",
+                marginBottom: 10,
+                lineHeight: 1.5,
+              }}
+            >
+              Your team is in this. <strong>Every player needs to submit</strong>{" "}
+              before the deadline.
+            </div>
+            <Link
+              href={`/home/record/${tiebreakerChallengeId}`}
+              style={{
+                display: "inline-block",
+                padding: "10px 22px",
+                background: "#ff755f",
+                color: "white",
+                borderRadius: 999,
+                fontWeight: 800,
+                fontSize: 13,
+                textDecoration: "none",
+                letterSpacing: 0.3,
+              }}
+            >
+              Submit your tiebreaker video →
+            </Link>
+          </div>
+        )}
 
         {isCurrentUserHost && (
           <p
