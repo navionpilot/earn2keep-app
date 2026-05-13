@@ -561,9 +561,13 @@ export default async function EventDetailPage({
           )}
 
           {/* L33 — Invitations panel. Host-side UI for sending the
-              tournament invitation email to other team organizers. */}
+              tournament invitation email to other team organizers.
+              Wrapped in div with id so the "Next Steps" panel's step 3
+              "Jump to Tournament Invitations" link can scroll to it. */}
           {event.event_type === "tournament" && event.tournament_join_code && (
-            <TournamentInvitationsPanel tournamentId={event.id} />
+            <div id="tournament-invitations" style={{ scrollMarginTop: "80px" }}>
+              <TournamentInvitationsPanel tournamentId={event.id} />
+            </div>
           )}
 
           {/* L36 — Approval workflow panel. Only renders if approval mode is
@@ -754,10 +758,25 @@ export default async function EventDetailPage({
                   <div className="next-step-content">
                     <h3 className="next-step-title">Pick your challenges</h3>
                     <p className="next-step-text">
-                      Choose what your players or participants must complete to
-                      compete for prizes — push-ups, free throws, Bible verses,
-                      mile runs, service hours, whatever fits. The more reps
-                      they hit (and {(event.event_type === "camp" || event.event_type === "camp") ? "the more they raise above the minimum" : "the better they perform"}), the more points they earn.
+                      {event.event_type === "camp" ? (
+                        <>
+                          Choose what your players/participants must complete
+                          to compete for prizes &mdash; push-ups, free throws,
+                          Bible verses, mile runs, service hours, whatever fits.
+                          The more reps they hit (and the more they raise above
+                          the minimum), the more points they earn.
+                        </>
+                      ) : (
+                        <>
+                          Choose what every team must complete. Tournaments use
+                          strict all-or-nothing scoring &mdash; <strong>every
+                          player on a team must hit a challenge&rsquo;s target
+                          for the team to earn its points</strong>. Pick
+                          challenges your roster can realistically all
+                          complete (push-ups, free throws, Bible verses, mile
+                          runs, whatever fits).
+                        </>
+                      )}
                     </p>
                     <Link href={`/events/${event.id}/schedule`} className="next-step-link">
                       {(eventChallenges?.length || 0) > 0
@@ -769,51 +788,92 @@ export default async function EventDetailPage({
                 <div className="next-step-item">
                   <div className="next-step-num">2</div>
                   <div className="next-step-content">
-                    <h3 className="next-step-title">Activate the event to open registration</h3>
+                    <h3 className="next-step-title">
+                      {event.event_type === "camp"
+                        ? "Activate the event to open fundraising"
+                        : "Activate the event to open registration for joining teams"}
+                    </h3>
                     <p className="next-step-text">
-                      {(event.event_type === "camp" || event.event_type === "camp") ? (
+                      {event.event_type === "camp" ? (
                         <>
                           Hit <strong>Activate Event</strong> to open the
                           fundraising window. Each player gets a unique QR
                           code to share with supporters (parents, family, local
                           businesses) to collect their fundraising minimum.
-                          Once they hit the minimum, they're registered to
-                          compete.
+                          Once they hit the minimum, they&rsquo;re registered
+                          to compete.
                         </>
                       ) : (
                         <>
-                          Hit <strong>Activate Event</strong> to open
-                          registration. Each player gets a unique QR code.
-                          Players can pay the entry fee themselves, or share
-                          the code with a supporter (parent, family, local
-                          business) to cover it. Once paid, they're registered.
+                          Hit <strong>Activate Event</strong> to open the
+                          tournament for joining teams. Other team organizers
+                          will use your 6-character join code to register their
+                          teams. Each joining team pays one flat Entry Fee at
+                          checkout (set by you in step 3 of the create form).
+                          Your players/participants don&rsquo;t pay anything to
+                          earn²keep.
                         </>
                       )}
                     </p>
                   </div>
                 </div>
-                <div className="next-step-item">
-                  <div className="next-step-num">3</div>
-                  <div className="next-step-content">
-                    <h3 className="next-step-title">Generate entry QR codes</h3>
-                    <p className="next-step-text">
-                      After activation, each registered player gets a QR code
-                      to share with supporters. Supporters scan it to{" "}
-                      {(event.event_type === "camp" || event.event_type === "camp") ? "contribute toward the player's fundraising goal" : "pay the player's registration fee"}.
-                    </p>
-                    <Link href={`/events/${event.id}/qr-codes`} className="next-step-link">
-                      📱 Open QR Code Generator →
-                    </Link>
+                {event.event_type === "camp" ? (
+                  <div className="next-step-item">
+                    <div className="next-step-num">3</div>
+                    <div className="next-step-content">
+                      <h3 className="next-step-title">Generate entry QR codes</h3>
+                      <p className="next-step-text">
+                        After activation, each registered player gets a QR
+                        code to share with supporters. Supporters scan it to
+                        contribute toward the player&rsquo;s fundraising goal.
+                      </p>
+                      <Link href={`/events/${event.id}/qr-codes`} className="next-step-link">
+                        📱 Open QR Code Generator →
+                      </Link>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="next-step-item">
+                    <div className="next-step-num">3</div>
+                    <div className="next-step-content">
+                      <h3 className="next-step-title">Invite other team organizers</h3>
+                      <p className="next-step-text">
+                        Share your tournament&rsquo;s 6-character join code
+                        with organizers at other teams. Use the{" "}
+                        <strong>Tournament Invitations</strong> panel below
+                        to email invitations directly, or paste the code
+                        anywhere &mdash; text, group chat, league forum.
+                        Anyone with the code can join.
+                      </p>
+                      <a href="#tournament-invitations" className="next-step-link">
+                        ✉ Jump to Tournament Invitations →
+                      </a>
+                    </div>
+                  </div>
+                )}
                 <div className="next-step-item">
                   <div className="next-step-num">4</div>
                   <div className="next-step-content">
                     <h3 className="next-step-title">Run the event &amp; pick winners</h3>
                     <p className="next-step-text">
-                      During the event, players complete their challenges. Review
-                      their submissions, approve or reject each one, and watch the
-                      leaderboard update in real time. Highest total points wins.
+                      {event.event_type === "camp" ? (
+                        <>
+                          During the event, players complete their challenges.
+                          Review their submissions, approve or reject each
+                          one, and watch the leaderboard update in real time.
+                          Highest total points wins.
+                        </>
+                      ) : (
+                        <>
+                          During the event, players from every team complete
+                          their challenges. Review submissions, approve or
+                          reject each one, and watch the team leaderboard
+                          update in real time. <strong>Highest team score
+                          wins and takes the whole pot</strong> &mdash; if
+                          there&rsquo;s a tie at the end, the sudden-death
+                          tiebreaker challenge fires automatically.
+                        </>
+                      )}
                     </p>
                     <Link href={`/events/${event.id}/submissions`} className="next-step-link">
                       ✓ Open Submissions Queue →
