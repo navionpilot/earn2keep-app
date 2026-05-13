@@ -110,11 +110,6 @@ export default async function OrganizationDetailPage({
               )}
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <Tooltip text="Update your organization name, type, location, or description.">
-                <Link href={`/organizations/${org.id}/edit`} className="btn-secondary-link">
-                  Edit Organization
-                </Link>
-              </Tooltip>
               <Tooltip text="Manage coaches, payments, and organization settings.">
                 <Link href={`/organizations/${org.id}/account`} className="btn-secondary-link">
                   Account →
