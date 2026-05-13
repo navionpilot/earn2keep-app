@@ -83,7 +83,7 @@ export default function OnboardingSidebar({
     {
       number: 4,
       title: "Create Event",
-      description: "Mini-Camp, Camp, or Tournament",
+      description: "Camp or Tournament",
       isComplete: hasEvent,
       isCurrent: currentStep === 4,
     },

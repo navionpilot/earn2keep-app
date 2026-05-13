@@ -23,9 +23,10 @@
 //     webhook insert).
 //   - Camp donation revenue: no source data, displayed as $0 with
 //     callouts noting Phase 10 will enable it.
-//   - Platform fees: calculated transparently at 3.5% + $0.40 per
-//     transaction. Just a derived number — earn²keep doesn't actually
-//     collect anything yet either.
+//   - L43 cleanup: NO platform fees. earn²keep takes the flat launch fee
+//     only ($149 Camp / $249 Tournament) and zero per-transaction cut.
+//     The only deduction from gross is Stripe's card-processing fee
+//     (2.9% + $0.30), which we don't book as revenue.
 // =============================================================================
 
 import { createClient } from "@/lib/supabase-server";
@@ -37,8 +38,10 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-const PLATFORM_FEE_PCT = 0.035;
-const PLATFORM_FEE_FLAT_CENTS = 40;
+// Stripe's standard card-processing rate. Used for the "what Stripe took"
+// transparency math — earn²keep doesn't take a cut.
+const STRIPE_FEE_PCT = 0.029;
+const STRIPE_FEE_FLAT_CENTS = 30;
 
 function dollarsFromCents(cents: number): string {
   return `$${(cents / 100).toLocaleString("en-US", {
@@ -186,10 +189,13 @@ export default async function OrgMoneyPage({ params }: PageProps) {
     .reduce((sum, r) => sum + (r.entry_fee_paid_cents || 0), 0);
 
   const transactionCount = paidRows.length;
-  const platformFeesCents =
-    Math.round(totalReceivedCents * PLATFORM_FEE_PCT) +
-    PLATFORM_FEE_FLAT_CENTS * transactionCount;
-  const netToOrgCents = Math.max(0, totalReceivedCents - platformFeesCents);
+  // L43 cleanup: no platform percentage cut. Only Stripe's processing fee
+  // comes off the top. Both numbers stay zero-collected by earn²keep —
+  // this is just for transparent "where the money went" display.
+  const stripeFeesCents =
+    Math.round(totalReceivedCents * STRIPE_FEE_PCT) +
+    STRIPE_FEE_FLAT_CENTS * transactionCount;
+  const netToOrgCents = Math.max(0, totalReceivedCents - stripeFeesCents);
 
   // Per-event breakdown
   type EventBreakdown = {
@@ -385,10 +391,16 @@ export default async function OrgMoneyPage({ params }: PageProps) {
             note="From Entry Fees and donations"
           />
           <BreakdownRow
-            label="Platform fees"
-            value={`− ${dollarsFromCents(platformFeesCents)}`}
-            note={`earn²keep · 3.5% + $0.40 per transaction · ${transactionCount} transaction${transactionCount === 1 ? "" : "s"}`}
+            label="Stripe card-processing fee"
+            value={`− ${dollarsFromCents(stripeFeesCents)}`}
+            note={`Stripe · 2.9% + $0.30 per transaction · ${transactionCount} transaction${transactionCount === 1 ? "" : "s"} · paid to Stripe, not earn²keep`}
             color="#ff755f"
+          />
+          <BreakdownRow
+            label="earn²keep platform cut"
+            value="$0"
+            note="We don't take a percentage. Just the flat launch fee, paid once when the event was created."
+            color="#6EE7B7"
           />
           <BreakdownRow
             label="Net to your org"

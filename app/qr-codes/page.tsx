@@ -91,7 +91,7 @@ export default async function QrCodesIndexPage() {
                       className="e2k-qr-card"
                     >
                       <div className={`e2k-qr-card-tag e2k-qr-card-tag-${ev.event_type === "tournament" ? "tournament" : "camp"}`}>
-                        {ev.event_type === "tournament" ? "TOURNAMENT" : ev.event_type === "mini-camp" ? "MINI-CAMP" : "CAMP"}
+                        {ev.event_type === "tournament" ? "TOURNAMENT" : ev.event_type === "camp" ? "MINI-CAMP" : "CAMP"}
                       </div>
                       <div className="e2k-qr-card-name">{ev.name}</div>
                       <div className="e2k-qr-card-meta">
@@ -127,7 +127,7 @@ export default async function QrCodesIndexPage() {
                       className="e2k-qr-card e2k-qr-card-done"
                     >
                       <div className={`e2k-qr-card-tag e2k-qr-card-tag-${ev.event_type === "tournament" ? "tournament" : "camp"}`}>
-                        {ev.event_type === "tournament" ? "TOURNAMENT" : ev.event_type === "mini-camp" ? "MINI-CAMP" : "CAMP"}
+                        {ev.event_type === "tournament" ? "TOURNAMENT" : ev.event_type === "camp" ? "MINI-CAMP" : "CAMP"}
                       </div>
                       <div className="e2k-qr-card-name">{ev.name}</div>
                       <div className="e2k-qr-card-meta">

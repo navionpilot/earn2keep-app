@@ -5,7 +5,7 @@ import Link from "next/link";
 export interface EventListItem {
   id: string;
   name: string;
-  event_type: "mini-camp" | "camp" | "tournament";
+  event_type: "camp" | "tournament";
   start_date: string | null; // ISO date
   end_date: string | null;
   player_count: number;
@@ -68,13 +68,9 @@ function formatMoney(n: number): string {
 
 export default function EventListRow({ event }: EventListRowProps) {
   const variant = event.event_type;
-  // For visual styling, mini-camp uses the same colors/icons as camp (they're
-  // behaviorally identical; only the launch price differs). The pill label
-  // still says "Mini-Camp" though.
   const visualVariant: "camp" | "tournament" =
     variant === "tournament" ? "tournament" : "camp";
-  const pillLabel =
-    variant === "mini-camp" ? "Mini-Camp" : variant;
+  const pillLabel = variant === "tournament" ? "Tournament" : "Camp";
   const goal = event.amount_goal || 0;
   const pct = goal > 0
     ? Math.min(100, Math.max(0, Math.round((event.amount_raised / goal) * 100)))

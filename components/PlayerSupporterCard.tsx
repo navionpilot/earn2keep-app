@@ -30,7 +30,7 @@ interface Props {
   teamSport: string | null;
   teamAgeGroup: string | null;
   eventName: string;
-  eventType: "mini-camp" | "camp" | "tournament" | string;
+  eventType: "camp" | "tournament" | string;
   organizationName: string;
   goalAmount: number;
   eventStartDate: string;

@@ -34,7 +34,7 @@ import Link from "next/link";
 interface EventGuideProps {
   eventId: string;
   eventStatus: "draft" | "active" | "completed" | string | null;
-  eventType: "mini-camp" | "camp" | "tournament" | string | null;
+  eventType: "camp" | "tournament" | string | null;
   // Schedule progress (both Camp & Tournament)
   hasChallenges: boolean;
   // Player + invite progress (both)
@@ -351,7 +351,7 @@ function getUpLookHint(stepNum: number, isTournament: boolean): string | null {
 export default function EventGuide(props: EventGuideProps) {
   const [collapsed, setCollapsed] = useState(false);
   const isTournament = props.eventType === "tournament";
-  const isCamp = props.eventType === "camp" || props.eventType === "mini-camp";
+  const isCamp = props.eventType === "camp";
   const STEPS = isTournament ? TOURNAMENT_STEPS : CAMP_STEPS;
   const currentStep = getCurrentStep(props);
   const allDone = props.eventStatus === "completed";

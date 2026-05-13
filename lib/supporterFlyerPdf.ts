@@ -31,7 +31,7 @@ export type FlyerCard = {
 
 export type FlyerEventContext = {
   eventName: string;
-  eventType: "mini-camp" | "camp" | "tournament" | string;
+  eventType: "camp" | "tournament" | string;
   organizationName: string;
   goalAmount: number;
   eventStartDate: string;   // YYYY-MM-DD
@@ -131,7 +131,7 @@ async function drawFlyerPage(
   const PAGE_H = 11;
   const MARGIN_X = 0.55;
 
-  const isCamp = ctx.eventType === "camp" || ctx.eventType === "mini-camp";
+  const isCamp = ctx.eventType === "camp";
   const goal = Number(ctx.goalAmount || 0);
   const goalText = goal > 0 ? `$${formatMoney(goal)}` : "\u2014";
 

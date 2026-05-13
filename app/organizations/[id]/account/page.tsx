@@ -302,8 +302,13 @@ export default async function OrgAccountPage({ params }: PageProps) {
               bank account on Stripe&apos;s normal settlement schedule (typically 2–7 days).
             </li>
             <li>
-              earn²keep takes a transparent platform fee per transaction (3.5% + $0.40), shown on every
-              receipt.
+              <strong>earn²keep takes ZERO platform fees on transactions.</strong> The only thing we charge
+              is the flat launch fee, paid once when you create the event ($149 Camp / $249 Tournament).
+              Every cent your supporters give (minus Stripe&apos;s standard card-processing fee) goes to your org.
+            </li>
+            <li>
+              Stripe charges its own card-processing fee (currently 2.9% + $0.30 per transaction) — that&apos;s
+              paid to Stripe, not to earn²keep, and shown transparently on every receipt.
             </li>
             <li>
               Tournament prize payouts: the host pays the winning team directly from their org bank

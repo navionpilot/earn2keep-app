@@ -23,7 +23,7 @@ export async function generateMetadata(
     const playerName = row.player_last_initial
       ? `${row.player_first_name} ${row.player_last_initial}`
       : row.player_first_name;
-    const isCamp = (row.event_type === "camp" || row.event_type === "mini-camp");
+    const isCamp = (row.event_type === "camp" || row.event_type === "camp");
     const title = isCamp
       ? `Help ${playerName} hit their goal — earn²keep`
       : `Cover ${playerName}'s spot — earn²keep`;
@@ -130,7 +130,7 @@ export default async function SupporterPage({
   const hasThird = !!(prizes.third_place_prize || prizes.third_place_amount);
   const hasAnyPrize = hasFirst || hasSecond || hasThird;
 
-  const isCamp = (row.event_type === "camp" || row.event_type === "mini-camp");
+  const isCamp = (row.event_type === "camp" || row.event_type === "camp");
   const playerName = row.player_last_initial
     ? `${row.player_first_name} ${row.player_last_initial}`
     : row.player_first_name;

@@ -4,8 +4,6 @@ import { notFound, redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import {
   getPricing,
-  shouldAutoUpgradeToCamp,
-  MINI_CAMP_GOAL_THRESHOLD_USD,
   type EventType,
 } from "@/lib/pricing";
 
@@ -62,9 +60,8 @@ export default async function PaymentPage({
     .select("team_id", { count: "exact" })
     .eq("event_id", id);
 
-  // Count active players across all linked teams — needed to compute the
-  // event's TOTAL goal (= per-player goal × total players), which drives
-  // the Mini-Camp -> Camp auto-upgrade.
+  // Count active players across all linked teams — kept for display in
+  // the breakdown (no longer drives tier upgrades since Mini-Camp is gone).
   const teamIds = (participants || []).map((p: { team_id: string }) => p.team_id);
   let totalPlayers = 0;
   if (teamIds.length > 0) {
@@ -75,6 +72,9 @@ export default async function PaymentPage({
       .eq("is_active", true);
     totalPlayers = count || 0;
   }
+  // Suppress unused-variable warning while keeping the query in place
+  // for potential future display use.
+  void totalPlayers;
 
   // Get user profile for AppShell display name
   const { data: profile } = await supabase
@@ -84,19 +84,10 @@ export default async function PaymentPage({
     .single();
 
   const storedType = event.event_type as EventType;
-  const goalAmount = Number(event.goal_amount) || 0;
-  const totalGoal = goalAmount * totalPlayers;
 
-  // Auto-upgrade logic: Mini-Camp events with a total goal above the
-  // threshold are charged as Camp tier. We display Camp pricing and a
-  // notice; when real Stripe payment ships, the actual charge follows
-  // this same rule (so it can't be bypassed by editing back after launch).
-  const wasAutoUpgraded = shouldAutoUpgradeToCamp({
-    eventType: storedType,
-    totalGoalUsd: totalGoal,
-  });
-  const effectiveType: EventType = wasAutoUpgraded ? "camp" : storedType;
-  const pricing = getPricing(effectiveType);
+  // L43 cleanup: no more auto-upgrade — only Camp ($149) and Tournament
+  // ($249) exist as event types. Pricing is flat per type.
+  const pricing = getPricing(storedType);
 
   return (
     <AppShell
@@ -192,27 +183,6 @@ export default async function PaymentPage({
             {/* Pricing */}
             <div className="form-section">
               <h3 className="form-section-title">Event fee</h3>
-              {wasAutoUpgraded && (
-                <div
-                  className="alert alert-warning"
-                  style={{ marginBottom: 16 }}
-                >
-                  <strong>Auto-upgraded to Camp tier.</strong> Your total
-                  goal of ${formatMoney(totalGoal)}{" "}
-                  (${formatMoney(goalAmount)} × {totalPlayers}{" "}
-                  player{totalPlayers === 1 ? "" : "s"}/participant
-                  {totalPlayers === 1 ? "" : "s"}) exceeds the Mini-Camp
-                  threshold of ${MINI_CAMP_GOAL_THRESHOLD_USD.toLocaleString()}.
-                  Camp tier pricing (${pricing.fee}) applies.{" "}
-                  <Link
-                    href={`/events/${event.id}/edit`}
-                    style={{ textDecoration: "underline", color: "inherit" }}
-                  >
-                    Edit event to change tier
-                  </Link>
-                  .
-                </div>
-              )}
               <div className="breakdown-card">
                 <div className="breakdown-rows">
                   <div className="breakdown-row">
@@ -223,22 +193,22 @@ export default async function PaymentPage({
                       ${formatMoney(pricing.fee)}
                     </span>
                   </div>
-                  {effectiveType !== "tournament" ? (
+                  {storedType !== "tournament" ? (
                     <div className="breakdown-row">
                       <span className="breakdown-label">
-                        Payment processing fee
+                        Card-processing fee (Stripe)
                       </span>
                       <span className="breakdown-value">
-                        3.5% + $0.40 per donation
+                        2.9% + $0.30 per donation
                       </span>
                     </div>
                   ) : (
                     <div className="breakdown-row">
                       <span className="breakdown-label">
-                        Registration processing
+                        Registration processing (Stripe)
                       </span>
                       <span className="breakdown-value">
-                        Standard Stripe rate
+                        2.9% + $0.30 per Entry Fee
                       </span>
                     </div>
                   )}

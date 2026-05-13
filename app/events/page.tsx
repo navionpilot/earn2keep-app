@@ -65,11 +65,7 @@ export default async function EventsIndexPage() {
     rows.push({
       id: ev.id,
       name: ev.name,
-      event_type: (ev.event_type === "tournament"
-        ? "tournament"
-        : ev.event_type === "mini-camp"
-        ? "mini-camp"
-        : "camp"),
+      event_type: ev.event_type === "tournament" ? "tournament" : "camp",
       start_date: ev.start_date,
       end_date: ev.end_date,
       player_count: playersInEvent,

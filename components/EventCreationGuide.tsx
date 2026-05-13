@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export type EventType = "mini-camp" | "camp" | "tournament" | "";
+export type EventType = "camp" | "tournament" | "";
 
 interface EventCreationGuideProps {
   eventType: EventType;
@@ -56,7 +56,7 @@ const STEPS: StepCopy[] = [
     campNote:
       "Set a per-player fundraising goal (the minimum each player needs to raise). Common: $150, $250, $500. Players who exceed their minimum get bonus points + extra prize money. Total Camp goal = per-player × number of players.",
     tournamentNote:
-      "Set a flat per-team Entry Fee. Common: $250, $500, $1,000. The coach of each joining team pays this once when their team registers. The pot = Entry Fee × number of teams registered. Players don't pay anything to earn²keep — the platform fee (3.5% + $0.40) comes out of the host's share.",
+      "Set a flat per-team Entry Fee. Common: $250, $500, $1,000. The coach of each joining team pays this once when their team registers. The pot = Entry Fee × number of teams registered. earn²keep takes ZERO transaction fees — only Stripe's standard card-processing fee (2.9% + $0.30 per transaction, paid to Stripe) comes out before the host receives funds.",
     tip:
       "Camp pays bonuses for over-performance. Tournament pays the entire pot to the team that wins. That's the core difference.",
   },
@@ -139,7 +139,7 @@ export default function EventCreationGuide(props: EventCreationGuideProps) {
                       )}
 
                       {/* Camp-specific guidance */}
-                      {(eventType === "camp" || eventType === "mini-camp") && step.campNote && (
+                      {(eventType === "camp") && step.campNote && (
                         <div className="e2k-walk-aside-typetip e2k-walk-aside-camp">
                           <strong>Camp:</strong> {step.campNote}
                         </div>

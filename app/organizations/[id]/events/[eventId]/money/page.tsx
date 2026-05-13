@@ -32,8 +32,10 @@ interface PageProps {
   params: Promise<{ id: string; eventId: string }>;
 }
 
-const PLATFORM_FEE_PCT = 0.035;
-const PLATFORM_FEE_FLAT_CENTS = 40;
+// Stripe's standard card-processing fee. earn²keep takes zero platform
+// percentage in the L43 cleanup model.
+const STRIPE_FEE_PCT = 0.029;
+const STRIPE_FEE_FLAT_CENTS = 30;
 
 function dollarsFromCents(cents: number): string {
   return `$${(cents / 100).toLocaleString("en-US", {
@@ -143,7 +145,7 @@ export default async function EventMoneyDetailPage({ params }: PageProps) {
   let tournamentTransactions: TournamentTxRow[] = [];
   let totalGrossCents = 0;
   let totalNetCents = 0;
-  let totalPlatformFeesCents = 0;
+  let totalStripeFeesCents = 0;
   let registeredTeamCount = 0;
   let pendingTeamCount = 0;
 
@@ -212,9 +214,11 @@ export default async function EventMoneyDetailPage({ params }: PageProps) {
 
     paidRows.forEach((t) => {
       const gross = t.entry_fee_paid_cents;
-      const fee = Math.round(gross * PLATFORM_FEE_PCT) + PLATFORM_FEE_FLAT_CENTS;
+      // L43 cleanup: only Stripe's card-processing fee comes out of the
+      // gross. earn²keep takes 0% per transaction.
+      const fee = Math.round(gross * STRIPE_FEE_PCT) + STRIPE_FEE_FLAT_CENTS;
       totalGrossCents += gross;
-      totalPlatformFeesCents += fee;
+      totalStripeFeesCents += fee;
       totalNetCents += gross - fee;
     });
   }
@@ -228,7 +232,6 @@ export default async function EventMoneyDetailPage({ params }: PageProps) {
 
   const eventTypeLabel =
     event.event_type === "tournament" ? "Tournament" :
-    event.event_type === "mini-camp" ? "Mini-Camp" :
     event.event_type === "camp" ? "Camp" : event.event_type;
 
   return (
@@ -320,16 +323,23 @@ export default async function EventMoneyDetailPage({ params }: PageProps) {
               <div>Gross received</div>
               <div style={{ textAlign: "right" }}>{dollarsFromCents(totalGrossCents)}</div>
               <div style={{ opacity: 0.8 }}>
-                Platform fees{" "}
+                Stripe card-processing fee{" "}
                 <span style={{ opacity: 0.6, fontSize: 11 }}>
-                  (earn²keep · 3.5% + $0.40 ·{" "}
+                  (2.9% + $0.30 ·{" "}
                   {tournamentTransactions.filter((t) => t.status === "active" || t.status === "pending_approval").length}{" "}
-                  txn)
+                  txn · paid to Stripe)
                 </span>
               </div>
               <div style={{ textAlign: "right", color: "#ff755f" }}>
-                −{dollarsFromCents(totalPlatformFeesCents)}
+                −{dollarsFromCents(totalStripeFeesCents)}
               </div>
+              <div style={{ opacity: 0.8 }}>
+                earn²keep platform cut{" "}
+                <span style={{ opacity: 0.6, fontSize: 11 }}>
+                  (0% — flat launch fee only)
+                </span>
+              </div>
+              <div style={{ textAlign: "right", color: "#6EE7B7" }}>$0</div>
               <div style={{ fontWeight: 700 }}>Net to your org</div>
               <div style={{ textAlign: "right", fontWeight: 700, color: "#6EE7B7" }}>
                 {dollarsFromCents(totalNetCents)}

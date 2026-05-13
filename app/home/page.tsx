@@ -66,7 +66,7 @@ interface TeamShape {
 interface EventRow {
   id: string;
   name: string;
-  event_type: "mini-camp" | "camp" | "tournament" | string | null;
+  event_type: "camp" | "tournament" | string | null;
   status: "draft" | "active" | "completed" | string | null;
   start_date: string | null;
   end_date: string | null;
@@ -693,7 +693,7 @@ export default async function PlayerHomePage({
   // payments slice), so amount_raised is currently always 0. The bar
   // renders anyway as a clear visual placeholder so players see what's
   // coming — when payments wire up, just swap the 0 for a real query.
-  const isCamp = (event.event_type === "camp" || event.event_type === "mini-camp");
+  const isCamp = (event.event_type === "camp" || event.event_type === "camp");
   const fundGoal = Number(event.goal_amount) || 0;
   const fundRaised = 0; // TODO Phase 6: SUM of donations linked to this player+event
   const fundPct =

@@ -151,7 +151,7 @@ export default function SupporterQrCodesPage() {
     if (!event) return null;
     return {
       eventName: event.name,
-      eventType: (event.event_type === "camp" || event.event_type === "mini-camp") ? "camp" : "tournament",
+      eventType: (event.event_type === "camp" || event.event_type === "camp") ? "camp" : "tournament",
       organizationName: event.organization_name,
       goalAmount: Number(event.goal_amount || 0),
       eventStartDate: event.start_date,
@@ -237,7 +237,7 @@ export default function SupporterQrCodesPage() {
     );
   }
 
-  const isCamp = (event.event_type === "camp" || event.event_type === "mini-camp");
+  const isCamp = (event.event_type === "camp" || event.event_type === "camp");
   const totalPlayers = playersByTeam.reduce((sum, g) => sum + g.players.length, 0);
 
   return (

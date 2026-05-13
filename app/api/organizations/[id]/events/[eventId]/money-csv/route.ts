@@ -16,15 +16,19 @@
 //
 // CSV columns:
 //   row_id, team_name, team_organization, coach_name, joined_at,
-//   entry_fee_paid_cents, entry_fee_paid_dollars, platform_fee_cents,
-//   platform_fee_dollars, net_to_org_cents, net_to_org_dollars, status
+//   entry_fee_paid_cents, entry_fee_paid_dollars, stripe_fee_cents,
+//   stripe_fee_dollars, net_to_org_cents, net_to_org_dollars, status
+//
+// L43 cleanup: earn²keep takes zero per-transaction percentage. The CSV
+// shows Stripe's processing fee (2.9% + $0.30) for transparency — that
+// money goes to Stripe, not earn²keep.
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 
-const PLATFORM_FEE_PCT = 0.035;
-const PLATFORM_FEE_FLAT_CENTS = 40;
+const STRIPE_FEE_PCT = 0.029;
+const STRIPE_FEE_FLAT_CENTS = 30;
 
 function dollarsFromCents(cents: number): string {
   return (cents / 100).toFixed(2);
@@ -158,7 +162,8 @@ export async function GET(
       "coach_name",
       "joined_at",
       "entry_fee_paid_dollars",
-      "platform_fee_dollars",
+      "stripe_fee_dollars",
+      "earn2keep_platform_fee_dollars",
       "net_to_org_dollars",
       "status",
     ]
@@ -183,8 +188,10 @@ export async function GET(
       : "";
     const gross = r.entry_fee_paid_cents ?? 0;
     const isPaid = r.status === "active" || r.status === "pending_approval";
+    // L43 cleanup: earn²keep takes ZERO per-transaction. Only Stripe's
+    // card-processing fee (2.9% + $0.30) comes out of the gross.
     const fee = isPaid && gross > 0
-      ? Math.round(gross * PLATFORM_FEE_PCT) + PLATFORM_FEE_FLAT_CENTS
+      ? Math.round(gross * STRIPE_FEE_PCT) + STRIPE_FEE_FLAT_CENTS
       : 0;
     const net = isPaid ? gross - fee : 0;
     if (isPaid) {
@@ -202,6 +209,7 @@ export async function GET(
         r.joined_at,
         dollarsFromCents(gross),
         dollarsFromCents(fee),
+        "0.00", // earn²keep platform fee — always zero post-L43
         dollarsFromCents(net),
         r.status,
       ]
@@ -217,7 +225,9 @@ export async function GET(
       "," +
       csvField(`Gross: $${dollarsFromCents(totalGross)}`) +
       "," +
-      csvField(`Platform fees: $${dollarsFromCents(totalFees)}`) +
+      csvField(`Stripe fees: $${dollarsFromCents(totalFees)}`) +
+      "," +
+      csvField(`earn²keep platform fee: $0.00`) +
       "," +
       csvField(`Net to org: $${dollarsFromCents(totalNet)}`)
   );

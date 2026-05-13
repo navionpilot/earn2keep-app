@@ -34,7 +34,7 @@ interface PlayerRow {
 interface EventRow {
   id: string;
   name: string;
-  event_type: "mini-camp" | "camp" | "tournament" | string | null;
+  event_type: "camp" | "tournament" | string | null;
   status: "draft" | "active" | "completed" | string | null;
 }
 
@@ -197,7 +197,7 @@ export default async function LeaderboardPage() {
         )}
 
         <p className="leaderboard-fineprint">
-          {(event.event_type === "camp" || event.event_type === "mini-camp") ? (
+          {(event.event_type === "camp" || event.event_type === "camp") ? (
             <>
               Camp scoring: challenge points + bonus points for every dollar
               raised above each player&apos;s fundraising minimum (fundraising

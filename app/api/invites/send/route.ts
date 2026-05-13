@@ -102,7 +102,7 @@ interface TeamEventContext {
   teamSport: string | null;
   orgName: string;
   eventName: string | null;
-  eventType: "mini-camp" | "camp" | "tournament" | null;
+  eventType: "camp" | "tournament" | null;
 }
 
 export async function POST(req: NextRequest) {
@@ -219,7 +219,7 @@ export async function POST(req: NextRequest) {
     type EventRow = {
       id: string;
       name: string;
-      event_type: "mini-camp" | "camp" | "tournament" | null;
+      event_type: "camp" | "tournament" | null;
       status: "draft" | "active" | "completed" | null;
       updated_at: string | null;
     };

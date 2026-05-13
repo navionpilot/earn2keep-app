@@ -70,7 +70,7 @@ export default async function SetupGuidePage() {
         <span className="e2k-guide-eyebrow">★ Setup Playbook ★</span>
         <h1 className="e2k-guide-title">Your earn²keep playbook</h1>
         <p className="e2k-guide-sub">
-          Pick Mini-Camp, Camp, or Tournament, then walk through every step from setup to
+          Pick Camp or Tournament, then walk through every step from setup to
           launch. Most coaches finish setup in under 30 minutes.
         </p>
       </div>
@@ -674,7 +674,7 @@ export default async function SetupGuidePage() {
           <h4 className="help-faq-q">Can I edit an event after it&apos;s created?</h4>
           <p className="help-faq-a">
             Most fields yes — name, dates, challenges. For
-            <strong> Camp/Mini-Camp</strong> you can also edit the per-player
+            <strong> Camp</strong> you can also edit the per-player
             fundraising goal and the prize structure (1st/2nd/3rd place gift
             cards). For <strong>Tournament</strong> you can edit the Entry
             Fee, max teams, registration deadline, and approval mode — the

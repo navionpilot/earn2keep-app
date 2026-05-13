@@ -53,7 +53,7 @@ export interface InviteEmailOptions {
   teamSport: string | null;
   orgName: string;
   eventName: string | null;
-  eventType: "mini-camp" | "camp" | "tournament" | null;
+  eventType: "camp" | "tournament" | null;
   inviteUrl: string;
   // Slice 5.4.2: inclusive role label so emails don't always say "coach".
   // Caller passes whatever's appropriate ("coach", "youth pastor", "scout
@@ -163,7 +163,7 @@ function buildHtmlTemplate(opts: InviteEmailOptions): string {
     : `Your ${escape(inviter)} added you to <strong style="color:#ffffff;">${escape(teamName)}</strong>${teamSport ? ` (${escape(teamSport)})` : ""} at <strong style="color:#ffffff;">${escape(orgName)}</strong>.`;
 
   const eyebrow =
-    (eventType === "camp" || eventType === "mini-camp")
+    (eventType === "camp")
       ? "CAMP INVITE"
       : eventType === "tournament"
       ? "TOURNAMENT INVITE"
@@ -354,7 +354,7 @@ function buildPlainText(opts: InviteEmailOptions): string {
     : `Your ${inviter} added you to ${teamName}${teamSport ? ` (${teamSport})` : ""} at ${orgName}.`;
 
   const eyebrow =
-    (eventType === "camp" || eventType === "mini-camp")
+    (eventType === "camp")
       ? "CAMP INVITE"
       : eventType === "tournament"
       ? "TOURNAMENT INVITE"

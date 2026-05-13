@@ -1,35 +1,32 @@
-// Locked pricing for earn²keep — matches landing site slices L6 through L9.
-// Phase 10 will plug Stripe Connect into the existing payment scaffold.
+// =============================================================================
+// lib/pricing.ts — locked pricing (post-Mini-Camp cleanup)
+// =============================================================================
+// Pricing model (L43 cleanup):
 //
-// Pricing structure:
-//   Mini-Camp   $99   single team, smaller fundraisers (typically under $5k goal)
-//   Camp        $189  single team, standard fundraisers
-//   Tournament  $349  multi-team competition (registration-fee pot)
+//   Camp        $149  flat launch fee. One team, supporter-donation fundraiser.
+//   Tournament  $249  flat launch fee. Multi-team commitment contest with pot.
 //
-// Mini-Camp and Camp donations also pass through a 3.5% + $0.40 per-donation
-// payment processing fee. The majority of that fee (currently 2.9% + $0.30)
-// is remitted to Stripe; the remainder covers platform infrastructure and
-// edge-case coverage. Tournament events have no per-transaction platform fee
-// — Stripe processes registration fees at their standard rate.
+//   NO transaction fees. NO percentage cut of donations or Entry Fees.
+//   earn²keep takes ONLY the flat launch fee.
+//
+//   Card-processing fees (currently Stripe's 2.9% + $0.30) come off the top
+//   before the recipient org receives funds — those are Stripe's, not ours.
+//   We disclose them honestly to supporters but don't book them as revenue.
+//
+// Prior model (deprecated):
+//   - Mini-Camp tier ($99) — REMOVED. Mini-Camp and Camp did the same thing;
+//     two tiers was price discrimination dressed as a feature. Now: one Camp.
+//   - 3.5% + $0.40 platform transaction fee — REMOVED. We don't take a cut
+//     of fundraising any more. "Pay once. Keep what you raise."
+// =============================================================================
 
-export type EventType = "mini-camp" | "camp" | "tournament";
+export type EventType = "camp" | "tournament";
 
 // Flat launch fees (USD, charged once at event activation)
-export const MINI_CAMP_FEE_USD = 99;
-export const CAMP_FEE_USD = 189;
-export const TOURNAMENT_FEE_USD = 349;
+export const CAMP_FEE_USD = 149;
+export const TOURNAMENT_FEE_USD = 249;
 
-// Per-donation processing fee (Mini-Camp and Camp only)
-export const TRANSACTION_FEE_RATE = 0.035; // 3.5% of donation amount
-export const TRANSACTION_FEE_FLAT_CENTS = 40; // $0.40 per donation
-
-// Soft threshold used by the tier recommender and auto-upgrade logic.
-// A single-team event whose total goal is AT OR BELOW this amount is
-// suggested as Mini-Camp; anything strictly above this amount is auto-
-// upgraded to Camp at payment time. ($2,000 — set deliberately so that
-// Mini-Camp targets genuinely small/first-time fundraisers.)
-export const MINI_CAMP_GOAL_THRESHOLD_USD = 2000;
-
+// Inclusive maximum event duration in days
 export const MAX_EVENT_DAYS = 30;
 
 export interface PricingTier {
@@ -40,45 +37,32 @@ export interface PricingTier {
 }
 
 export const PRICING: Record<EventType, PricingTier> = {
-  "mini-camp": {
-    fee: MINI_CAMP_FEE_USD,
-    label: "Mini-Camp",
-    subtitle: "For smaller groups and first-time fundraisers",
-    features: [
-      "1 team",
-      "Challenge tracking",
-      "Supporter pages",
-      "Leaderboards",
-      "Messaging",
-      "Live progress tracking",
-      "30-day event hosting",
-    ],
-  },
   camp: {
     fee: CAMP_FEE_USD,
     label: "Camp",
-    subtitle: "Single-team fundraiser",
+    subtitle: "Single-team supporter-donation fundraiser",
     features: [
-      "1 team",
-      "Challenge tracking",
-      "Supporter pages",
-      "Leaderboards",
-      "Messaging",
-      "Live progress tracking",
-      "30-day event hosting",
+      "One team competes internally for prizes",
+      "Per-player fundraising minimums",
+      "Supporter QR codes & donation pages",
+      "Verified-challenge submissions",
+      "Real-time leaderboards",
+      "Flat $149 launch fee — no transaction cuts",
+      "Up to 30-day event hosting",
     ],
   },
   tournament: {
     fee: TOURNAMENT_FEE_USD,
     label: "Tournament",
-    subtitle: "Multi-team competition",
+    subtitle: "Multi-team commitment contest",
     features: [
-      "2 or more teams (no maximum)",
-      "Per-participant registration fees \u2192 shared pot",
-      "Winning team takes the pot",
-      "Challenge tracking (required for competition)",
-      "Tournament-wide leaderboard",
-      "30-day event hosting",
+      "2+ teams compete head-to-head (no maximum)",
+      "Per-team Entry Fee → pot grows as teams join",
+      "Strict all-or-nothing scoring (full roster wins or loses)",
+      "Winning team takes the entire pot",
+      "Sudden-death tiebreaker if standings tie",
+      "Flat $249 launch fee — no transaction cuts",
+      "Up to 30-day event hosting",
     ],
   },
 };
@@ -88,77 +72,24 @@ export function getPricing(eventType: EventType): PricingTier {
 }
 
 /**
- * Behavioral helper - Mini-Camp and Camp behave identically throughout the
- * app (single team, donation-based fundraising, same features). The only
- * difference is launch price. Use this for event display logic that should
- * apply to both.
+ * Recommend an event type based on whether it's multi-team.
+ * Single team = Camp. Multi-team = Tournament. End of decision tree.
+ *
+ * (Previously this function also handled the Mini-Camp / Camp threshold.
+ * That tier is gone in the post-cleanup model.)
  */
-export function isCampLike(eventType: EventType): boolean {
-  return eventType === "mini-camp" || eventType === "camp";
+export function recommendTier(opts: { isMultiTeam: boolean }): EventType {
+  return opts.isMultiTeam ? "tournament" : "camp";
 }
 
 /**
- * Tier recommendation logic.
- *
- * - Multi-team event -> Tournament. End of story (structural choice, not goal).
- * - Single-team event with total goal AT OR BELOW MINI_CAMP_GOAL_THRESHOLD_USD ->
- *   Mini-Camp recommended.
- * - Otherwise -> Camp recommended.
- *
- * `totalGoalUsd` is the total expected fundraising for the event (which in
- * this app's data model is goal_amount * player_count across all teams on
- * the event). The Organizer can always override the recommendation.
+ * Human-readable explanation of which tier fits.
  */
-export function recommendTier(opts: {
-  isMultiTeam: boolean;
-  totalGoalUsd: number;
-}): EventType {
-  if (opts.isMultiTeam) return "tournament";
-  if (opts.totalGoalUsd > 0 && opts.totalGoalUsd <= MINI_CAMP_GOAL_THRESHOLD_USD) {
-    return "mini-camp";
-  }
-  return "camp";
-}
-
-/**
- * Auto-upgrade rule: a Mini-Camp event with total goal STRICTLY ABOVE the
- * threshold gets upgraded to Camp tier. This is enforced both as an inline
- * warning on the form (where the user can switch manually) and as a
- * silent upgrade at the payment page (so the user is charged correctly
- * regardless of how they got there).
- *
- * Only Mini-Camp -> Camp upgrades automatically. Camp -> Mini-Camp does
- * NOT auto-downgrade (paying customers don't get billing changed without
- * consent).
- */
-export function shouldAutoUpgradeToCamp(opts: {
-  eventType: EventType;
-  totalGoalUsd: number;
-}): boolean {
-  return (
-    opts.eventType === "mini-camp" &&
-    opts.totalGoalUsd > MINI_CAMP_GOAL_THRESHOLD_USD
-  );
-}
-
-/**
- * Returns the explanation string for a recommendation, suitable for inline
- * UI copy near the event-type picker.
- */
-export function recommendationReason(opts: {
-  isMultiTeam: boolean;
-  totalGoalUsd: number;
-}): string {
+export function recommendationReason(opts: { isMultiTeam: boolean }): string {
   if (opts.isMultiTeam) {
-    return "Tournament \u2014 your event has 2 or more participating teams.";
+    return `Tournament ($${TOURNAMENT_FEE_USD}) — your event has 2 or more teams competing against each other.`;
   }
-  if (opts.totalGoalUsd <= 0) {
-    return "Enter a goal above to see the recommended tier.";
-  }
-  if (opts.totalGoalUsd <= MINI_CAMP_GOAL_THRESHOLD_USD) {
-    return `Mini-Camp ($${MINI_CAMP_FEE_USD}) \u2014 recommended for total goals up to $${MINI_CAMP_GOAL_THRESHOLD_USD.toLocaleString()}.`;
-  }
-  return `Camp ($${CAMP_FEE_USD}) \u2014 recommended for total goals above $${MINI_CAMP_GOAL_THRESHOLD_USD.toLocaleString()}.`;
+  return `Camp ($${CAMP_FEE_USD}) — your event has one team raising money from supporters.`;
 }
 
 /**
@@ -177,7 +108,7 @@ export function eventDurationDays(startDate: string, endDate: string): number {
 
 /**
  * Returns true if event duration fits within MAX_EVENT_DAYS.
- * Returns true when dates are missing/invalid - other validators handle empty fields.
+ * Returns true when dates are missing/invalid — other validators handle empty fields.
  */
 export function isWithinMaxDuration(startDate: string, endDate: string): boolean {
   const days = eventDurationDays(startDate, endDate);
