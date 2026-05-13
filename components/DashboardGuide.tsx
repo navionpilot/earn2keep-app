@@ -102,7 +102,7 @@ const STEPS: StepCopy[] = [
     campNote:
       "Camp = one team, internal competition. Each player has a personal fundraising minimum (e.g. $250). Players who exceed it earn bonus points + extra prize money.",
     tournamentNote:
-      "Tournament = multiple teams, head-to-head. Each player pays a flat registration fee (e.g. $50). Top teams win the prize pot, rest goes to the org.",
+      "Tournament = multi-team commitment contest. Host sets a per-team Entry Fee; other teams pay it to join via a 6-character join code. Strict scoring: a team earns a challenge's points only when every player completes it. Top teams win the prize pot.",
     tip: "Most events run 4–6 weeks. Once you click +New Event, the form has its own step-by-step walkthrough.",
   },
   {

@@ -134,15 +134,16 @@ export default async function SetupGuidePage() {
             </svg>
           </div>
           <div className="e2k-compare-name">TOURNAMENT</div>
-          <div className="e2k-compare-tag">Multiple teams. Head-to-head competition.</div>
+          <div className="e2k-compare-tag">Multi-team commitment contest. Strict scoring.</div>
 
           <div className="e2k-compare-section">
             <div className="e2k-compare-label">Money model</div>
-            <div className="e2k-compare-value">Flat registration fee per person</div>
+            <div className="e2k-compare-value">Per-team Entry Fee + strict scoring</div>
             <div className="e2k-compare-detail">
-              Supporters pay a flat entry fee per participant. Teams compete on
-              points over the season. Top teams win the prize pot, organization
-              keeps the rest.
+              The host sets a flat Entry Fee that other teams pay to compete.
+              Teams compete on strict-scored challenges — a team earns the
+              points for a challenge only when every player on its roster
+              completes it. Top teams win the prize pot.
             </div>
           </div>
 
@@ -159,8 +160,8 @@ export default async function SetupGuidePage() {
           <div className="e2k-compare-section">
             <div className="e2k-compare-label">Typical numbers</div>
             <div className="e2k-compare-formula">
-              <strong>$50</strong> reg fee &nbsp;×&nbsp; <strong>60</strong> participants
-              &nbsp;=&nbsp; <strong className="accent">$3,000</strong> raised
+              <strong>$400</strong> Entry Fee &nbsp;×&nbsp; <strong>6</strong> teams
+              &nbsp;=&nbsp; <strong className="accent">$2,400</strong> raised
             </div>
           </div>
 
@@ -390,7 +391,7 @@ export default async function SetupGuidePage() {
       <details className="e2k-walkthrough">
         <summary>
           <span className="e2k-walkthrough-summary-icon">🏆</span>
-          <span>Setting up a Tournament (7 steps)</span>
+          <span>Setting up a Tournament (8 steps)</span>
           <span className="e2k-walkthrough-toggle">▼</span>
         </summary>
 
@@ -398,16 +399,17 @@ export default async function SetupGuidePage() {
           <div className="e2k-walk-step">
             <div className="e2k-walk-num">1</div>
             <div>
-              <h4 className="e2k-walk-title">Make sure you have multiple teams set up</h4>
+              <h4 className="e2k-walk-title">Make sure you have at least one of your own teams set up</h4>
               <p className="e2k-walk-text">
-                A Tournament needs at least 2 teams to run, and 4+ teams is
-                ideal. If you only have one team in your org right now, head to
-                <strong> Teams → + New Team</strong> first.
+                You compete too. A Tournament has a <em>host team</em>
+                (yours) plus <em>joining teams</em> from other organizations.
+                If you don&apos;t have a team yet, head to <strong>Teams →
+                + New Team</strong> first and add your roster.
               </p>
               <div className="e2k-walk-tip">
-                <strong>Note:</strong> If multiple coaches each manage their own
-                team, they can each set up their team inside the same organization
-                and the Tournament can pull from all of them.
+                <strong>Note:</strong> Joining teams set up their own teams
+                inside their own organizations. They don&apos;t need to be in
+                your org — they just need the join code (more on that in step 8).
               </div>
             </div>
           </div>
@@ -440,17 +442,19 @@ export default async function SetupGuidePage() {
           <div className="e2k-walk-step">
             <div className="e2k-walk-num">4</div>
             <div>
-              <h4 className="e2k-walk-title">Set the registration fee per person</h4>
+              <h4 className="e2k-walk-title">Set the per-team Entry Fee</h4>
               <p className="e2k-walk-text">
-                This is a <strong>flat fee per participant</strong>, paid by
-                their supporter when they scan the QR code. Common: $25, $50,
-                $100. The total tournament pot equals: registration fee ×
-                participants entered.
+                This is what <strong>other teams</strong> pay to enter your
+                tournament — not per player, per team. Common: $250, $400,
+                $1,000. Each joining team&apos;s coach pays this once at
+                checkout, then collects from their own players however they
+                want (off-platform).
               </p>
               <div className="e2k-walk-tip">
-                <strong>Different from Camp:</strong> there&apos;s no &ldquo;over
-                the minimum&rdquo; bonus in Tournament. The whole pot is the pot —
-                top teams win prizes from it, the rest goes to the organization.
+                <strong>Your own teams join for free</strong> — you&apos;re
+                already in as the host. You pay the one-time launch fee
+                separately when you go live; that&apos;s what funds the
+                platform side.
               </div>
             </div>
           </div>
@@ -458,10 +462,20 @@ export default async function SetupGuidePage() {
           <div className="e2k-walk-step">
             <div className="e2k-walk-num">5</div>
             <div>
-              <h4 className="e2k-walk-title">Add the competing teams</h4>
+              <h4 className="e2k-walk-title">Optional settings — Max teams, Registration deadline, Approval mode</h4>
               <p className="e2k-walk-text">
-                Pick which teams from your organization are competing in this
-                tournament. Each team brings their full roster.
+                Three knobs you can tune in the same Tournament Settings section.
+                <strong> Maximum teams</strong> caps registration — useful for
+                bracketed tournaments needing exactly 8 or 16 teams; once the
+                cap is hit, the join code stops working.
+                <strong> Registration deadline</strong> closes joins on a
+                specific date (e.g., a week before the tournament starts so
+                teams have time to prepare); leave blank to allow joins through
+                the tournament start.
+                <strong> Require my approval</strong> lets you curate who
+                joins — each paying team lands in a pending queue on your
+                event page; approve or decline from there. Recommended OFF
+                unless you specifically need it.
               </p>
             </div>
           </div>
@@ -469,12 +483,11 @@ export default async function SetupGuidePage() {
           <div className="e2k-walk-step">
             <div className="e2k-walk-num">6</div>
             <div>
-              <h4 className="e2k-walk-title">Pick your challenges &amp; prize structure</h4>
+              <h4 className="e2k-walk-title">Add your competing team(s)</h4>
               <p className="e2k-walk-text">
-                Same library, same scheduling tools as Camp. Difference: prizes
-                are awarded at the team level, not individual. Common setup:
-                <strong> 1st place team</strong> gets the biggest cut, 2nd and 3rd
-                get smaller pots, organization keeps the remainder.
+                Pick which of <em>your own</em> teams from your organization
+                are entering this tournament. You can enter one or more. They
+                join automatically — no Entry Fee for the host&apos;s teams.
               </p>
             </div>
           </div>
@@ -482,11 +495,45 @@ export default async function SetupGuidePage() {
           <div className="e2k-walk-step">
             <div className="e2k-walk-num">7</div>
             <div>
-              <h4 className="e2k-walk-title">Generate QR codes &amp; launch</h4>
+              <h4 className="e2k-walk-title">Pick challenges &amp; designate the sudden-death tiebreaker</h4>
               <p className="e2k-walk-text">
-                Each participant still gets a personal QR for supporters to scan.
-                The difference: each scan adds the registration fee to the pot
-                rather than progressing toward an individual minimum.
+                Same challenge library, same scheduling tools as Camp. Add
+                the regular challenges teams will compete on, then mark
+                <strong> ONE</strong> as the pre-declared
+                <strong> sudden-death tiebreaker</strong>. The tiebreaker
+                stays hidden during regular play and only activates if teams
+                tie for a prize position at the end of the tournament. The
+                team with the earliest 100% completion in the tiebreaker
+                window wins the tie.
+              </p>
+              <div className="e2k-walk-tip">
+                <strong>Strict scoring:</strong> teams earn the points for a
+                challenge only when every player on the roster completes it.
+                One absence = zero for that challenge. This is what makes the
+                tournament a true commitment contest — disciplined small rosters
+                can beat larger ones.
+              </div>
+            </div>
+          </div>
+
+          <div className="e2k-walk-step">
+            <div className="e2k-walk-num">8</div>
+            <div>
+              <h4 className="e2k-walk-title">Share the join code with other team coaches</h4>
+              <p className="e2k-walk-text">
+                Every tournament gets a 6-character join code like
+                <strong> ABC-XYZ</strong>. Use the in-app
+                <strong> Invitations</strong> panel to send the code via email
+                to coaches you want to invite, or paste it anywhere — text
+                message, group chat, league forum.
+              </p>
+              <p className="e2k-walk-text">
+                Coaches who receive the code enter it, see your tournament&apos;s
+                public info page (name, dates, Entry Fee, your challenges, your
+                tiebreaker), pick which of their teams to enter, pay the Entry
+                Fee, and they&apos;re in. If you enabled approval mode in step 5,
+                they show up on your event page as pending — you approve or
+                decline before they&apos;re competing.
               </p>
             </div>
           </div>
@@ -523,9 +570,57 @@ export default async function SetupGuidePage() {
             who didn&apos;t hit individual minimum still take part; they just
             don&apos;t get bonus points/prizes.
             <br /><br />
-            Tournament: registration fees are paid up front per participant,
-            so the pot is the pot. The competition still runs whether supporters
-            fund 5 participants or 50.
+            Tournament: there&apos;s no per-person fundraising goal. Other
+            teams pay a flat <strong>Entry Fee</strong> per team to join. The
+            pot is the sum of Entry Fees collected. The competition runs
+            whether 2 teams join or 20 — strict scoring rewards the team
+            that shows up no matter the field size.
+          </p>
+        </div>
+
+        <div className="help-faq">
+          <h4 className="help-faq-q">How do other teams join my Tournament?</h4>
+          <p className="help-faq-a">
+            Every Tournament gets a unique 6-character join code (like
+            <strong> ABC-XYZ</strong>). Share it via the in-app
+            <strong> Invitations</strong> panel — type in coach email
+            addresses and we send a one-click invitation. Or paste the code
+            anywhere — text, group chat, league forum. Coaches enter the
+            code, see your tournament&apos;s public info page, pick which of
+            their teams to enter, pay the Entry Fee, and they&apos;re
+            registered. If you turned on Approval mode at setup, you decide
+            whether to accept or decline each joining team from the event
+            page before they&apos;re competing.
+          </p>
+        </div>
+
+        <div className="help-faq">
+          <h4 className="help-faq-q">What&apos;s &ldquo;strict scoring&rdquo; in a Tournament?</h4>
+          <p className="help-faq-a">
+            A team earns the points for a challenge <strong>only when every
+            player on its roster completes that challenge</strong>. One
+            absence = zero points for that challenge. This is what makes
+            Tournament a true commitment contest: a disciplined roster of 6
+            can beat a half-engaged roster of 20. Players see live roster
+            status — who&apos;s done it, who hasn&apos;t — so the team holds
+            itself accountable. No automated nudges; the social pressure
+            happens inside the team.
+          </p>
+        </div>
+
+        <div className="help-faq">
+          <h4 className="help-faq-q">What if teams tie at the end?</h4>
+          <p className="help-faq-a">
+            When you set up the Tournament, you pre-declare ONE of your
+            challenges as the <strong>sudden-death tiebreaker</strong>. It
+            stays hidden during regular play. If teams tie for a prize
+            position at the end, the tiebreaker automatically unlocks for
+            those tied teams with a 48-hour submission window
+            (configurable). Same strict scoring — every player on the
+            roster has to finish. The team with the earliest 100%-completion
+            timestamp wins the tie. If nobody hits 100% in the window, you
+            get a button on the event page to declare the winner using your
+            own judgment.
           </p>
         </div>
 
