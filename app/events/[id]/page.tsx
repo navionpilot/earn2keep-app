@@ -8,6 +8,8 @@ import TournamentInvitationsPanel from "@/components/TournamentInvitationsPanel"
 import TournamentStandings from "@/components/TournamentStandings";
 import TournamentTeamRosterStatus from "@/components/TournamentTeamRosterStatus";
 import TournamentTiebreakerBlock from "@/components/TournamentTiebreakerBlock";
+import TournamentPendingApprovalsPanel from "@/components/TournamentPendingApprovalsPanel";
+import TournamentTiebreakerPicker from "@/components/TournamentTiebreakerPicker";
 import EventStatusButton from "@/components/EventStatusButton";
 import DeleteButton from "@/components/DeleteButton";
 import LeaderboardCard from "@/components/LeaderboardCard";
@@ -146,6 +148,104 @@ export default async function EventDetailPage({
         }
       }
       return { team_id: row.team_id, team_name: teamName };
+    });
+  }
+
+  // L36 — Fetch pending tournament_teams rows for the approval workflow
+  // panel (host UI only). Also fetch the list of event_challenges so the
+  // tiebreaker picker can render its options.
+  type PendingTeam = {
+    id: string;
+    team_id: string;
+    team_name: string;
+    org_name: string | null;
+    player_count: number;
+    joined_at: string;
+  };
+  let pendingApprovalTeams: PendingTeam[] = [];
+  type ChallengeOption = {
+    id: string;
+    name: string;
+    rep_target: number | null;
+    unit: string | null;
+    is_tiebreaker: boolean;
+  };
+  let availableChallengesForTiebreaker: ChallengeOption[] = [];
+  if (event.event_type === "tournament" && event.owner_id === user?.id) {
+    // Pending teams (approval workflow only matters if requires_approval=true,
+    // but we always fetch — the component handles the empty case).
+    if (event.tournament_requires_approval) {
+      const { data: ptRows } = await supabase
+        .from("tournament_teams")
+        .select("id, team_id, joined_at, teams(id, name, organizations(name))")
+        .eq("tournament_event_id", event.id)
+        .eq("status", "pending_approval")
+        .order("joined_at", { ascending: true });
+      const teamIds = (ptRows || []).map((r) => r.team_id);
+      // Roster sizes in one query
+      const playerCounts: Record<string, number> = {};
+      if (teamIds.length > 0) {
+        const { data: pRows } = await supabase
+          .from("players")
+          .select("team_id")
+          .in("team_id", teamIds);
+        (pRows || []).forEach((p) => {
+          playerCounts[p.team_id] = (playerCounts[p.team_id] || 0) + 1;
+        });
+      }
+      pendingApprovalTeams = (ptRows || []).map((row) => {
+        const teamRel = row.teams;
+        let teamName = "Team";
+        let orgName: string | null = null;
+        if (teamRel) {
+          const teamObj = Array.isArray(teamRel) ? teamRel[0] : teamRel;
+          if (teamObj) {
+            teamName = (teamObj as { name?: string }).name || teamName;
+            const orgRel = (teamObj as { organizations?: unknown }).organizations;
+            if (orgRel) {
+              if (Array.isArray(orgRel)) {
+                orgName = (orgRel[0] as { name?: string })?.name ?? null;
+              } else if (typeof orgRel === "object" && "name" in orgRel) {
+                orgName = (orgRel as { name?: string }).name ?? null;
+              }
+            }
+          }
+        }
+        return {
+          id: row.id,
+          team_id: row.team_id,
+          team_name: teamName,
+          org_name: orgName,
+          player_count: playerCounts[row.team_id] || 0,
+          joined_at: row.joined_at,
+        };
+      });
+    }
+
+    // Available challenges for the tiebreaker picker
+    const { data: ecRows } = await supabase
+      .from("event_challenges")
+      .select("id, rep_target, is_tiebreaker, challenges(name, unit)")
+      .eq("event_id", event.id)
+      .order("day_index", { ascending: true });
+    availableChallengesForTiebreaker = (ecRows || []).map((row) => {
+      const cRel = row.challenges;
+      let chName: string | null = null;
+      let chUnit: string | null = null;
+      if (cRel) {
+        const cObj = Array.isArray(cRel) ? cRel[0] : cRel;
+        if (cObj) {
+          chName = (cObj as { name?: string }).name ?? null;
+          chUnit = (cObj as { unit?: string }).unit ?? null;
+        }
+      }
+      return {
+        id: row.id,
+        name: chName || "Challenge",
+        rep_target: row.rep_target ?? null,
+        unit: chUnit,
+        is_tiebreaker: row.is_tiebreaker === true,
+      };
     });
   }
 
@@ -407,6 +507,28 @@ export default async function EventDetailPage({
               tournament invitation email to other team organizers. */}
           {event.event_type === "tournament" && event.tournament_join_code && (
             <TournamentInvitationsPanel tournamentId={event.id} />
+          )}
+
+          {/* L36 — Approval workflow panel. Only renders if approval mode is
+              on AND there are pending teams. Hidden when neither. */}
+          {event.event_type === "tournament" &&
+            event.owner_id === user?.id &&
+            event.tournament_requires_approval &&
+            pendingApprovalTeams.length > 0 && (
+              <TournamentPendingApprovalsPanel
+                tournamentId={event.id}
+                pendingTeams={pendingApprovalTeams}
+              />
+            )}
+
+          {/* L36 — Tiebreaker challenge picker. Host-only. Always visible
+              for tournament events so the host can change their pick later. */}
+          {event.event_type === "tournament" && event.owner_id === user?.id && (
+            <TournamentTiebreakerPicker
+              eventId={event.id}
+              currentTiebreakerId={event.tournament_tiebreaker_challenge_id ?? null}
+              availableChallenges={availableChallengesForTiebreaker}
+            />
           )}
 
           {/* L35 — Sudden-death tiebreaker block. Renders nothing when

@@ -86,6 +86,8 @@ export default function NewEventPage() {
   const [tournamentEntryFeeUsd, setTournamentEntryFeeUsd] = useState<string>("");
   const [tournamentMaxTeams, setTournamentMaxTeams] = useState<string>("");
   const [tournamentRequiresApproval, setTournamentRequiresApproval] = useState<boolean>(false);
+  // L36 — Registration deadline (optional)
+  const [tournamentRegistrationDeadline, setTournamentRegistrationDeadline] = useState<string>("");
 
   useEffect(() => {
     const fetchOrgAndTeams = async () => {
@@ -264,6 +266,11 @@ export default function NewEventPage() {
         tournament_requires_approval:
           eventType === "tournament" ? tournamentRequiresApproval : false,
         tournament_max_teams: tournamentMaxTeamsNum,
+        // L36 — Registration deadline (optional). Stored as ISO timestamp.
+        tournament_registration_deadline:
+          eventType === "tournament" && tournamentRegistrationDeadline
+            ? `${tournamentRegistrationDeadline}T12:00:00Z`
+            : null,
       })
       .select()
       .single();
@@ -589,6 +596,22 @@ export default function NewEventPage() {
                         min="2" step="1" />
                       <p className="form-hint">
                         Use this to cap registration (e.g., for a bracketed tournament that needs exactly 8 or 16 teams).
+                      </p>
+                    </div>
+
+                    <div style={{ marginTop: 24 }}>
+                      <label htmlFor="tournamentRegDeadline" className="form-label">
+                        Registration deadline (optional)
+                        <Tooltip text="Stops new teams from joining after this date. Defaults to the tournament start date if blank.">
+                          <span className="help-icon">?</span>
+                        </Tooltip>
+                      </label>
+                      <input id="tournamentRegDeadline" type="date"
+                        className="form-input"
+                        value={tournamentRegistrationDeadline}
+                        onChange={(e) => setTournamentRegistrationDeadline(e.target.value)} />
+                      <p className="form-hint">
+                        Useful if you want registrations to close earlier than the tournament start — e.g., a week before, so teams have time to prepare.
                       </p>
                     </div>
 
