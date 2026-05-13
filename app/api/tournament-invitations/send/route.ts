@@ -87,7 +87,6 @@ export async function POST(req: NextRequest) {
     .select(
       `id, name, description, start_date, end_date, owner_id, event_type,
        tournament_entry_fee_cents, tournament_join_code,
-       first_place_prize, first_place_amount,
        organizations(name)`
     )
     .eq("id", body.tournamentId)
@@ -147,15 +146,19 @@ export async function POST(req: NextRequest) {
     "https://app.earn2keep.com";
   const tournamentUrl = `${baseUrl}/tournament/${ev.tournament_join_code}`;
 
-  // Build a prize description string from whichever fields are populated.
-  // Falls back to null if no prize info is set.
-  let prizeDescription: string | null = null;
-  if (ev.first_place_prize) {
-    prizeDescription = ev.first_place_prize;
-    if (ev.first_place_amount && Number(ev.first_place_amount) > 0) {
-      prizeDescription += ` ($${Number(ev.first_place_amount).toLocaleString("en-US")})`;
-    }
-  }
+  // L38 — Tournament prize model is "winner takes the pot" — no more
+  // configurable gift cards. Compute the current pot from the number of
+  // teams that have paid the Entry Fee (status in active/pending_approval
+  // on tournament_teams). The pot grows by entry_fee_cents for each new
+  // team that joins.
+  const entryFeeCents = ev.tournament_entry_fee_cents ?? 0;
+  const { count: teamsRegisteredCount } = await supabase
+    .from("tournament_teams")
+    .select("*", { count: "exact", head: true })
+    .eq("tournament_event_id", ev.id)
+    .in("status", ["active", "pending_approval"]);
+  const teamsRegistered = teamsRegisteredCount ?? 0;
+  const currentPotCents = entryFeeCents * teamsRegistered;
 
   // Send each email. Per-recipient failures don't abort the batch.
   const results: ResultItem[] = [];
@@ -184,10 +187,11 @@ export async function POST(req: NextRequest) {
       tournamentDescription: ev.description ?? null,
       startDate: ev.start_date,
       endDate: ev.end_date,
-      entryFeeCents: ev.tournament_entry_fee_cents ?? 0,
+      entryFeeCents,
       joinCode: ev.tournament_join_code,
       tournamentUrl,
-      prizeDescription,
+      currentPotCents,
+      teamsRegistered,
     });
 
     if (sendResult.ok) {

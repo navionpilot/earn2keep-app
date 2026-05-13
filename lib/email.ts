@@ -782,7 +782,14 @@ export interface TournamentInvitationEmailOptions {
   entryFeeCents: number;
   joinCode: string;
   tournamentUrl: string;
-  prizeDescription: string | null;
+  /**
+   * L38 — The tournament prize model is "winner takes the pot."
+   * Pot = Entry Fee × number of registered teams (net of payment processing).
+   * We display the current calculated pot and the per-team contribution so
+   * the recipient understands what they're competing for.
+   */
+  currentPotCents: number;
+  teamsRegistered: number;
 }
 
 export async function sendTournamentInvitationEmail(
@@ -870,7 +877,8 @@ function buildTournamentInvitationHtml(opts: TournamentInvitationEmailOptions): 
     entryFeeCents,
     joinCode,
     tournamentUrl,
-    prizeDescription,
+    currentPotCents,
+    teamsRegistered,
   } = opts;
 
   const greeting = recipientFirstName
@@ -884,6 +892,7 @@ function buildTournamentInvitationHtml(opts: TournamentInvitationEmailOptions): 
   const dateRange = tournamentFormatDateRange(startDate, endDate);
   const feeDisplay = tournamentFormatMoney(entryFeeCents);
   const displayCode = tournamentFormatDisplayCode(joinCode);
+  const potDisplay = tournamentFormatMoney(currentPotCents);
 
   const preheader = `${hostOrgName} invited your team to ${tournamentName}. ${dateRange}. View tournament details and decide if you're in.`;
 
@@ -899,21 +908,26 @@ function buildTournamentInvitationHtml(opts: TournamentInvitationEmailOptions): 
         </tr>`
     : "";
 
-  const prizeBlock = prizeDescription
-    ? `
+  // L38 — "Winner takes the pot" — replaces the old configurable gift-card
+  // prize. Pot = Entry Fee × number of registered teams (gross; net of
+  // payment processing per the terms). We always show this block since
+  // every tournament has this model.
+  const prizeBlock = `
         <tr>
           <td bgcolor="#06242b" style="background-color:#06242b;padding:0 32px 16px 32px;font-family:Arial,sans-serif;">
             <div style="background-color:#0a2f37;padding:14px 16px;border-radius:8px;border-left:3px solid #ffd000;">
               <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:10px;font-weight:800;color:#ffd000;letter-spacing:1.6px;text-transform:uppercase;">
-                🏆 The prize
+                🏆 Winner takes the pot
               </div>
-              <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:15px;color:#f7fbfb;margin-top:4px;font-weight:700;">
-                ${escape(prizeDescription)}
+              <div style="font-family:'Sora','Segoe UI',Arial,sans-serif;font-size:22px;color:#f7fbfb;margin-top:6px;font-weight:800;">
+                ${escape(potDisplay)}${teamsRegistered > 0 ? ` <span style="font-size:13px;font-weight:500;color:#9fc3c7;">(${teamsRegistered} ${teamsRegistered === 1 ? "team" : "teams"} registered)</span>` : ""}
+              </div>
+              <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:12px;color:#cfe7e7;margin-top:6px;line-height:1.5;">
+                Pot grows by <strong style="color:#f7fbfb;">${escape(feeDisplay)}</strong> for every team that joins. The team that wins the tournament takes the whole pot. No individual prizes, no split pot.
               </div>
             </div>
           </td>
-        </tr>`
-    : "";
+        </tr>`;
 
   // Bulletproof CTA. The "See tournament" wording — not "Pay & Join" —
   // because the recipient is unauthenticated; clicking goes to the public
@@ -1041,12 +1055,24 @@ ${escape(preheader)}
           </td>
         </tr>
 
-        <!-- Join code fallback -->
+        <!-- L38 — Big highlighted join code box (was a tiny line under the button) -->
         <tr>
           <td bgcolor="#06242b" align="center" style="background-color:#06242b;padding:0 32px 24px 32px;font-family:Arial,sans-serif;">
-            <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;color:#9fc3c7;margin-top:12px;">
-              Or sign in and enter join code <strong style="color:#35d5df;letter-spacing:2px;font-family:monospace;">${escape(displayCode)}</strong> at earn2keep.com/join-tournament
-            </div>
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:440px;margin:8px auto 0 auto;">
+              <tr>
+                <td bgcolor="#0a2f37" align="center" style="background-color:#0a2f37;padding:18px 20px;border-radius:10px;border:2px solid #35d5df;">
+                  <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:11px;font-weight:800;color:#9fc3c7;letter-spacing:1.8px;text-transform:uppercase;margin-bottom:8px;">
+                    Tournament Join Code
+                  </div>
+                  <div style="font-family:'Sora','Consolas','Courier New',monospace;font-size:36px;font-weight:800;color:#35d5df;letter-spacing:6px;line-height:1.1;mso-line-height-rule:exactly;">
+                    ${escape(displayCode)}
+                  </div>
+                  <div style="font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif;font-size:12px;color:#cfe7e7;margin-top:10px;">
+                    Enter this at <strong style="color:#f7fbfb;">earn2keep.com/join-tournament</strong>
+                  </div>
+                </td>
+              </tr>
+            </table>
           </td>
         </tr>
 
@@ -1092,9 +1118,9 @@ function buildTournamentInvitationText(opts: TournamentInvitationEmailOptions): 
   }
   lines.push(`DATES:      ${dateRange}`);
   lines.push(`ENTRY FEE:  ${feeDisplay}${opts.entryFeeCents > 0 ? " / team" : ""}`);
-  if (opts.prizeDescription) {
-    lines.push(`PRIZE:      ${opts.prizeDescription}`);
-  }
+  lines.push(
+    `WINNER TAKES THE POT: ${tournamentFormatMoney(opts.currentPotCents)} (${opts.teamsRegistered} ${opts.teamsRegistered === 1 ? "team" : "teams"} registered, pot grows by ${feeDisplay} per join).`
+  );
   lines.push("");
   lines.push("HEADS UP — STRICT SCORING:");
   lines.push("Your team only earns the points for a challenge when every player on");
@@ -1102,7 +1128,10 @@ function buildTournamentInvitationText(opts: TournamentInvitationEmailOptions): 
   lines.push("");
   lines.push(`See full details and decide if you're in: ${opts.tournamentUrl}`);
   lines.push("");
-  lines.push(`Or sign in and enter join code ${displayCode} at earn2keep.com/join-tournament`);
+  lines.push("============================================");
+  lines.push(`  TOURNAMENT JOIN CODE:  ${displayCode}`);
+  lines.push("  Enter at earn2keep.com/join-tournament");
+  lines.push("============================================");
   lines.push("");
   lines.push("--");
   lines.push("earn²keep — Earn it. Keep it.");

@@ -1032,8 +1032,53 @@ export default async function EventDetailPage({
           {/* Leaderboard (Slice 4.7) */}
           <LeaderboardCard eventId={event.id} />
 
-          {/* Prizes */}
-          {(event.first_place_prize || event.first_place_amount ||
+          {/* L38 — For tournaments, show the auto-calculated pot ("winner
+              takes the pot") instead of the legacy per-place prize card.
+              The pot grows with each team that joins. */}
+          {event.event_type === "tournament" && (
+            <div className="dashboard-card">
+              <h2 className="dashboard-card-title">Prize — Winner Takes the Pot</h2>
+              <div
+                style={{
+                  padding: 18,
+                  background: "rgba(255, 208, 0, 0.06)",
+                  border: "1px solid rgba(255, 208, 0, 0.3)",
+                  borderRadius: 10,
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: "Sora, system-ui, sans-serif",
+                    fontSize: 30,
+                    fontWeight: 800,
+                    color: "#ffd000",
+                    lineHeight: 1.1,
+                  }}
+                >
+                  {(() => {
+                    const fee = event.tournament_entry_fee_cents ?? 0;
+                    const pot = fee * joinedTeamsCount;
+                    return `$${(pot / 100).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+                  })()}
+                  <span style={{ fontSize: 13, fontWeight: 500, opacity: 0.7, marginLeft: 10 }}>
+                    ({joinedTeamsCount} {joinedTeamsCount === 1 ? "team" : "teams"} registered)
+                  </span>
+                </div>
+                <p style={{ fontSize: 12, opacity: 0.85, margin: "10px 0 0 0", lineHeight: 1.5 }}>
+                  Pot grows by{" "}
+                  <strong style={{ color: "#ffd000" }}>
+                    ${((event.tournament_entry_fee_cents ?? 0) / 100).toLocaleString("en-US")}
+                  </strong>{" "}
+                  for every team that joins. The team that wins takes the
+                  whole pot. No individual winners, no split pot.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Prizes (Camp/Mini-Camp only — Tournament uses the pot block above) */}
+          {event.event_type !== "tournament" &&
+           (event.first_place_prize || event.first_place_amount ||
             event.second_place_prize || event.second_place_amount ||
             event.third_place_prize || event.third_place_amount) && (
             <div className="dashboard-card">

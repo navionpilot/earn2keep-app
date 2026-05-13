@@ -499,58 +499,57 @@ export default async function PublicTournamentInfoPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Prizes */}
-        {(tournament.first_place_prize || tournament.first_place_amount) && (
+        {/* L38 — "Winner takes the pot" — replaces the old per-place prize
+            display. Tournament pot = Entry Fee × registered teams. Always
+            shown for tournaments since this is the model. */}
+        <div
+          style={{
+            padding: 20,
+            background: "rgba(255, 208, 0, 0.06)",
+            border: "1px solid rgba(255, 208, 0, 0.3)",
+            borderRadius: 12,
+            marginBottom: 32,
+          }}
+        >
           <div
             style={{
-              padding: 20,
-              background: "rgba(255, 208, 0, 0.06)",
-              border: "1px solid rgba(255, 208, 0, 0.3)",
-              borderRadius: 12,
-              marginBottom: 32,
+              fontSize: 11,
+              fontWeight: 800,
+              color: "#ffd000",
+              letterSpacing: 1.5,
+              marginBottom: 8,
             }}
           >
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 800,
-                color: "#ffd000",
-                letterSpacing: 1.5,
-                marginBottom: 12,
-              }}
-            >
-              🏆 THE PRIZE
-            </div>
-            <div style={{ display: "grid", gap: 8 }}>
-              {tournament.first_place_prize && (
-                <div style={{ fontSize: 15 }}>
-                  <strong>1st place:</strong> {tournament.first_place_prize}
-                  {tournament.first_place_amount && tournament.first_place_amount > 0 && (
-                    <span style={{ color: "#ffd000", fontWeight: 700 }}>
-                      {" "}({formatPrizeAmount(tournament.first_place_amount)})
-                    </span>
-                  )}
-                </div>
-              )}
-              {tournament.second_place_prize && (
-                <div style={{ fontSize: 14, opacity: 0.85 }}>
-                  <strong>2nd place:</strong> {tournament.second_place_prize}
-                  {tournament.second_place_amount && tournament.second_place_amount > 0 && (
-                    <span style={{ opacity: 0.7 }}> ({formatPrizeAmount(tournament.second_place_amount)})</span>
-                  )}
-                </div>
-              )}
-              {tournament.third_place_prize && (
-                <div style={{ fontSize: 14, opacity: 0.85 }}>
-                  <strong>3rd place:</strong> {tournament.third_place_prize}
-                  {tournament.third_place_amount && tournament.third_place_amount > 0 && (
-                    <span style={{ opacity: 0.7 }}> ({formatPrizeAmount(tournament.third_place_amount)})</span>
-                  )}
-                </div>
-              )}
-            </div>
+            🏆 WINNER TAKES THE POT
           </div>
-        )}
+          <div
+            style={{
+              fontFamily: "Sora, system-ui, sans-serif",
+              fontSize: 32,
+              fontWeight: 800,
+              color: "#ffd000",
+              lineHeight: 1.1,
+            }}
+          >
+            {(() => {
+              const fee = tournament.tournament_entry_fee_cents ?? 0;
+              const pot = fee * tournament.joined_teams_count;
+              return `$${(pot / 100).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+            })()}
+            <span style={{ fontSize: 14, fontWeight: 500, opacity: 0.7, marginLeft: 10 }}>
+              ({tournament.joined_teams_count} {tournament.joined_teams_count === 1 ? "team" : "teams"} registered)
+            </span>
+          </div>
+          <p style={{ fontSize: 13, opacity: 0.85, margin: "10px 0 0 0", lineHeight: 1.6 }}>
+            All Entry Fees go into one pot. The pot grows by{" "}
+            <strong style={{ color: "#ffd000" }}>
+              ${((tournament.tournament_entry_fee_cents ?? 0) / 100).toLocaleString("en-US")}
+            </strong>{" "}
+            for every team that joins.{" "}
+            <strong style={{ color: "#f7fbfb" }}>The team that wins the tournament takes the whole pot.</strong>{" "}
+            No individual winners, no split pot.
+          </p>
+        </div>
 
         {/* Strict scoring callout */}
         <div
@@ -803,30 +802,97 @@ export default async function PublicTournamentInfoPage({ params }: PageProps) {
                   ? "Pick which team is entering and confirm your registration."
                   : "Create your free coach account, then pick which team is entering and confirm registration."}
               </p>
-              <Link
-                href={ctaHref}
+
+              {/* L38 — Prominently displayed join code, always visible.
+                  This is the page someone lands on from the invitation
+                  email; the code should be impossible to miss. */}
+              <div
                 style={{
                   display: "inline-block",
-                  padding: "14px 32px",
-                  background: "#ff755f",
-                  color: "white",
-                  borderRadius: 999,
-                  fontWeight: 700,
-                  fontSize: 15,
-                  textDecoration: "none",
-                  letterSpacing: 0.3,
+                  margin: "0 auto 24px auto",
+                  padding: "18px 28px",
+                  background: "rgba(53, 213, 223, 0.08)",
+                  border: "2px solid rgba(53, 213, 223, 0.5)",
+                  borderRadius: 12,
+                  textAlign: "center",
+                  minWidth: 280,
                 }}
               >
-                {isLoggedIn
-                  ? `Join ${tournament.name} →`
-                  : `Sign up & join →`}
-              </Link>
-              <div style={{ fontSize: 12, opacity: 0.6, marginTop: 12 }}>
-                Or sign in and enter join code{" "}
-                <strong style={{ color: "#35d5df", letterSpacing: 2, fontFamily: "monospace" }}>
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 800,
+                    color: "#9fc3c7",
+                    letterSpacing: 1.8,
+                    textTransform: "uppercase",
+                    marginBottom: 8,
+                  }}
+                >
+                  Tournament Join Code
+                </div>
+                <div
+                  style={{
+                    fontFamily: "Sora, ui-monospace, monospace",
+                    fontSize: 36,
+                    fontWeight: 800,
+                    color: "#35d5df",
+                    letterSpacing: 6,
+                    lineHeight: 1.1,
+                  }}
+                >
                   {formatJoinCodeForDisplay(tournament.tournament_join_code)}
-                </strong>{" "}
-                at /join-tournament
+                </div>
+              </div>
+
+              {/* L38 — Accept + Decline buttons. Accept follows the existing
+                  signup→join path; Decline goes to a simple thank-you page
+                  (no DB tracking — invitation declines are an off-platform
+                  signal for now). */}
+              <div
+                style={{
+                  display: "flex",
+                  gap: 12,
+                  justifyContent: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                <Link
+                  href={ctaHref}
+                  style={{
+                    display: "inline-block",
+                    padding: "14px 32px",
+                    background: "#ff755f",
+                    color: "white",
+                    borderRadius: 999,
+                    fontWeight: 800,
+                    fontSize: 15,
+                    textDecoration: "none",
+                    letterSpacing: 0.3,
+                  }}
+                >
+                  ✓ Accept invitation →
+                </Link>
+                <Link
+                  href={`/tournament/${tournament.tournament_join_code}/declined`}
+                  style={{
+                    display: "inline-block",
+                    padding: "14px 32px",
+                    background: "transparent",
+                    color: "rgba(255, 255, 255, 0.75)",
+                    border: "1px solid rgba(255, 255, 255, 0.2)",
+                    borderRadius: 999,
+                    fontWeight: 700,
+                    fontSize: 14,
+                    textDecoration: "none",
+                  }}
+                >
+                  Decline
+                </Link>
+              </div>
+
+              <div style={{ fontSize: 12, opacity: 0.55, marginTop: 16, lineHeight: 1.5 }}>
+                Accept takes you to {isLoggedIn ? "the team picker" : "sign up / log in"}.
+                The join code above is what your team will use to register.
               </div>
             </>
           )}

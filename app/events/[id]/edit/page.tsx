@@ -546,6 +546,32 @@ export default function EditEventPage() {
               )}
             </div>
 
+            {eventType === "tournament" && (
+              <div className="form-section">
+                <h3 className="form-section-title">4. Prize — Winner Takes the Pot</h3>
+                <div
+                  style={{
+                    padding: 18,
+                    background: "rgba(255, 208, 0, 0.06)",
+                    border: "1px solid rgba(255, 208, 0, 0.3)",
+                    borderRadius: 10,
+                  }}
+                >
+                  <div style={{ fontSize: 11, fontWeight: 800, color: "#ffd000", letterSpacing: 1.5, marginBottom: 8 }}>
+                    🏆 AUTOMATIC POT
+                  </div>
+                  <p style={{ fontSize: 13, lineHeight: 1.6, margin: 0, opacity: 0.9 }}>
+                    Tournament prizes are automatic. Every joining team&apos;s
+                    Entry Fee goes into one pot, and the team that wins the
+                    tournament takes the whole pot.{" "}
+                    <strong style={{ color: "#ffd000" }}>No individual winners.</strong>{" "}
+                    Nothing to configure here.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {eventType !== "tournament" && (
             <div className="form-section">
               <h3 className="form-section-title">4. Prizes</h3>
 
@@ -679,6 +705,7 @@ export default function EditEventPage() {
                 </div>
               )}
             </div>
+            )}
 
             {/* Mini-Camp tier-mismatch warning */}
             {eventType === "mini-camp" && shouldAutoUpgradeToCamp({

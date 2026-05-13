@@ -141,9 +141,11 @@ export default async function SetupGuidePage() {
             <div className="e2k-compare-value">Per-team Entry Fee + strict scoring</div>
             <div className="e2k-compare-detail">
               The host sets a flat Entry Fee that other teams pay to compete.
-              Teams compete on strict-scored challenges — a team earns the
-              points for a challenge only when every player on its roster
-              completes it. Top teams win the prize pot.
+              All Entry Fees go into one pot. Teams compete on strict-scored
+              challenges — a team earns the points for a challenge only when
+              every player on its roster completes it.{" "}
+              <strong>The winning team takes the whole pot.</strong> No
+              individual winners, no split pot.
             </div>
           </div>
 
@@ -513,6 +515,13 @@ export default async function SetupGuidePage() {
                 tournament a true commitment contest — disciplined small rosters
                 can beat larger ones.
               </div>
+              <div className="e2k-walk-tip" style={{ marginTop: 8 }}>
+                <strong>🏆 Winner takes the pot:</strong> All Entry Fees from
+                joining teams go into one pot. The team that wins the tournament
+                takes the whole pot. No individual winners, no split pot, no
+                gift cards to configure — the pot is the prize, calculated
+                automatically as Entry Fee × teams registered.
+              </div>
             </div>
           </div>
 
@@ -664,8 +673,14 @@ export default async function SetupGuidePage() {
         <div className="help-faq">
           <h4 className="help-faq-q">Can I edit an event after it&apos;s created?</h4>
           <p className="help-faq-a">
-            Most fields yes — name, dates, fundraising goal, prize structure,
-            challenges. Event type (Camp vs Tournament) cannot be changed.
+            Most fields yes — name, dates, challenges. For
+            <strong> Camp/Mini-Camp</strong> you can also edit the per-player
+            fundraising goal and the prize structure (1st/2nd/3rd place gift
+            cards). For <strong>Tournament</strong> you can edit the Entry
+            Fee, max teams, registration deadline, and approval mode — the
+            prize is automatic (winner takes the pot, no gift cards to
+            configure). Event type itself (Camp vs Tournament) cannot be
+            changed after creation.
           </p>
         </div>
       </div>
