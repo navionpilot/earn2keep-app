@@ -2965,6 +2965,8 @@ a:hover {
   font-size: 13px;
   font-weight: 700;
   padding: 7px 14px;
+  min-width: 100px;
+  text-align: center;
   border: 1.5px solid var(--color-border);
   border-radius: 999px;
   cursor: pointer;
@@ -3923,6 +3925,8 @@ a:hover {
   white-space: nowrap;
   padding: 10px 14px;
   font-size: 13px;
+  min-width: 110px;
+  text-align: center;
 }
 
 .library-grid {
@@ -11790,6 +11794,8 @@ input.form-input-with-prefix {
   white-space: nowrap !important;
   padding: 10px 14px !important;
   font-size: 13px !important;
+  min-width: 110px !important;
+  text-align: center !important;
 }
 
 .library-card {
@@ -11868,6 +11874,8 @@ input.form-input-with-prefix {
   border: 1px solid var(--e2k-border-strong) !important;
   color: var(--e2k-text-muted) !important;
   font-weight: 700 !important;
+  min-width: 100px !important;
+  text-align: center !important;
   transition: background 150ms ease, border-color 150ms ease, color 150ms ease !important;
 }
 .filter-chip:hover {
